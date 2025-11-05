@@ -19,9 +19,31 @@ Professional toolkit for creating and maintaining scalable design systems.
 ### design_token_generator.py
 Generates complete design system tokens from brand colors.
 
-**Usage**: `python scripts/design_token_generator.py [brand_color] [style] [format]`
-- Styles: modern, classic, playful
-- Formats: json, css, scss
+**Usage:**
+```bash
+# Modern style, JSON output
+python3 scripts/design_token_generator.py --brand "#0066CC" --style modern
+
+# CSS export
+python3 scripts/design_token_generator.py --brand "#0066CC" --style modern --output css
+
+# Save to file
+python3 scripts/design_token_generator.py --brand "#0066CC" --style modern -o json -f tokens.json
+
+# SCSS format
+python3 scripts/design_token_generator.py --brand "#0066CC" --style classic --output scss
+
+# Verbose mode
+python3 scripts/design_token_generator.py --brand "#0066CC" --style playful -v
+```
+
+**Available Options:**
+- `--brand`: Brand color in hex format (required) - e.g., "#0066CC"
+- `--style`: Design style (modern, classic, playful) - default: modern
+- `--output/-o`: Output format (json, css, scss) - default: json
+- `--file/-f`: Write output to file instead of stdout
+- `--verbose/-v`: Enable detailed output
+- `--help`: Show help message with examples
 
 **Features**:
 - Complete color palette generation

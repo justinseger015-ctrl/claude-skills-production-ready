@@ -23,15 +23,83 @@ CEO, chief executive officer, executive leadership, strategic planning, board go
 
 ### For Strategic Planning
 ```bash
-python scripts/strategy_analyzer.py
+# Create company data JSON file (see example below)
+# Run strategic analysis
+python scripts/strategy_analyzer.py company_data.json
+
+# Generate JSON output for board presentations
+python scripts/strategy_analyzer.py company_data.json --output json
+
+# Save report to file
+python scripts/strategy_analyzer.py company_data.json -o json -f strategy_report.json
+
+# View help and JSON schema
+python scripts/strategy_analyzer.py --help
 ```
-Analyzes strategic position and generates actionable recommendations.
+
+Example `company_data.json`:
+```json
+{
+  "name": "TechCorp Inc.",
+  "market_position": {"market_share": 35, "brand_strength": 65, "competitive_advantage": 70},
+  "financial_health": {"revenue_growth": 45, "profitability": 40, "cash_flow": 55},
+  "organizational_capability": {"talent": 70, "culture": 65, "leadership": 75},
+  "growth_potential": {"market_size": 80, "expansion_opportunities": 70},
+  "competitive_forces": {"rivalry": 70, "suppliers": 40, "buyers": 60},
+  "context": {"industry_disruption": true, "cash_available": 150000000},
+  "timeline": 18
+}
+```
+
+Analyzes strategic position using SWOT, Porter's Five Forces, and BCG Matrix.
 
 ### For Financial Scenarios
 ```bash
-python scripts/financial_scenario_analyzer.py
+# Create scenarios JSON file (see example below)
+# Run financial analysis
+python scripts/financial_scenario_analyzer.py scenarios.json
+
+# Generate JSON output for executive dashboards
+python scripts/financial_scenario_analyzer.py scenarios.json --output json
+
+# Save report to file
+python scripts/financial_scenario_analyzer.py scenarios.json -o json -f analysis.json
+
+# View help and JSON schema
+python scripts/financial_scenario_analyzer.py --help
 ```
-Models different business scenarios with risk-adjusted projections.
+
+Example `scenarios.json`:
+```json
+{
+  "base_case": {
+    "revenue": 5000000,
+    "cogs": 1500000,
+    "operating_expenses": 3000000,
+    "cash": 2000000,
+    "burn_rate": 200000,
+    "valuation": 20000000
+  },
+  "scenarios": [
+    {
+      "name": "Aggressive Growth",
+      "probability": 0.3,
+      "growth_model": "exponential",
+      "growth_rate": 0.5,
+      "cogs_ratio": 0.25,
+      "discount_rate": 0.12
+    },
+    {
+      "name": "Moderate Growth",
+      "probability": 0.5,
+      "growth_rate": 0.3,
+      "cogs_ratio": 0.3
+    }
+  ]
+}
+```
+
+Models scenarios with NPV, IRR, and risk-adjusted projections.
 
 ### For Decision Making
 Review `references/executive_decision_framework.md` for structured decision processes.
@@ -82,9 +150,12 @@ Q4: Communication & Launch
 ### 2. Capital & Resource Management
 
 #### Capital Allocation Framework
-```python
+```bash
 # Run financial scenario analysis
-python scripts/financial_scenario_analyzer.py
+python scripts/financial_scenario_analyzer.py scenarios.json
+
+# Generate report for board
+python scripts/financial_scenario_analyzer.py scenarios.json -o json -f capital_allocation.json
 
 # Allocation priorities:
 1. Core Operations (40-50%)

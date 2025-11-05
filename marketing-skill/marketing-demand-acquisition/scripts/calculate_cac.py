@@ -7,6 +7,7 @@ Supports multiple time periods and channel breakdowns.
 """
 
 import sys
+import json
 from typing import Dict, List
 
 def calculate_cac(total_spend: float, customers_acquired: int) -> float:
@@ -52,50 +53,252 @@ def calculate_channel_cac(channel_data: List[Dict]) -> Dict:
     
     return results
 
-def print_results(results: Dict):
-    """Pretty print CAC results"""
-    print("\n" + "="*60)
-    print("CAC CALCULATION RESULTS")
-    print("="*60 + "\n")
-    
+def format_text_output(results: Dict, show_benchmarks: bool = False) -> str:
+    """Format CAC results as text"""
+    output = []
+    output.append("=" * 60)
+    output.append("CAC CALCULATION RESULTS")
+    output.append("=" * 60)
+    output.append("")
+
     for channel, data in results.items():
         if channel == 'blended':
-            print("-"*60)
-            print(f"BLENDED CAC")
-            print(f"  Total Spend: ${data['total_spend']:,.2f}")
-            print(f"  Total Customers: {data['total_customers']:,}")
-            print(f"  Blended CAC: ${data['blended_cac']:,.2f}")
+            output.append("-" * 60)
+            output.append("BLENDED CAC")
+            output.append(f"  Total Spend: ${data['total_spend']:,.2f}")
+            output.append(f"  Total Customers: {data['total_customers']:,}")
+            output.append(f"  Blended CAC: ${data['blended_cac']:,.2f}")
         else:
-            print(f"{channel.upper()}")
-            print(f"  Spend: ${data['spend']:,.2f}")
-            print(f"  Customers: {data['customers']:,}")
-            print(f"  CAC: ${data['cac']:,.2f}")
-            print()
+            output.append(f"{channel.upper()}")
+            output.append(f"  Spend: ${data['spend']:,.2f}")
+            output.append(f"  Customers: {data['customers']:,}")
+            output.append(f"  CAC: ${data['cac']:,.2f}")
+            output.append("")
+
+    if show_benchmarks:
+        output.append("")
+        output.append("=" * 60)
+        output.append("B2B SAAS BENCHMARKS (Series A)")
+        output.append("=" * 60)
+        output.append("LinkedIn Ads:   $150-$400")
+        output.append("Google Search:  $80-$250")
+        output.append("SEO/Organic:    $50-$150")
+        output.append("Partnerships:   $100-$300")
+        output.append("Blended Target: <$300")
+
+    return '\n'.join(output)
+
+def format_json_output(results: Dict) -> str:
+    """Format CAC results as JSON"""
+    output = {
+        "metadata": {
+            "tool": "calculate_cac.py",
+            "version": "1.0.0"
+        },
+        "results": results,
+        "benchmarks": {
+            "linkedin_ads": {"min": 150, "max": 400},
+            "google_search": {"min": 80, "max": 250},
+            "seo_organic": {"min": 50, "max": 150},
+            "partnerships": {"min": 100, "max": 300},
+            "blended_target": {"max": 300}
+        }
+    }
+    return json.dumps(output, indent=2)
+
+def load_channel_data_from_json(file_path: str) -> List[Dict]:
+    """Load channel data from JSON file"""
+    import json
+    from pathlib import Path
+
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+
+    # Support both array format and object format
+    if isinstance(data, list):
+        return data
+    elif isinstance(data, dict) and 'channels' in data:
+        return data['channels']
+    else:
+        raise ValueError("JSON file must contain an array of channel data or an object with 'channels' key")
 
 def main():
-    # Example data - replace with your actual numbers
-    example_data = [
-        {'channel': 'LinkedIn Ads', 'spend': 15000, 'customers': 10},
-        {'channel': 'Google Search', 'spend': 12000, 'customers': 20},
-        {'channel': 'SEO/Organic', 'spend': 5000, 'customers': 15},
-        {'channel': 'Partnerships', 'spend': 3000, 'customers': 5},
+    import argparse
+    from pathlib import Path
+
+    parser = argparse.ArgumentParser(
+        description='Calculate Customer Acquisition Cost (CAC) for marketing channels',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Calculate from JSON file
+  %(prog)s channel-data.json
+
+  # With JSON output
+  %(prog)s channel-data.json --output json
+
+  # Save to file with benchmarks
+  %(prog)s channel-data.json --benchmarks --file results.txt
+
+  # Use example data
+  %(prog)s --example
+
+JSON Input Format:
+  [
+    {"channel": "LinkedIn Ads", "spend": 15000, "customers": 10},
+    {"channel": "Google Search", "spend": 12000, "customers": 20}
+  ]
+
+Or:
+  {
+    "channels": [
+      {"channel": "LinkedIn Ads", "spend": 15000, "customers": 10}
     ]
-    
-    print("Marketing CAC Calculator")
-    print("Edit the script to input your actual channel data\n")
-    
-    results = calculate_channel_cac(example_data)
-    print_results(results)
-    
-    # CAC benchmarks
-    print("\n" + "="*60)
-    print("B2B SAAS BENCHMARKS (Series A)")
-    print("="*60)
-    print("LinkedIn Ads:   $150-$400")
-    print("Google Search:  $80-$250")
-    print("SEO/Organic:    $50-$150")
-    print("Partnerships:   $100-$300")
-    print("Blended Target: <$300")
+  }
+
+For more information, see the skill documentation.
+        """
+    )
+
+    # Positional arguments
+    parser.add_argument(
+        'input',
+        nargs='?',
+        help='JSON file with channel data (or use --example)'
+    )
+
+    # Optional arguments
+    parser.add_argument(
+        '--example',
+        action='store_true',
+        help='Run with example data (no input file needed)'
+    )
+
+    parser.add_argument(
+        '--benchmarks', '-b',
+        action='store_true',
+        help='Include B2B SaaS benchmark data in output'
+    )
+
+    parser.add_argument(
+        '--output', '-o',
+        choices=['text', 'json'],
+        default='text',
+        help='Output format: text (default) or json'
+    )
+
+    parser.add_argument(
+        '--file', '-f',
+        help='Write output to file instead of stdout'
+    )
+
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Enable verbose output with detailed information'
+    )
+
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 1.0.0'
+    )
+
+    args = parser.parse_args()
+
+    try:
+        # Get channel data
+        if args.example:
+            if args.verbose:
+                print("Using example channel data", file=sys.stderr)
+
+            channel_data = [
+                {'channel': 'LinkedIn Ads', 'spend': 15000, 'customers': 10},
+                {'channel': 'Google Search', 'spend': 12000, 'customers': 20},
+                {'channel': 'SEO/Organic', 'spend': 5000, 'customers': 15},
+                {'channel': 'Partnerships', 'spend': 3000, 'customers': 5},
+            ]
+        elif args.input:
+            # Validate input file
+            input_path = Path(args.input)
+
+            if not input_path.exists():
+                print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+                sys.exit(1)
+
+            if not input_path.is_file():
+                print(f"Error: Path is not a file: {args.input}", file=sys.stderr)
+                sys.exit(1)
+
+            if args.verbose:
+                print(f"Reading channel data from: {args.input}", file=sys.stderr)
+
+            try:
+                channel_data = load_channel_data_from_json(str(input_path))
+            except json.JSONDecodeError as e:
+                print(f"Error: Invalid JSON file: {e}", file=sys.stderr)
+                sys.exit(3)
+            except ValueError as e:
+                print(f"Error: {e}", file=sys.stderr)
+                sys.exit(3)
+        else:
+            print("Error: Either provide an input file or use --example", file=sys.stderr)
+            print("Run with --help for usage information", file=sys.stderr)
+            sys.exit(2)
+
+        if args.verbose:
+            print(f"Processing {len(channel_data)} channels...", file=sys.stderr)
+
+        # Calculate CAC
+        results = calculate_channel_cac(channel_data)
+
+        # Format output
+        if args.output == 'json':
+            output = format_json_output(results)
+        else:
+            output = format_text_output(results, show_benchmarks=args.benchmarks)
+
+        # Write output
+        if args.file:
+            try:
+                output_path = Path(args.file)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(output)
+
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+
+            except PermissionError:
+                print(f"Error: Permission denied writing to: {args.file}", file=sys.stderr)
+                sys.exit(4)
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            print(output)
+
+        sys.exit(0)
+
+    except FileNotFoundError as e:
+        print(f"Error: File not found: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except PermissionError as e:
+        print(f"Error: Permission denied: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

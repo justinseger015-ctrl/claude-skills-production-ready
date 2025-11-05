@@ -1,11 +1,27 @@
 #!/usr/bin/env python3
 """
 Engineering Team Scaling Calculator - Optimize team growth and structure
+
+This tool helps CTOs and engineering leaders plan optimal team scaling strategies,
+including hiring plans, budget projections, and organizational structure design.
+
+Usage:
+    python team_scaling_calculator.py team_data.json
+    python team_scaling_calculator.py team_data.json --output json
+    python team_scaling_calculator.py team_data.json -o json -f report.json
+
+Author: claude-skills
+Version: 2.0.0
+Last Updated: 2025-11-05
 """
 
+import argparse
 import json
 import math
+import sys
+from pathlib import Path
 from typing import Dict, List, Tuple
+from datetime import datetime
 
 class TeamScalingCalculator:
     def __init__(self):
@@ -310,21 +326,23 @@ class TeamScalingCalculator:
     def _calculate_budget(self, hiring_plan: Dict, location: str) -> Dict:
         """Calculate budget projection"""
         # Average salaries by role and location (in USD)
+        us_salaries = {
+            'engineering_manager': 200000,
+            'tech_lead': 180000,
+            'senior_engineer': 160000,
+            'mid_engineer': 120000,
+            'junior_engineer': 85000,
+            'devops': 150000,
+            'qa': 100000,
+            'product_manager': 150000,
+            'designer': 120000,
+            'data_engineer': 140000
+        }
+
         salary_bands = {
-            'US': {
-                'engineering_manager': 200000,
-                'tech_lead': 180000,
-                'senior_engineer': 160000,
-                'mid_engineer': 120000,
-                'junior_engineer': 85000,
-                'devops': 150000,
-                'qa': 100000,
-                'product_manager': 150000,
-                'designer': 120000,
-                'data_engineer': 140000
-            },
-            'EU': {k: v * 0.8 for k, v in salary_bands.get('US', {}).items()},
-            'APAC': {k: v * 0.6 for k, v in salary_bands.get('US', {}).items()}
+            'US': us_salaries,
+            'EU': {k: v * 0.8 for k, v in us_salaries.items()},
+            'APAC': {k: v * 0.6 for k, v in us_salaries.items()}
         }
         
         location_salaries = salary_bands.get(location, salary_bands['US'])
@@ -429,7 +447,7 @@ def calculate_team_scaling(current_state: Dict, growth_targets: Dict) -> str:
     """Main function to calculate team scaling"""
     calculator = TeamScalingCalculator()
     results = calculator.calculate_scaling_plan(current_state, growth_targets)
-    
+
     # Format output
     output = [
         "=== Engineering Team Scaling Plan ===",
@@ -447,31 +465,31 @@ def calculate_team_scaling(current_state: Dict, growth_targets: Dict) -> str:
         f"",
         "Quarterly Timeline:"
     ]
-    
+
     for quarter in results['growth_timeline']:
         output.append(
             f"  {quarter['quarter']}: {quarter['headcount']} total "
             f"(+{quarter['new_hires']} hires, "
             f"{quarter['productivity_factor']:.0%} productivity)"
         )
-    
+
     output.extend([
         f"",
         "Hiring Priorities:"
     ])
-    
+
     sorted_roles = sorted(
         results['hiring_plan']['by_role'].items(),
         key=lambda x: x[1]['priority'],
         reverse=True
     )
-    
+
     for role, details in sorted_roles[:5]:
         output.append(
             f"  {role}: {details['hires_needed']} hires "
             f"(Priority: {details['priority']}/10)"
         )
-    
+
     output.extend([
         f"",
         f"Budget Projection:",
@@ -486,31 +504,220 @@ def calculate_team_scaling(current_state: Dict, growth_targets: Dict) -> str:
         f"",
         "Key Recommendations:"
     ])
-    
+
     for rec in results['recommendations']:
         output.append(f"  • {rec}")
-    
+
     return '\n'.join(output)
 
-if __name__ == "__main__":
-    # Example usage
-    example_current = {
-        'headcount': 25,
-        'velocity': 450,
-        'roles': {
-            'engineering_manager': 2,
-            'tech_lead': 3,
-            'senior_engineer': 8,
-            'mid_engineer': 10,
-            'junior_engineer': 2
+
+def format_json_output(current_state: Dict, growth_targets: Dict) -> str:
+    """Format results as JSON with metadata"""
+    calculator = TeamScalingCalculator()
+    results = calculator.calculate_scaling_plan(current_state, growth_targets)
+
+    output = {
+        "metadata": {
+            "tool": "team_scaling_calculator.py",
+            "version": "2.0.0",
+            "timestamp": datetime.utcnow().isoformat() + "Z"
         },
-        'attrition_rate': 12,
-        'location': 'US'
+        "inputs": {
+            "current_state": current_state,
+            "growth_targets": growth_targets
+        },
+        "results": results
     }
-    
-    example_targets = {
-        'target_headcount': 75,
-        'timeline_quarters': 4
+
+    return json.dumps(output, indent=2)
+
+
+def main():
+    """
+    Main entry point with standardized argument parsing.
+
+    Parses command-line arguments, validates input, calculates team scaling,
+    and writes output in the specified format.
+    """
+    parser = argparse.ArgumentParser(
+        description='Calculate optimal engineering team scaling strategy with hiring plans and budget projections',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Basic analysis with text output
+  %(prog)s team_data.json
+
+  # JSON output for dashboards
+  %(prog)s team_data.json --output json
+
+  # Save to file
+  %(prog)s team_data.json -o json -f scaling_plan.json
+
+  # Verbose mode with detailed logging
+  %(prog)s team_data.json -v
+
+Input JSON Format:
+  {
+    "current_state": {
+      "headcount": 25,
+      "velocity": 450,
+      "roles": {
+        "engineering_manager": 2,
+        "senior_engineer": 8,
+        "mid_engineer": 10
+      },
+      "attrition_rate": 12,
+      "location": "US"
+    },
+    "growth_targets": {
+      "target_headcount": 75,
+      "timeline_quarters": 4
     }
-    
-    print(calculate_team_scaling(example_current, example_targets))
+  }
+
+For more information, see:
+c-level-advisor/cto-advisor/SKILL.md
+        """
+    )
+
+    # Positional arguments
+    parser.add_argument(
+        'input',
+        help='JSON file with team data (current state and growth targets)'
+    )
+
+    # Optional arguments
+    parser.add_argument(
+        '--output', '-o',
+        choices=['text', 'json'],
+        default='text',
+        help='Output format: text (default) or json'
+    )
+
+    parser.add_argument(
+        '--file', '-f',
+        help='Write output to file instead of stdout'
+    )
+
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Enable verbose output with detailed information'
+    )
+
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 2.0.0'
+    )
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    try:
+        # Validate input file
+        input_path = Path(args.input)
+
+        if not input_path.exists():
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        if not input_path.is_file():
+            print(f"Error: Path is not a file: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Read input content
+        if args.verbose:
+            print(f"Reading input file: {args.input}", file=sys.stderr)
+
+        try:
+            with open(input_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON in input file: {e}", file=sys.stderr)
+            sys.exit(1)
+        except UnicodeDecodeError:
+            print(f"Error: Unable to read file as UTF-8 text: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate required fields
+        if 'current_state' not in data:
+            print("Error: Input JSON must contain 'current_state' object", file=sys.stderr)
+            sys.exit(1)
+
+        if 'growth_targets' not in data:
+            print("Error: Input JSON must contain 'growth_targets' object", file=sys.stderr)
+            sys.exit(1)
+
+        current_state = data['current_state']
+        growth_targets = data['growth_targets']
+
+        # Validate required fields in current_state
+        if 'headcount' not in current_state:
+            print("Error: current_state must contain 'headcount' field", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate required fields in growth_targets
+        if 'target_headcount' not in growth_targets:
+            print("Error: growth_targets must contain 'target_headcount' field", file=sys.stderr)
+            sys.exit(1)
+
+        if args.verbose:
+            print(f"Calculating scaling plan from {current_state['headcount']} to {growth_targets['target_headcount']} headcount...", file=sys.stderr)
+
+        # Process data
+        if args.output == 'json':
+            output = format_json_output(current_state, growth_targets)
+        else:  # text (default)
+            output = calculate_team_scaling(current_state, growth_targets)
+
+        # Write output to file or stdout
+        if args.file:
+            try:
+                output_path = Path(args.file)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(output)
+
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+
+            except PermissionError:
+                print(f"Error: Permission denied writing to: {args.file}", file=sys.stderr)
+                sys.exit(4)
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            # Print to stdout
+            print(output)
+
+        # Success
+        sys.exit(0)
+
+    except FileNotFoundError as e:
+        print(f"Error: File not found: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except PermissionError as e:
+        print(f"Error: Permission denied: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except ValueError as e:
+        print(f"Error: Invalid input: {e}", file=sys.stderr)
+        sys.exit(3)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()

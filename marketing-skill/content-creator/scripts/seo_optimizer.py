@@ -341,18 +341,22 @@ class SEOOptimizer:
         
         return recommendations
 
-def optimize_content(content: str, keyword: str = None, 
-                     secondary_keywords: List[str] = None) -> str:
+def optimize_content(content: str, keyword: str = None,
+                     secondary_keywords: List[str] = None, output_format: str = 'text') -> str:
     """Main function to optimize content"""
     optimizer = SEOOptimizer()
-    
+
     # Parse secondary keywords from comma-separated string if provided
     if secondary_keywords and isinstance(secondary_keywords, str):
         secondary_keywords = [kw.strip() for kw in secondary_keywords.split(',')]
-    
+
     results = optimizer.analyze(content, keyword, secondary_keywords)
-    
-    # Format output
+
+    # Return JSON format if requested
+    if output_format == 'json':
+        return json.dumps(results, indent=2)
+
+    # Format text output
     output = [
         "=== SEO Content Analysis ===",
         f"Overall SEO Score: {results['optimization_score']}/100",
@@ -368,7 +372,7 @@ def optimize_content(content: str, keyword: str = None,
         f"Readability: {results['readability']['level']} (Score: {results['readability']['score']})",
         f""
     ]
-    
+
     if results['keyword_analysis']:
         kw = results['keyword_analysis']['primary_keyword']
         output.extend([
@@ -379,13 +383,13 @@ def optimize_content(content: str, keyword: str = None,
             f"  In First Paragraph: {'Yes' if kw['in_first_paragraph'] else 'No'}",
             f""
         ])
-        
+
         if results['keyword_analysis']['lsi_keywords']:
             output.append("  Related Keywords Found:")
             for lsi in results['keyword_analysis']['lsi_keywords'][:5]:
                 output.append(f"    • {lsi}")
             output.append("")
-    
+
     if results['meta_suggestions']:
         output.extend([
             "Meta Tag Suggestions:",
@@ -394,26 +398,157 @@ def optimize_content(content: str, keyword: str = None,
             f"  URL Slug: {results['meta_suggestions']['url_slug']}",
             f""
         ])
-    
+
     output.extend([
         "Recommendations:",
     ])
-    
+
     for rec in results['recommendations']:
         output.append(f"  • {rec}")
-    
+
     return '\n'.join(output)
 
 if __name__ == "__main__":
     import sys
-    
-    if len(sys.argv) > 1:
-        with open(sys.argv[1], 'r') as f:
-            content = f.read()
-        
-        keyword = sys.argv[2] if len(sys.argv) > 2 else None
-        secondary = sys.argv[3] if len(sys.argv) > 3 else None
-        
-        print(optimize_content(content, keyword, secondary))
-    else:
-        print("Usage: python seo_optimizer.py <file> [primary_keyword] [secondary_keywords]")
+    import argparse
+    from pathlib import Path
+
+    parser = argparse.ArgumentParser(
+        description='SEO content optimizer with keyword analysis',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Basic analysis
+  %(prog)s content.txt
+
+  # With keyword targeting
+  %(prog)s content.txt --keyword "python programming"
+
+  # With secondary keywords
+  %(prog)s content.txt -k "python" -s "coding,development,tutorial"
+
+  # JSON output to file
+  %(prog)s content.txt -k "python" -o json -f results.json
+
+For more information, see the skill documentation.
+        """
+    )
+
+    # Positional arguments
+    parser.add_argument(
+        'input',
+        help='Content file to optimize'
+    )
+
+    # Optional arguments
+    parser.add_argument(
+        '--keyword', '-k',
+        help='Primary keyword for optimization'
+    )
+
+    parser.add_argument(
+        '--secondary', '-s',
+        help='Comma-separated secondary keywords'
+    )
+
+    parser.add_argument(
+        '--output', '-o',
+        choices=['text', 'json'],
+        default='text',
+        help='Output format: text (default) or json'
+    )
+
+    parser.add_argument(
+        '--file', '-f',
+        help='Write output to file instead of stdout'
+    )
+
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Enable verbose output with detailed information'
+    )
+
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 1.0.0'
+    )
+
+    args = parser.parse_args()
+
+    try:
+        # Validate input file
+        input_path = Path(args.input)
+
+        if not input_path.exists():
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        if not input_path.is_file():
+            print(f"Error: Path is not a file: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Read content
+        if args.verbose:
+            print(f"Reading input file: {args.input}", file=sys.stderr)
+
+        try:
+            with open(input_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except UnicodeDecodeError:
+            print(f"Error: Unable to read file as text: {args.input}", file=sys.stderr)
+            print("Hint: Ensure file is UTF-8 encoded text", file=sys.stderr)
+            sys.exit(1)
+
+        if args.verbose:
+            print(f"Processing {len(content)} characters...", file=sys.stderr)
+            if args.keyword:
+                print(f"Primary keyword: {args.keyword}", file=sys.stderr)
+            if args.secondary:
+                print(f"Secondary keywords: {args.secondary}", file=sys.stderr)
+
+        # Process content
+        output = optimize_content(content, args.keyword, args.secondary, args.output)
+
+        # Write output
+        if args.file:
+            try:
+                output_path = Path(args.file)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(output)
+
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+
+            except PermissionError:
+                print(f"Error: Permission denied writing to: {args.file}", file=sys.stderr)
+                sys.exit(4)
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            print(output)
+
+        sys.exit(0)
+
+    except FileNotFoundError as e:
+        print(f"Error: File not found: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except PermissionError as e:
+        print(f"Error: Permission denied: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)

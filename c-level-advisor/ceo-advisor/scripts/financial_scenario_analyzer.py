@@ -1,11 +1,27 @@
 #!/usr/bin/env python3
 """
 Financial Scenario Analyzer - Model different business scenarios and their financial impact
+
+This tool helps CEOs and CFOs model different business scenarios, project financial outcomes,
+perform sensitivity analysis, and make risk-adjusted investment decisions.
+
+Usage:
+    python financial_scenario_analyzer.py scenarios.json
+    python financial_scenario_analyzer.py scenarios.json --output json
+    python financial_scenario_analyzer.py scenarios.json -o json -f report.json
+
+Author: claude-skills
+Version: 2.0.0
+Last Updated: 2025-11-05
 """
 
+import argparse
 import json
-from typing import Dict, List, Tuple
 import math
+import sys
+from pathlib import Path
+from typing import Dict, List, Tuple
+from datetime import datetime
 
 class FinancialScenarioAnalyzer:
     def __init__(self):
@@ -339,7 +355,7 @@ def analyze_financial_scenarios(base_case: Dict, scenarios: List[Dict]) -> str:
     """Main function to analyze financial scenarios"""
     analyzer = FinancialScenarioAnalyzer()
     results = analyzer.analyze_scenarios(base_case, scenarios)
-    
+
     # Format output
     output = [
         "=== Financial Scenario Analysis ===",
@@ -352,20 +368,20 @@ def analyze_financial_scenarios(base_case: Dict, scenarios: List[Dict]) -> str:
         "",
         "Scenario Analysis:"
     ]
-    
+
     for scenario in results['scenario_analysis']:
         output.append(f"\n{scenario['name']} (Probability: {scenario['probability']:.0%})")
         output.append(f"  NPV: ${scenario['npv']:,.0f}")
         output.append(f"  IRR: {scenario['irr']:.1%}")
         output.append(f"  Break-even: {scenario['break_even_month']} months")
         output.append(f"  Return Multiple: {scenario['total_return']:.1f}x")
-        
+
         # Show Year 3 projection
         if scenario['projections']:
             year3 = scenario['projections'][-1]
             output.append(f"  Year 3 Revenue: ${year3['revenue']:,.0f}")
             output.append(f"  Year 3 EBITDA Margin: {year3['ebitda_margin']:.1f}%")
-    
+
     output.extend([
         "",
         "Risk-Adjusted Analysis:",
@@ -379,73 +395,234 @@ def analyze_financial_scenarios(base_case: Dict, scenarios: List[Dict]) -> str:
         "",
         "Rationale:"
     ])
-    
+
     for reason in results['recommendation']['rationale']:
         output.append(f"  • {reason}")
-    
+
     output.extend([
         "",
         "Key Actions:"
     ])
-    
+
     for action in results['recommendation']['key_actions'][:3]:
         output.append(f"  • {action}")
-    
+
     return '\n'.join(output)
 
-if __name__ == "__main__":
-    # Example usage
-    example_base_case = {
-        'revenue': 5000000,
-        'cogs': 1500000,
-        'operating_expenses': 3000000,
-        'cash': 2000000,
-        'burn_rate': 200000,
-        'valuation': 20000000,
-        'initial_investment': 5000000
+
+def format_json_output(base_case: Dict, scenarios: List[Dict]) -> str:
+    """Format results as JSON with metadata"""
+    analyzer = FinancialScenarioAnalyzer()
+    results = analyzer.analyze_scenarios(base_case, scenarios)
+
+    output = {
+        "metadata": {
+            "tool": "financial_scenario_analyzer.py",
+            "version": "2.0.0",
+            "timestamp": datetime.now().isoformat()
+        },
+        "inputs": {
+            "base_case": base_case,
+            "scenarios": scenarios
+        },
+        "results": results
     }
-    
-    example_scenarios = [
-        {
-            'name': 'Aggressive Growth',
-            'probability': 0.3,
-            'growth_model': 'exponential',
-            'growth_rate': 0.5,
-            'changes': {
-                'operating_expenses': {'multiply': 1.3}
-            },
-            'assumptions': ['Market expansion successful', 'Product-market fit achieved'],
-            'cogs_ratio': 0.25,
-            'opex_growth': 0.3,
-            'capex_ratio': 0.08,
-            'discount_rate': 0.12
-        },
-        {
-            'name': 'Moderate Growth',
-            'probability': 0.5,
-            'growth_model': 'exponential',
-            'growth_rate': 0.3,
-            'changes': {},
-            'assumptions': ['Steady market growth', 'Competition remains stable'],
-            'cogs_ratio': 0.3,
-            'opex_growth': 0.15,
-            'capex_ratio': 0.05,
-            'discount_rate': 0.10
-        },
-        {
-            'name': 'Conservative',
-            'probability': 0.2,
-            'growth_model': 'linear',
-            'growth_rate': 0.15,
-            'changes': {
-                'operating_expenses': {'multiply': 0.9}
-            },
-            'assumptions': ['Market headwinds', 'Focus on profitability'],
-            'cogs_ratio': 0.35,
-            'opex_growth': 0.05,
-            'capex_ratio': 0.03,
-            'discount_rate': 0.08
-        }
+
+    return json.dumps(output, indent=2)
+
+
+def main():
+    """
+    Main entry point with standardized argument parsing.
+
+    Parses command-line arguments, validates input, performs financial scenario analysis,
+    and writes output in the specified format.
+    """
+    parser = argparse.ArgumentParser(
+        description='Analyze financial scenarios with NPV, IRR, risk-adjusted returns, and strategic recommendations',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Basic analysis with text output
+  %(prog)s scenarios.json
+
+  # JSON output for executive dashboards
+  %(prog)s scenarios.json --output json
+
+  # Save to file
+  %(prog)s scenarios.json -o json -f analysis.json
+
+  # Verbose mode with detailed logging
+  %(prog)s scenarios.json -v
+
+Input JSON Format:
+  {
+    "base_case": {
+      "revenue": 5000000,
+      "cogs": 1500000,
+      "operating_expenses": 3000000,
+      "cash": 2000000,
+      "burn_rate": 200000,
+      "valuation": 20000000,
+      "initial_investment": 5000000
+    },
+    "scenarios": [
+      {
+        "name": "Aggressive Growth",
+        "probability": 0.3,
+        "growth_model": "exponential",
+        "growth_rate": 0.5,
+        "cogs_ratio": 0.25,
+        "opex_growth": 0.3,
+        "discount_rate": 0.12
+      }
     ]
-    
-    print(analyze_financial_scenarios(example_base_case, example_scenarios))
+  }
+
+For more information, see:
+c-level-advisor/ceo-advisor/SKILL.md
+        """
+    )
+
+    # Positional arguments
+    parser.add_argument(
+        'input',
+        help='JSON file with base case and scenario data'
+    )
+
+    # Optional arguments
+    parser.add_argument(
+        '--output', '-o',
+        choices=['text', 'json'],
+        default='text',
+        help='Output format: text (default) or json'
+    )
+
+    parser.add_argument(
+        '--file', '-f',
+        help='Write output to file instead of stdout'
+    )
+
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Enable verbose output with detailed information'
+    )
+
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 2.0.0'
+    )
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    try:
+        # Validate input file
+        input_path = Path(args.input)
+
+        if not input_path.exists():
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        if not input_path.is_file():
+            print(f"Error: Path is not a file: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Read input content
+        if args.verbose:
+            print(f"Reading input file: {args.input}", file=sys.stderr)
+
+        try:
+            with open(input_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON in input file: {e}", file=sys.stderr)
+            sys.exit(1)
+        except UnicodeDecodeError:
+            print(f"Error: Unable to read file as UTF-8 text: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate required fields
+        if 'base_case' not in data:
+            print("Error: Input JSON must contain 'base_case' object", file=sys.stderr)
+            sys.exit(1)
+
+        if 'scenarios' not in data:
+            print("Error: Input JSON must contain 'scenarios' array", file=sys.stderr)
+            sys.exit(1)
+
+        base_case = data['base_case']
+        scenarios = data['scenarios']
+
+        # Validate base_case has required fields
+        required_fields = ['revenue', 'cogs', 'operating_expenses']
+        for field in required_fields:
+            if field not in base_case:
+                print(f"Error: base_case must contain '{field}' field", file=sys.stderr)
+                sys.exit(1)
+
+        if not scenarios or len(scenarios) == 0:
+            print("Error: scenarios array must contain at least one scenario", file=sys.stderr)
+            sys.exit(1)
+
+        if args.verbose:
+            print(f"Analyzing {len(scenarios)} financial scenarios...", file=sys.stderr)
+
+        # Process data
+        if args.output == 'json':
+            output = format_json_output(base_case, scenarios)
+        else:  # text (default)
+            output = analyze_financial_scenarios(base_case, scenarios)
+
+        # Write output to file or stdout
+        if args.file:
+            try:
+                output_path = Path(args.file)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(output)
+
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+
+            except PermissionError:
+                print(f"Error: Permission denied writing to: {args.file}", file=sys.stderr)
+                sys.exit(4)
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            # Print to stdout
+            print(output)
+
+        # Success
+        sys.exit(0)
+
+    except FileNotFoundError as e:
+        print(f"Error: File not found: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except PermissionError as e:
+        print(f"Error: Permission denied: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except ValueError as e:
+        print(f"Error: Invalid input: {e}", file=sys.stderr)
+        sys.exit(3)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()

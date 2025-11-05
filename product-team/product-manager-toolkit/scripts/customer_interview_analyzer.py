@@ -4,7 +4,10 @@ Customer Interview Analyzer
 Extracts insights, patterns, and opportunities from user interviews
 """
 
+import argparse
 import re
+import sys
+from pathlib import Path
 from typing import Dict, List, Tuple, Set
 from collections import Counter, defaultdict
 import json
@@ -355,87 +358,198 @@ def aggregate_interviews(interviews: List[Dict]) -> Dict:
     
     return aggregated
 
-def format_single_interview(analysis: Dict) -> str:
+def format_single_interview(analysis: Dict, verbose: bool = False) -> str:
     """Format single interview analysis"""
     output = ["=" * 60]
     output.append("CUSTOMER INTERVIEW ANALYSIS")
     output.append("=" * 60)
-    
+
     # Sentiment
     sentiment = analysis['sentiment_score']
-    output.append(f"\n📊 Overall Sentiment: {sentiment['label'].upper()}")
+    output.append(f"\nOverall Sentiment: {sentiment['label'].upper()}")
     output.append(f"   Score: {sentiment['score']}")
     output.append(f"   Positive signals: {sentiment['positive_signals']}")
     output.append(f"   Negative signals: {sentiment['negative_signals']}")
-    
+
     # Pain Points
     if analysis['pain_points']:
-        output.append("\n🔥 Pain Points Identified:")
-        for i, pain in enumerate(analysis['pain_points'][:5], 1):
-            output.append(f"\n{i}. [{pain['severity'].upper()}] {pain['quote'][:100]}...")
-    
+        output.append("\nPain Points Identified:")
+        limit = len(analysis['pain_points']) if verbose else 5
+        for i, pain in enumerate(analysis['pain_points'][:limit], 1):
+            quote_limit = 150 if verbose else 100
+            output.append(f"\n{i}. [{pain['severity'].upper()}] {pain['quote'][:quote_limit]}...")
+
     # Feature Requests
     if analysis['feature_requests']:
-        output.append("\n💡 Feature Requests:")
-        for i, req in enumerate(analysis['feature_requests'][:5], 1):
+        output.append("\nFeature Requests:")
+        limit = len(analysis['feature_requests']) if verbose else 5
+        for i, req in enumerate(analysis['feature_requests'][:limit], 1):
+            quote_limit = 150 if verbose else 100
             output.append(f"\n{i}. [{req['type']}] Priority: {req['priority']}")
-            output.append(f"   \"{req['quote'][:100]}...\"")
-    
+            output.append(f"   \"{req['quote'][:quote_limit]}...\"")
+
     # Jobs to Be Done
     if analysis['jobs_to_be_done']:
-        output.append("\n🎯 Jobs to Be Done:")
+        output.append("\nJobs to Be Done:")
         for i, job in enumerate(analysis['jobs_to_be_done'], 1):
             output.append(f"{i}. {job['job']}")
-    
+
     # Key Themes
     if analysis['key_themes']:
-        output.append("\n🏷️ Key Themes:")
+        output.append("\nKey Themes:")
         output.append(", ".join(analysis['key_themes']))
-    
+
     # Key Quotes
     if analysis['quotes']:
-        output.append("\n💬 Key Quotes:")
-        for i, quote in enumerate(analysis['quotes'][:3], 1):
+        output.append("\nKey Quotes:")
+        limit = len(analysis['quotes']) if verbose else 3
+        for i, quote in enumerate(analysis['quotes'][:limit], 1):
             output.append(f'{i}. "{quote}"')
-    
+
     # Metrics
     if analysis['metrics_mentioned']:
-        output.append("\n📈 Metrics Mentioned:")
+        output.append("\nMetrics Mentioned:")
         output.append(", ".join(analysis['metrics_mentioned']))
-    
+
     # Competitors
     if analysis['competitors_mentioned']:
-        output.append("\n🏢 Competitors Mentioned:")
+        output.append("\nCompetitors Mentioned:")
         output.append(", ".join(analysis['competitors_mentioned']))
-    
+
     return "\n".join(output)
 
+def format_json_output(analysis: Dict) -> str:
+    """Format analysis as JSON with metadata"""
+    result = {
+        'metadata': {
+            'tool': 'customer_interview_analyzer',
+            'version': '1.0.0'
+        },
+        'analysis': analysis
+    }
+    return json.dumps(result, indent=2)
+
+def format_csv_output(analysis: Dict) -> str:
+    """Format analysis as CSV"""
+    import io
+    csv_output = io.StringIO()
+
+    # Pain points CSV
+    csv_output.write("type,severity,quote\n")
+    for pain in analysis.get('pain_points', []):
+        quote = pain['quote'].replace('"', '""')
+        csv_output.write(f"pain_point,{pain['severity']},\"{quote}\"\n")
+
+    # Feature requests CSV
+    for req in analysis.get('feature_requests', []):
+        quote = req['quote'].replace('"', '""')
+        csv_output.write(f"feature_request,{req['priority']},\"{quote}\"\n")
+
+    return csv_output.getvalue()
+
 def main():
-    import sys
-    
-    if len(sys.argv) < 2:
-        print("Usage: python customer_interview_analyzer.py <interview_file.txt>")
-        print("\nThis tool analyzes customer interview transcripts to extract:")
-        print("  - Pain points and frustrations")
-        print("  - Feature requests and suggestions")
-        print("  - Jobs to be done")
-        print("  - Sentiment analysis")
-        print("  - Key themes and quotes")
+    parser = argparse.ArgumentParser(
+        description='Analyze customer interview transcripts to extract insights and patterns',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Analyze single interview
+  %(prog)s interview.txt
+
+  # Export as JSON
+  %(prog)s interview.txt --output json
+
+  # Export as CSV for spreadsheet
+  %(prog)s interview.txt -o csv -f insights.csv
+
+  # Verbose output with all details
+  %(prog)s interview.txt --verbose
+
+For more information, see the skill documentation.
+        """
+    )
+
+    parser.add_argument('input', help='Interview transcript file (text format)')
+    parser.add_argument('--output', '-o', choices=['text', 'json', 'csv'], default='text', help='Output format (default: text)')
+    parser.add_argument('--file', '-f', help='Write output to file instead of stdout')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Show all insights in detail (not just top 5)')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.0')
+
+    args = parser.parse_args()
+
+    try:
+        # Validate input file
+        input_path = Path(args.input)
+        if not input_path.exists():
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        if not input_path.is_file():
+            print(f"Error: Path is not a file: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Read interview transcript
+        if args.verbose:
+            print(f"Reading interview transcript: {args.input}", file=sys.stderr)
+
+        try:
+            with open(input_path, 'r', encoding='utf-8') as f:
+                interview_text = f.read()
+        except UnicodeDecodeError:
+            print(f"Error: Unable to read file as text: {args.input}", file=sys.stderr)
+            print("Hint: Ensure file is UTF-8 encoded text", file=sys.stderr)
+            sys.exit(1)
+
+        if args.verbose:
+            print(f"Analyzing {len(interview_text)} characters...", file=sys.stderr)
+
+        # Analyze interview
+        analyzer = InterviewAnalyzer()
+        analysis = analyzer.analyze_interview(interview_text)
+
+        if args.verbose:
+            print(f"Analysis complete. Found {len(analysis['pain_points'])} pain points", file=sys.stderr)
+
+        # Format output
+        if args.output == 'json':
+            output = format_json_output(analysis)
+        elif args.output == 'csv':
+            output = format_csv_output(analysis)
+        else:  # text
+            output = format_single_interview(analysis, args.verbose)
+
+        # Write output
+        if args.file:
+            try:
+                with open(args.file, 'w', encoding='utf-8') as f:
+                    f.write(output)
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            print(output)
+
+        sys.exit(0)
+
+    except FileNotFoundError as e:
+        print(f"Error: File not found: {e}", file=sys.stderr)
         sys.exit(1)
-    
-    # Read interview transcript
-    with open(sys.argv[1], 'r') as f:
-        interview_text = f.read()
-    
-    # Analyze
-    analyzer = InterviewAnalyzer()
-    analysis = analyzer.analyze_interview(interview_text)
-    
-    # Output
-    if len(sys.argv) > 2 and sys.argv[2] == 'json':
-        print(json.dumps(analysis, indent=2))
-    else:
-        print(format_single_interview(analysis))
+    except PermissionError as e:
+        print(f"Error: Permission denied: {e}", file=sys.stderr)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

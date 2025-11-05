@@ -1,14 +1,31 @@
 #!/usr/bin/env python3
 """
 Regulatory Submission Tracking System
-Automates monitoring and reporting of regulatory submission status
+Automates monitoring and reporting of regulatory submission status.
+
+This script tracks regulatory submissions and generates comprehensive
+compliance reports. Supports both text (human-readable) and JSON output
+for integration with compliance dashboards.
+
+Usage:
+    python regulatory_tracker.py regulatory_submissions.json
+    python regulatory_tracker.py data.json --output json
+    python regulatory_tracker.py data.json -o json -f results.json
+    python regulatory_tracker.py data.json -o text -v
+
+Author: Regulatory Affairs Team
+Version: 2.0.0
+Last Updated: 2025-11-05
 """
 
+import argparse
 import json
+import sys
 import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from enum import Enum
+from pathlib import Path
 
 class SubmissionType(Enum):
     FDA_510K = "FDA_510K"
@@ -129,25 +146,25 @@ class RegulatoryTracker:
         return overdue
     
     def generate_status_report(self) -> str:
-        """Generate comprehensive status report"""
+        """Generate comprehensive status report as human-readable text"""
         report = []
         report.append("REGULATORY SUBMISSION STATUS REPORT")
         report.append("=" * 50)
         report.append(f"Generated: {datetime.date.today()}")
         report.append("")
-        
+
         # Summary by status
         status_counts = {}
         for status in SubmissionStatus:
             count = len(self.get_submissions_by_status(status))
             if count > 0:
                 status_counts[status] = count
-        
+
         report.append("SUBMISSION STATUS SUMMARY:")
         for status, count in status_counts.items():
             report.append(f"  {status.value}: {count}")
         report.append("")
-        
+
         # Overdue submissions
         overdue = self.get_overdue_submissions()
         if overdue:
@@ -156,14 +173,14 @@ class RegulatoryTracker:
                 days_overdue = (datetime.date.today() - submission.target_approval_date).days
                 report.append(f"  {submission.submission_id} - {days_overdue} days overdue")
             report.append("")
-        
+
         # Active submissions requiring attention
-        active_statuses = [SubmissionStatus.SUBMITTED, SubmissionStatus.UNDER_REVIEW, 
+        active_statuses = [SubmissionStatus.SUBMITTED, SubmissionStatus.UNDER_REVIEW,
                           SubmissionStatus.ADDITIONAL_INFO_REQUESTED]
         active_submissions = []
         for status in active_statuses:
             active_submissions.extend(self.get_submissions_by_status(status))
-        
+
         if active_submissions:
             report.append("ACTIVE SUBMISSIONS REQUIRING ATTENTION:")
             for submission in active_submissions:
@@ -172,28 +189,242 @@ class RegulatoryTracker:
                 report.append(f"    Target Date: {submission.target_approval_date}")
                 report.append(f"    Authority: {submission.regulatory_authority}")
                 report.append("")
-        
+
         return "\n".join(report)
 
+    def generate_json_report(self, verbose: bool = False) -> Dict[str, Any]:
+        """Generate comprehensive status report as structured JSON"""
+        # Summary by status
+        status_counts = {}
+        for status in SubmissionStatus:
+            submissions = self.get_submissions_by_status(status)
+            if len(submissions) > 0:
+                status_counts[status.value] = len(submissions)
+
+        # Overdue submissions
+        overdue = self.get_overdue_submissions()
+        overdue_data = []
+        for submission in overdue:
+            days_overdue = (datetime.date.today() - submission.target_approval_date).days
+            overdue_data.append({
+                "submission_id": submission.submission_id,
+                "product_name": submission.product_name,
+                "days_overdue": days_overdue,
+                "target_date": submission.target_approval_date.strftime('%Y-%m-%d') if submission.target_approval_date else None
+            })
+
+        # Active submissions
+        active_statuses = [SubmissionStatus.SUBMITTED, SubmissionStatus.UNDER_REVIEW,
+                          SubmissionStatus.ADDITIONAL_INFO_REQUESTED]
+        active_submissions = []
+        for status in active_statuses:
+            active_submissions.extend(self.get_submissions_by_status(status))
+
+        active_data = []
+        for submission in active_submissions:
+            active_data.append({
+                "submission_id": submission.submission_id,
+                "product_name": submission.product_name,
+                "status": submission.submission_status.value,
+                "submission_type": submission.submission_type.value,
+                "target_date": submission.target_approval_date.strftime('%Y-%m-%d') if submission.target_approval_date else None,
+                "regulatory_authority": submission.regulatory_authority,
+                "target_market": submission.target_market
+            })
+
+        # All submissions (verbose only)
+        all_submissions = []
+        if verbose:
+            for sub_id, submission in self.submissions.items():
+                sub_dict = asdict(submission)
+                # Convert dates to strings
+                for date_field in ['submission_date', 'target_approval_date', 'actual_approval_date', 'last_updated']:
+                    if sub_dict.get(date_field):
+                        sub_dict[date_field] = sub_dict[date_field].strftime('%Y-%m-%d')
+                # Convert enums to strings
+                sub_dict['submission_type'] = sub_dict['submission_type'].value
+                sub_dict['submission_status'] = sub_dict['submission_status'].value
+                all_submissions.append(sub_dict)
+
+        report = {
+            "metadata": {
+                "tool": "regulatory_tracker.py",
+                "version": "2.0.0",
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                "generated_date": datetime.date.today().strftime('%Y-%m-%d')
+            },
+            "summary": {
+                "total_submissions": len(self.submissions),
+                "status_summary": status_counts,
+                "overdue_count": len(overdue)
+            },
+            "results": {
+                "overdue_submissions": overdue_data,
+                "active_submissions": active_data
+            }
+        }
+
+        if verbose:
+            report["results"]["all_submissions"] = all_submissions
+
+        return report
+
 def main():
-    """Main function for command-line usage"""
-    tracker = RegulatoryTracker()
-    
-    # Generate and print status report
-    print(tracker.generate_status_report())
-    
-    # Example: Add a new submission
-    # new_submission = RegulatorySubmission(
-    #     submission_id="SUB-2024-001",
-    #     product_name="HealthTech Device X",
-    #     submission_type=SubmissionType.FDA_510K,
-    #     submission_status=SubmissionStatus.PLANNING,
-    #     target_market="United States",
-    #     target_approval_date=datetime.date(2024, 12, 31),
-    #     regulatory_authority="FDA",
-    #     responsible_person="John Doe"
-    # )
-    # tracker.add_submission(new_submission)
+    """
+    Main entry point with standardized argument parsing.
+
+    Parses command-line arguments, validates input, loads regulatory data,
+    generates compliance reports, and writes output in the specified format.
+    """
+    parser = argparse.ArgumentParser(
+        description='Track regulatory submissions and generate compliance reports for HealthTech/MedTech products',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Generate text report (default)
+  %(prog)s regulatory_submissions.json
+
+  # Generate JSON report for compliance dashboard
+  %(prog)s regulatory_submissions.json --output json
+
+  # Save JSON report to file with verbose details
+  %(prog)s regulatory_submissions.json -o json -f dashboard_report.json -v
+
+  # Generate text report with verbose regulatory authority details
+  %(prog)s regulatory_submissions.json --verbose
+
+For more information, see the skill documentation at:
+ra-qm-team/regulatory-affairs-head/SKILL.md
+        """
+    )
+
+    # Positional arguments
+    parser.add_argument(
+        'input',
+        help='Regulatory submissions JSON data file'
+    )
+
+    # Optional arguments
+    parser.add_argument(
+        '--output', '-o',
+        choices=['text', 'json'],
+        default='text',
+        help='Output format: text (default) for human reading, json for dashboard integration'
+    )
+
+    parser.add_argument(
+        '--file', '-f',
+        help='Write output to file instead of stdout'
+    )
+
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Enable verbose output: detailed compliance info and all submission details'
+    )
+
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 2.0.0'
+    )
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    try:
+        # Validate input file
+        input_path = Path(args.input)
+
+        if not input_path.exists():
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        if not input_path.is_file():
+            print(f"Error: Path is not a file: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Load regulatory tracker
+        if args.verbose:
+            print(f"Loading regulatory data from: {args.input}", file=sys.stderr)
+
+        tracker = RegulatoryTracker(str(input_path))
+
+        if args.verbose:
+            print(f"Loaded {len(tracker.submissions)} submissions", file=sys.stderr)
+
+        # Generate report based on output format
+        if args.output == 'json':
+            report_data = tracker.generate_json_report(verbose=args.verbose)
+            output = json.dumps(report_data, indent=2)
+        else:  # text (default)
+            output = tracker.generate_status_report()
+
+            # Add verbose regulatory authority details if requested
+            if args.verbose and len(tracker.submissions) > 0:
+                output += "\n\n--- DETAILED SUBMISSION INFORMATION ---\n"
+                for sub_id, submission in tracker.submissions.items():
+                    output += f"\nSubmission ID: {sub_id}\n"
+                    output += f"Product: {submission.product_name}\n"
+                    output += f"Type: {submission.submission_type.value}\n"
+                    output += f"Status: {submission.submission_status.value}\n"
+                    output += f"Market: {submission.target_market}\n"
+                    output += f"Authority: {submission.regulatory_authority}\n"
+                    output += f"Responsible: {submission.responsible_person}\n"
+                    output += f"Submission Date: {submission.submission_date}\n"
+                    output += f"Target Approval: {submission.target_approval_date}\n"
+                    output += f"Actual Approval: {submission.actual_approval_date}\n"
+                    if submission.notes:
+                        output += f"Notes: {submission.notes}\n"
+
+        # Write output to file or stdout
+        if args.file:
+            try:
+                output_path = Path(args.file)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(output)
+
+                if args.verbose:
+                    print(f"Report written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Report saved to: {args.file}")
+
+            except PermissionError:
+                print(f"Error: Permission denied writing to: {args.file}", file=sys.stderr)
+                sys.exit(4)
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            # Print to stdout
+            print(output)
+
+        # Success
+        sys.exit(0)
+
+    except FileNotFoundError as e:
+        print(f"Error: File not found: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except PermissionError as e:
+        print(f"Error: Permission denied: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except ValueError as e:
+        print(f"Error: Invalid input data: {e}", file=sys.stderr)
+        sys.exit(3)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

@@ -69,46 +69,71 @@ class ProjectScaffolder:
         print("="*50 + "\n")
 
 def main():
-    """Main entry point"""
+    """Main entry point with standardized CLI interface"""
     parser = argparse.ArgumentParser(
-        description="Project Scaffolder"
+        description="ProjectScaffolder - Automated processing tool",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s input_path
+  %(prog)s input_path --output json
+  %(prog)s input_path -o json --file results.json
+  %(prog)s input_path -v
+
+For more information, see the skill documentation.
+        """
     )
+
     parser.add_argument(
-        'target',
-        help='Target path to analyze or process'
+        '--input', '-i',
+        required=True,
+        dest='target',
+        help='Input file or target path to process'
     )
+
+    parser.add_argument(
+        '--output', '-o',
+        choices=['text', 'json', 'csv'],
+        default='text',
+        help='Output format (default: text)'
+    )
+
+    parser.add_argument(
+        '--config', '-c',
+        help='Configuration file path'
+    )
+
+    parser.add_argument(
+        '--file', '-f',
+        help='Write output to file instead of stdout'
+    )
+
     parser.add_argument(
         '--verbose', '-v',
         action='store_true',
         help='Enable verbose output'
     )
-    parser.add_argument(
-        '--json',
-        action='store_true',
-        help='Output results as JSON'
-    )
-    parser.add_argument(
-        '--output', '-o',
-        help='Output file path'
-    )
-    
+
     args = parser.parse_args()
-    
+
     tool = ProjectScaffolder(
         args.target,
         verbose=args.verbose
     )
-    
+
     results = tool.run()
-    
-    if args.json:
+
+    if args.output == 'json':
         output = json.dumps(results, indent=2)
-        if args.output:
-            with open(args.output, 'w') as f:
-                f.write(output)
-            print(f"Results written to {args.output}")
-        else:
-            print(output)
+    else:
+        output = json.dumps(results, indent=2)
+
+    if args.file:
+        with open(args.file, 'w') as f:
+            f.write(output)
+        print(f"Results written to {args.file}")
+    else:
+        print(output)
 
 if __name__ == '__main__':
     main()

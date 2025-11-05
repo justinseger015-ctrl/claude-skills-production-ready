@@ -24,15 +24,71 @@ CTO, chief technology officer, technical leadership, tech debt, technical debt, 
 
 ### For Technical Debt Assessment
 ```bash
-python scripts/tech_debt_analyzer.py
+# Create system data JSON file (see example below)
+# Run analysis
+python scripts/tech_debt_analyzer.py system_data.json
+
+# Generate JSON output for dashboards
+python scripts/tech_debt_analyzer.py system_data.json --output json
+
+# Save report to file
+python scripts/tech_debt_analyzer.py system_data.json -o json -f debt_report.json
+
+# View help and JSON schema
+python scripts/tech_debt_analyzer.py --help
 ```
-Analyzes system architecture and provides prioritized debt reduction plan.
+
+Example `system_data.json`:
+```json
+{
+  "name": "Legacy E-commerce Platform",
+  "architecture": {"monolithic_design": 80, "tight_coupling": 70, "no_microservices": 90},
+  "code_quality": {"low_test_coverage": 75, "high_complexity": 65},
+  "infrastructure": {"manual_deployments": 70, "no_ci_cd": 60},
+  "security": {"outdated_dependencies": 85, "no_security_scans": 70},
+  "performance": {"slow_response_times": 60, "no_caching": 50},
+  "team_size": 8,
+  "system_criticality": "high",
+  "business_context": {"growth_phase": "rapid", "compliance_required": true}
+}
+```
+
+Analyzes system across 5 debt categories with prioritized reduction plan.
 
 ### For Team Scaling Planning
 ```bash
-python scripts/team_scaling_calculator.py
+# Create team data JSON file (see example below)
+# Run analysis
+python scripts/team_scaling_calculator.py team_data.json
+
+# Generate JSON output for planning tools
+python scripts/team_scaling_calculator.py team_data.json --output json
+
+# Save report to file
+python scripts/team_scaling_calculator.py team_data.json -o json -f scaling_plan.json
+
+# View help and JSON schema
+python scripts/team_scaling_calculator.py --help
 ```
-Calculates optimal hiring plan and team structure for growth.
+
+Example `team_data.json`:
+```json
+{
+  "current_state": {
+    "headcount": 25,
+    "velocity": 450,
+    "roles": {"engineering_manager": 2, "senior_engineer": 8, "mid_engineer": 10},
+    "attrition_rate": 12,
+    "location": "US"
+  },
+  "growth_targets": {
+    "target_headcount": 75,
+    "timeline_quarters": 4
+  }
+}
+```
+
+Calculates optimal hiring plan, team structure, and budget projections.
 
 ### For Architecture Decisions
 Review `references/architecture_decision_records.md` for ADR templates and examples.
@@ -62,13 +118,16 @@ Implement KPIs from `references/engineering_metrics.md` for team performance tra
 #### Technical Debt Strategy
 ```bash
 # Assess current debt
-python scripts/tech_debt_analyzer.py
+python scripts/tech_debt_analyzer.py system_data.json
 
-# Allocate capacity
-- Critical debt: 40% capacity
-- High debt: 25% capacity  
-- Medium debt: 15% capacity
-- Low debt: Ongoing maintenance
+# Generate report for executives
+python scripts/tech_debt_analyzer.py system_data.json -o json -f debt_report.json
+
+# Allocate capacity based on debt level
+- Critical debt (>80): 40% capacity
+- High debt (60-80): 25% capacity
+- Medium debt (40-60): 15% capacity
+- Low debt (<40): Ongoing maintenance
 ```
 
 ### 2. Team Leadership
@@ -76,7 +135,10 @@ python scripts/tech_debt_analyzer.py
 #### Scaling Engineering
 ```bash
 # Calculate scaling needs
-python scripts/team_scaling_calculator.py
+python scripts/team_scaling_calculator.py team_data.json
+
+# Generate hiring plan for board
+python scripts/team_scaling_calculator.py team_data.json -o json -f hiring_plan.json
 
 # Key ratios to maintain:
 - Manager:Engineer = 1:8

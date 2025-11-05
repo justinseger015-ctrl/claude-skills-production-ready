@@ -174,12 +174,124 @@ def analyze_content(content: str, output_format: str = 'json') -> str:
 
 if __name__ == "__main__":
     import sys
-    
-    if len(sys.argv) > 1:
-        with open(sys.argv[1], 'r') as f:
-            content = f.read()
-        
-        output_format = sys.argv[2] if len(sys.argv) > 2 else 'text'
-        print(analyze_content(content, output_format))
-    else:
-        print("Usage: python brand_voice_analyzer.py <file> [json|text]")
+    import argparse
+    from pathlib import Path
+
+    parser = argparse.ArgumentParser(
+        description='Analyze content for brand voice consistency',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s content.txt
+  %(prog)s content.txt --output json
+  %(prog)s content.txt -o json --file results.json
+  %(prog)s content.txt -o text -v
+
+For more information, see the skill documentation.
+        """
+    )
+
+    # Positional arguments
+    parser.add_argument(
+        'input',
+        help='Content file to analyze'
+    )
+
+    # Optional arguments
+    parser.add_argument(
+        '--output', '-o',
+        choices=['text', 'json'],
+        default='text',
+        help='Output format: text (default) or json'
+    )
+
+    parser.add_argument(
+        '--file', '-f',
+        help='Write output to file instead of stdout'
+    )
+
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Enable verbose output with detailed information'
+    )
+
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 1.0.0'
+    )
+
+    args = parser.parse_args()
+
+    try:
+        # Validate input file
+        input_path = Path(args.input)
+
+        if not input_path.exists():
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        if not input_path.is_file():
+            print(f"Error: Path is not a file: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Read content
+        if args.verbose:
+            print(f"Reading input file: {args.input}", file=sys.stderr)
+
+        try:
+            with open(input_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except UnicodeDecodeError:
+            print(f"Error: Unable to read file as text: {args.input}", file=sys.stderr)
+            print("Hint: Ensure file is UTF-8 encoded text", file=sys.stderr)
+            sys.exit(1)
+
+        if args.verbose:
+            print(f"Analyzing {len(content)} characters...", file=sys.stderr)
+
+        # Process content
+        output = analyze_content(content, args.output)
+
+        # Write output
+        if args.file:
+            try:
+                output_path = Path(args.file)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(output)
+
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+
+            except PermissionError:
+                print(f"Error: Permission denied writing to: {args.file}", file=sys.stderr)
+                sys.exit(4)
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            print(output)
+
+        sys.exit(0)
+
+    except FileNotFoundError as e:
+        print(f"Error: File not found: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except PermissionError as e:
+        print(f"Error: Permission denied: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)

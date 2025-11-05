@@ -66,35 +66,71 @@ class PipelineOrchestrator:
         return {'success': True}
 
 def main():
-    """Main entry point"""
+    """Main entry point with standardized CLI interface"""
     parser = argparse.ArgumentParser(
-        description="Pipeline Orchestrator"
+        description="PipelineOrchestrator - Automated processing tool",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s input_path
+  %(prog)s input_path --output json
+  %(prog)s input_path -o json --file results.json
+  %(prog)s input_path -v
+
+For more information, see the skill documentation.
+        """
     )
-    parser.add_argument('--input', '-i', required=True, help='Input path')
-    parser.add_argument('--output', '-o', required=True, help='Output path')
-    parser.add_argument('--config', '-c', help='Configuration file')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
-    
+
+    parser.add_argument(
+        '--input', '-i',
+        required=True,
+        dest='target',
+        help='Input file or target path to process'
+    )
+
+    parser.add_argument(
+        '--output', '-o',
+        choices=['text', 'json', 'csv'],
+        default='text',
+        help='Output format (default: text)'
+    )
+
+    parser.add_argument(
+        '--config', '-c',
+        help='Configuration file path'
+    )
+
+    parser.add_argument(
+        '--file', '-f',
+        help='Write output to file instead of stdout'
+    )
+
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Enable verbose output'
+    )
+
     args = parser.parse_args()
-    
-    if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
-    
-    try:
-        config = {
-            'input': args.input,
-            'output': args.output
-        }
-        
-        processor = PipelineOrchestrator(config)
-        results = processor.process()
-        
-        print(json.dumps(results, indent=2))
-        sys.exit(0)
-        
-    except Exception as e:
-        logger.error(f"Fatal error: {e}")
-        sys.exit(1)
+
+    tool = PipelineOrchestrator(
+        args.target,
+        verbose=args.verbose
+    )
+
+    results = tool.run()
+
+    if args.output == 'json':
+        output = json.dumps(results, indent=2)
+    else:
+        output = json.dumps(results, indent=2)
+
+    if args.file:
+        with open(args.file, 'w') as f:
+            f.write(output)
+        print(f"Results written to {args.file}")
+    else:
+        print(output)
 
 if __name__ == '__main__':
     main()

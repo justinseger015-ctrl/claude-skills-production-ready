@@ -30,7 +30,7 @@ content creation, blog posts, SEO, brand voice, social media, content calendar, 
 1. Choose template from `references/content_frameworks.md`
 2. Research keywords for topic
 3. Write content following template structure
-4. Run `scripts/seo_optimizer.py [file] [primary-keyword]` to optimize
+4. Run `scripts/seo_optimizer.py [file] --keyword "primary-keyword"` to optimize
 5. Apply recommendations before publishing
 
 ### For Social Media Content
@@ -48,6 +48,8 @@ When creating content for a new brand or client:
 1. **Analyze Existing Content** (if available)
    ```bash
    python scripts/brand_voice_analyzer.py existing_content.txt
+   # Or get JSON output for integration
+   python scripts/brand_voice_analyzer.py existing_content.txt --output json
    ```
    
 2. **Define Voice Attributes**
@@ -75,7 +77,14 @@ When creating content for a new brand or client:
 
 3. **Optimization Check**
    ```bash
-   python scripts/seo_optimizer.py blog_post.md "primary keyword" "secondary,keywords,list"
+   # Basic SEO analysis
+   python scripts/seo_optimizer.py blog_post.md --keyword "primary keyword"
+
+   # With secondary keywords
+   python scripts/seo_optimizer.py blog_post.md --keyword "primary keyword" --secondary "keyword1,keyword2,keyword3"
+
+   # Get JSON output for automation
+   python scripts/seo_optimizer.py blog_post.md -k "primary keyword" -o json
    ```
 
 4. **Apply SEO Recommendations**
@@ -124,25 +133,72 @@ When creating content for a new brand or client:
 ### brand_voice_analyzer.py
 Analyzes text content for voice characteristics, readability, and consistency.
 
-**Usage**: `python scripts/brand_voice_analyzer.py <file> [json|text]`
+**Usage**:
+```bash
+# Basic analysis (text output)
+python scripts/brand_voice_analyzer.py content.txt
+
+# JSON output for integration
+python scripts/brand_voice_analyzer.py content.txt --output json
+
+# Save results to file
+python scripts/brand_voice_analyzer.py content.txt --file results.txt
+
+# Verbose mode with progress updates
+python scripts/brand_voice_analyzer.py content.txt --verbose
+```
 
 **Returns**:
 - Voice profile (formality, tone, perspective)
-- Readability score
+- Readability score (Flesch Reading Ease)
 - Sentence structure analysis
 - Improvement recommendations
+
+**Available Options**:
+- `--output`, `-o`: Choose output format (text or json)
+- `--file`, `-f`: Write output to file instead of stdout
+- `--verbose`, `-v`: Show detailed processing information
+- `--version`: Display version information
+- `--help`: Show usage instructions
 
 ### seo_optimizer.py
 Analyzes content for SEO optimization and provides actionable recommendations.
 
-**Usage**: `python scripts/seo_optimizer.py <file> [primary_keyword] [secondary_keywords]`
+**Usage**:
+```bash
+# Basic SEO analysis
+python scripts/seo_optimizer.py article.md
+
+# With primary keyword
+python scripts/seo_optimizer.py article.md --keyword "python programming"
+
+# With secondary keywords
+python scripts/seo_optimizer.py article.md -k "python" -s "coding,development,tutorial"
+
+# JSON output for automation
+python scripts/seo_optimizer.py article.md -k "python" --output json
+
+# Save results to file with verbose output
+python scripts/seo_optimizer.py article.md -k "python" -f results.json -v
+```
 
 **Returns**:
 - SEO score (0-100)
-- Keyword density analysis
-- Structure assessment
-- Meta tag suggestions
+- Content length and structure analysis
+- Keyword density analysis (primary and secondary)
+- LSI keyword suggestions
+- Readability assessment
+- Meta tag suggestions (title, description, URL slug)
 - Specific optimization recommendations
+
+**Available Options**:
+- `--keyword`, `-k`: Primary keyword for optimization
+- `--secondary`, `-s`: Comma-separated secondary keywords
+- `--output`, `-o`: Choose output format (text or json)
+- `--file`, `-f`: Write output to file instead of stdout
+- `--verbose`, `-v`: Show detailed processing information
+- `--version`: Display version information
+- `--help`: Show usage instructions
 
 ## Reference Guides
 
@@ -234,11 +290,28 @@ This skill works best with:
 ## Quick Commands
 
 ```bash
-# Analyze brand voice
+# Analyze brand voice (text output)
 python scripts/brand_voice_analyzer.py content.txt
 
-# Optimize for SEO
-python scripts/seo_optimizer.py article.md "main keyword"
+# Analyze brand voice (JSON output)
+python scripts/brand_voice_analyzer.py content.txt --output json
+
+# Basic SEO analysis
+python scripts/seo_optimizer.py article.md
+
+# SEO optimization with keywords
+python scripts/seo_optimizer.py article.md --keyword "main keyword" --secondary "related,keywords"
+
+# SEO analysis with JSON output
+python scripts/seo_optimizer.py article.md -k "main keyword" -o json
+
+# Save results to file
+python scripts/brand_voice_analyzer.py content.txt -f voice_analysis.txt
+python scripts/seo_optimizer.py article.md -k "keyword" -f seo_report.json -o json
+
+# Get help for any script
+python scripts/brand_voice_analyzer.py --help
+python scripts/seo_optimizer.py --help
 
 # Check content against brand guidelines
 grep -f references/brand_guidelines.md content.txt

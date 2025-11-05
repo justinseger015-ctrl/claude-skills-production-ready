@@ -7,6 +7,7 @@ RICE = (Reach x Impact x Confidence) / Effort
 
 import json
 import csv
+import sys
 from typing import List, Dict, Tuple
 import argparse
 
@@ -244,20 +245,39 @@ def create_sample_csv(filepath: str):
     print(f"Sample CSV created at: {filepath}")
 
 def main():
-    parser = argparse.ArgumentParser(description='RICE Framework for Feature Prioritization')
+    parser = argparse.ArgumentParser(
+        description='RICE Framework for Feature Prioritization',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s features.csv
+  %(prog)s features.csv --capacity 20
+  %(prog)s features.csv --output json
+  %(prog)s features.csv -o json --file results.json
+  %(prog)s features.csv --verbose
+  %(prog)s sample
+
+For more information, see the skill documentation.
+        """
+    )
     parser.add_argument('input', nargs='?', help='CSV file with features or "sample" to create sample')
     parser.add_argument('--capacity', type=int, default=10, help='Team capacity per quarter (person-months)')
-    parser.add_argument('--output', choices=['text', 'json', 'csv'], default='text', help='Output format')
-    
+    parser.add_argument('--output', '-o', choices=['text', 'json', 'csv'], default='text', help='Output format (default: text)')
+    parser.add_argument('--file', '-f', help='Write output to file instead of stdout')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose output with detailed information')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.0')
+
     args = parser.parse_args()
     
     # Create sample if requested
     if args.input == 'sample':
         create_sample_csv('sample_features.csv')
         return
-    
+
     # Use sample data if no input provided
     if not args.input:
+        if args.verbose:
+            print("No input file specified, using sample data", file=sys.stderr)
         features = [
             {'name': 'User Dashboard', 'reach': 5000, 'impact': 'high', 'confidence': 'high', 'effort': 'l'},
             {'name': 'Push Notifications', 'reach': 10000, 'impact': 'massive', 'confidence': 'medium', 'effort': 'm'},
@@ -266,31 +286,73 @@ def main():
             {'name': 'Social Login', 'reach': 12000, 'impact': 'high', 'confidence': 'medium', 'effort': 'm'},
         ]
     else:
-        features = load_features_from_csv(args.input)
+        if args.verbose:
+            print(f"Loading features from: {args.input}", file=sys.stderr)
+        try:
+            features = load_features_from_csv(args.input)
+        except FileNotFoundError:
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"Error reading CSV file: {e}", file=sys.stderr)
+            sys.exit(1)
     
     # Calculate RICE scores
     calculator = RICECalculator()
+
+    if args.verbose:
+        print(f"Analyzing {len(features)} features with capacity {args.capacity} person-months", file=sys.stderr)
+
     prioritized = calculator.prioritize_features(features)
     analysis = calculator.analyze_portfolio(prioritized)
     roadmap = calculator.generate_roadmap(prioritized, args.capacity)
-    
+
+    if args.verbose:
+        print(f"Prioritization complete. Average RICE score: {analysis.get('average_rice', 0)}", file=sys.stderr)
+
     # Output results
     if args.output == 'json':
         result = {
+            'metadata': {
+                'tool': 'rice_prioritizer',
+                'version': '1.0.0',
+                'capacity': args.capacity,
+                'total_features': len(prioritized)
+            },
             'features': prioritized,
             'analysis': analysis,
             'roadmap': roadmap
         }
-        print(json.dumps(result, indent=2))
+        output = json.dumps(result, indent=2)
     elif args.output == 'csv':
         # Output prioritized features as CSV
         if prioritized:
+            import io
+            csv_output = io.StringIO()
             keys = prioritized[0].keys()
-            print(','.join(keys))
+            csv_output.write(','.join(keys) + '\n')
             for feature in prioritized:
-                print(','.join(str(feature.get(k, '')) for k in keys))
+                csv_output.write(','.join(str(feature.get(k, '')) for k in keys) + '\n')
+            output = csv_output.getvalue()
+        else:
+            output = "No features to output\n"
     else:
-        print(format_output(prioritized, analysis, roadmap))
+        output = format_output(prioritized, analysis, roadmap)
+
+    # Write output to file or stdout
+    if args.file:
+        try:
+            with open(args.file, 'w') as f:
+                f.write(output)
+            if args.verbose:
+                print(f"Results written to: {args.file}", file=sys.stderr)
+            else:
+                print(f"Output saved to: {args.file}")
+        except Exception as e:
+            print(f"Error writing output file: {e}", file=sys.stderr)
+            sys.exit(4)
+    else:
+        print(output)
 
 if __name__ == "__main__":
     main()

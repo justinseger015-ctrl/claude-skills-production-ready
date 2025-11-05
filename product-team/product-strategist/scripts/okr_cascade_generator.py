@@ -4,7 +4,10 @@ OKR Cascade Generator
 Creates aligned OKRs from company strategy down to team level
 """
 
+import argparse
 import json
+import sys
+from pathlib import Path
 from typing import Dict, List
 from datetime import datetime, timedelta
 
@@ -424,55 +427,198 @@ class OKRGenerator:
         objective_lower = objective.lower()
         return any(keyword in objective_lower for keyword in keywords) or team == 'Platform'
 
-def main():
-    import sys
-    
-    # Sample metrics
-    metrics = {
-        'current': 100000,
-        'target': 150000,
-        'current_revenue': 10,
-        'target_revenue': 15,
-        'current_nps': 40,
-        'target_nps': 60
-    }
-    
-    # Get strategy from command line or default
-    strategy = sys.argv[1] if len(sys.argv) > 1 else 'growth'
-    
-    # Generate OKRs
-    generator = OKRGenerator()
-    
-    # Generate company OKRs
-    company_okrs = generator.generate_company_okrs(strategy, metrics)
-    
-    # Cascade to product
-    product_okrs = generator.cascade_to_product(company_okrs)
-    
-    # Cascade to teams
-    team_okrs = generator.cascade_to_teams(product_okrs)
-    
-    # Combine all OKRs
-    all_okrs = {
-        'company': company_okrs,
-        'product': product_okrs,
-        'teams': team_okrs
-    }
-    
+def format_text_output(all_okrs: Dict, generator: 'OKRGenerator', verbose: bool = False) -> str:
+    """Format OKRs as human-readable text"""
+    output = []
+
     # Generate dashboard
     dashboard = generator.generate_okr_dashboard(all_okrs)
-    print(dashboard)
-    
+    output.append(dashboard)
+
     # Calculate alignment
     alignment = generator.calculate_alignment_score(all_okrs)
-    print("\n\n🎯 ALIGNMENT SCORES\n" + "-" * 40)
+    output.append("\n\nALIGNMENT SCORES\n" + "-" * 40)
     for metric, score in alignment.items():
-        print(f"{metric.replace('_', ' ').title()}: {score}%")
-    
-    # Export as JSON if requested
-    if len(sys.argv) > 2 and sys.argv[2] == 'json':
-        print("\n\nJSON Output:")
-        print(json.dumps(all_okrs, indent=2))
+        output.append(f"{metric.replace('_', ' ').title()}: {score}%")
+
+    return "\n".join(output)
+
+def format_json_output(all_okrs: Dict, alignment: Dict) -> str:
+    """Format OKRs as JSON with metadata"""
+    result = {
+        'metadata': {
+            'tool': 'okr_cascade_generator',
+            'version': '1.0.0',
+            'quarter': all_okrs.get('company', {}).get('quarter', 'Q1 2025')
+        },
+        'okrs': all_okrs,
+        'alignment': alignment
+    }
+    return json.dumps(result, indent=2)
+
+def format_csv_output(all_okrs: Dict) -> str:
+    """Format OKRs as CSV"""
+    import io
+    csv_output = io.StringIO()
+
+    # CSV header
+    csv_output.write('level,id,title,parent_id,current,target,unit,status\n')
+
+    # Company OKRs
+    if 'company' in all_okrs:
+        for obj in all_okrs['company']['objectives']:
+            for kr in obj['key_results']:
+                csv_output.write(f"Company,{kr['id']},{kr['title']},{obj['id']},{kr['current']},{kr['target']},{kr['unit']},{kr['status']}\n")
+
+    # Product OKRs
+    if 'product' in all_okrs:
+        for obj in all_okrs['product']['objectives']:
+            for kr in obj['key_results']:
+                csv_output.write(f"Product,{kr['id']},{kr['title']},{obj['id']},{kr['current']},{kr['target']},{kr['unit']},{kr['status']}\n")
+
+    # Team OKRs
+    if 'teams' in all_okrs:
+        for team_okr in all_okrs['teams']:
+            team = team_okr['team']
+            for obj in team_okr['objectives']:
+                for kr in obj['key_results']:
+                    csv_output.write(f"{team},{kr['id']},{kr['title']},{obj['id']},{kr['current']},{kr['target']},{kr['unit']},{kr['status']}\n")
+
+    return csv_output.getvalue()
+
+def load_metrics_from_json(filepath: str) -> Dict:
+    """Load metrics from JSON file"""
+    try:
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Error: Input file not found: {filepath}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in file: {e}", file=sys.stderr)
+        sys.exit(1)
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Generate cascading OKRs from company strategy to team level',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Generate OKRs with growth strategy (default metrics)
+  %(prog)s growth
+
+  # Generate OKRs with custom metrics
+  %(prog)s retention --metrics metrics.json
+
+  # Export as JSON
+  %(prog)s innovation --output json
+
+  # Export as CSV for spreadsheet
+  %(prog)s revenue -o csv -f okrs.csv
+
+  # Verbose output
+  %(prog)s operational --verbose
+
+Strategy options: growth, retention, revenue, innovation, operational
+
+For more information, see the skill documentation.
+        """
+    )
+
+    parser.add_argument('strategy', nargs='?', default='growth',
+                       choices=['growth', 'retention', 'revenue', 'innovation', 'operational'],
+                       help='Company strategy (default: growth)')
+    parser.add_argument('--metrics', help='JSON file with current/target metrics (optional)')
+    parser.add_argument('--output', '-o', choices=['text', 'json', 'csv'], default='text',
+                       help='Output format (default: text)')
+    parser.add_argument('--file', '-f', help='Write output to file instead of stdout')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose output with detailed information')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.0')
+
+    args = parser.parse_args()
+
+    try:
+        # Load metrics (from file or use defaults)
+        if args.metrics:
+            if args.verbose:
+                print(f"Loading metrics from: {args.metrics}", file=sys.stderr)
+            metrics = load_metrics_from_json(args.metrics)
+        else:
+            if args.verbose:
+                print("Using default sample metrics", file=sys.stderr)
+            metrics = {
+                'current': 100000,
+                'target': 150000,
+                'current_revenue': 10,
+                'target_revenue': 15,
+                'current_nps': 40,
+                'target_nps': 60
+            }
+
+        # Generate OKRs
+        if args.verbose:
+            print(f"Generating OKRs for {args.strategy} strategy", file=sys.stderr)
+
+        generator = OKRGenerator()
+
+        # Generate company OKRs
+        company_okrs = generator.generate_company_okrs(args.strategy, metrics)
+
+        # Cascade to product
+        product_okrs = generator.cascade_to_product(company_okrs)
+
+        # Cascade to teams
+        team_okrs = generator.cascade_to_teams(product_okrs)
+
+        # Combine all OKRs
+        all_okrs = {
+            'company': company_okrs,
+            'product': product_okrs,
+            'teams': team_okrs
+        }
+
+        if args.verbose:
+            print(f"Generated {len(company_okrs['objectives'])} company objectives", file=sys.stderr)
+            print(f"Generated {len(product_okrs['objectives'])} product objectives", file=sys.stderr)
+            print(f"Generated OKRs for {len(team_okrs)} teams", file=sys.stderr)
+
+        # Calculate alignment
+        alignment = generator.calculate_alignment_score(all_okrs)
+
+        # Format output
+        if args.output == 'json':
+            output = format_json_output(all_okrs, alignment)
+        elif args.output == 'csv':
+            output = format_csv_output(all_okrs)
+        else:  # text
+            output = format_text_output(all_okrs, generator, args.verbose)
+
+        # Write output
+        if args.file:
+            try:
+                with open(args.file, 'w') as f:
+                    f.write(output)
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            print(output)
+
+        sys.exit(0)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

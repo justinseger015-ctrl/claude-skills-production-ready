@@ -4,7 +4,10 @@ Data-Driven Persona Generator
 Creates research-backed user personas from user data and interviews
 """
 
+import argparse
 import json
+import sys
+from pathlib import Path
 from typing import Dict, List, Tuple
 from collections import Counter, defaultdict
 import random
@@ -478,31 +481,167 @@ def create_sample_user_data():
         for i in range(30)
     ]
 
+def format_json_output(persona: Dict) -> str:
+    """Format persona as JSON with metadata"""
+    result = {
+        'metadata': {
+            'tool': 'persona_generator',
+            'version': '1.0.0',
+            'archetype': persona['archetype']
+        },
+        'persona': persona
+    }
+    return json.dumps(result, indent=2)
+
+def format_csv_output(persona: Dict) -> str:
+    """Format persona as CSV"""
+    import io
+    csv_output = io.StringIO()
+
+    # CSV header
+    csv_output.write('category,attribute,value\n')
+
+    # Demographics
+    for key, value in persona['demographics'].items():
+        if value:
+            csv_output.write(f"demographics,{key},{value}\n")
+
+    # Goals
+    for goal in persona['needs_and_goals'].get('primary_goals', []):
+        csv_output.write(f"goals,primary,\"{goal}\"\n")
+
+    # Frustrations
+    for frustration in persona['frustrations']:
+        csv_output.write(f"frustrations,pain_point,\"{frustration}\"\n")
+
+    return csv_output.getvalue()
+
+def load_user_data_from_json(filepath: str) -> List[Dict]:
+    """Load user data from JSON file"""
+    try:
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+            # Support both array format and object with 'users' key
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict) and 'users' in data:
+                return data['users']
+            else:
+                print("Error: JSON file must contain array of users or object with 'users' key", file=sys.stderr)
+                sys.exit(1)
+    except FileNotFoundError:
+        print(f"Error: Input file not found: {filepath}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in file: {e}", file=sys.stderr)
+        sys.exit(1)
+
 def main():
-    import sys
-    
-    generator = PersonaGenerator()
-    
-    # Create sample data
-    user_data = create_sample_user_data()
-    
-    # Optional interview insights
-    interview_insights = [
-        {
-            'quotes': ["I need to see all my data in one place"],
-            'motivations': ['Efficiency', 'Control'],
-            'goals': ['Save time', 'Make better decisions']
-        }
-    ]
-    
-    # Generate persona
-    persona = generator.generate_persona_from_data(user_data, interview_insights)
-    
-    # Output
-    if len(sys.argv) > 1 and sys.argv[1] == 'json':
-        print(json.dumps(persona, indent=2))
-    else:
-        print(generator.format_persona_output(persona))
+    parser = argparse.ArgumentParser(
+        description='Generate data-driven user personas from research data',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Generate persona from sample data
+  %(prog)s
+
+  # Generate persona from user data file
+  %(prog)s --data users.json
+
+  # Export as JSON
+  %(prog)s --data users.json --output json
+
+  # Export as CSV for spreadsheet
+  %(prog)s -o csv -f persona.csv
+
+  # Verbose output
+  %(prog)s --data users.json --verbose
+
+For more information, see the skill documentation.
+        """
+    )
+
+    parser.add_argument('--data', help='JSON file with user data (optional, uses sample if not provided)')
+    parser.add_argument('--output', '-o', choices=['text', 'json', 'csv'], default='text',
+                       help='Output format (default: text)')
+    parser.add_argument('--file', '-f', help='Write output to file instead of stdout')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose output with detailed information')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.0')
+
+    args = parser.parse_args()
+
+    try:
+        generator = PersonaGenerator()
+
+        # Load user data (from file or use sample)
+        if args.data:
+            if args.verbose:
+                print(f"Loading user data from: {args.data}", file=sys.stderr)
+
+            input_path = Path(args.data)
+            if not input_path.exists():
+                print(f"Error: Input file not found: {args.data}", file=sys.stderr)
+                sys.exit(1)
+
+            user_data = load_user_data_from_json(args.data)
+        else:
+            if args.verbose:
+                print("Using sample user data", file=sys.stderr)
+            user_data = create_sample_user_data()
+
+        if args.verbose:
+            print(f"Analyzing {len(user_data)} users", file=sys.stderr)
+
+        # Optional interview insights (could be expanded to load from file)
+        interview_insights = [
+            {
+                'quotes': ["I need to see all my data in one place"],
+                'motivations': ['Efficiency', 'Control'],
+                'goals': ['Save time', 'Make better decisions']
+            }
+        ]
+
+        # Generate persona
+        persona = generator.generate_persona_from_data(user_data, interview_insights)
+
+        if args.verbose:
+            print(f"Generated persona: {persona['name']}", file=sys.stderr)
+            print(f"Archetype: {persona['archetype']}", file=sys.stderr)
+
+        # Format output
+        if args.output == 'json':
+            output = format_json_output(persona)
+        elif args.output == 'csv':
+            output = format_csv_output(persona)
+        else:  # text
+            output = generator.format_persona_output(persona)
+
+        # Write output
+        if args.file:
+            try:
+                with open(args.file, 'w') as f:
+                    f.write(output)
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            print(output)
+
+        sys.exit(0)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

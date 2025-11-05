@@ -4,7 +4,10 @@ Design Token Generator
 Creates consistent design system tokens for colors, typography, spacing, and more
 """
 
+import argparse
 import json
+import sys
+from pathlib import Path
 from typing import Dict, List, Tuple
 import colorsys
 
@@ -61,9 +64,7 @@ class DesignTokenGenerator:
                 },
                 'warning': {
                     'base': '#F59E0B',
-                    'light': '#FBB
-
-D24',
+                    'light': '#FBBF24',
                     'dark': '#D97706',
                     'contrast': '#FFFFFF'
                 },
@@ -495,35 +496,125 @@ D24',
         new_rgb = colorsys.hsv_to_rgb(h, s, v)
         return self._rgb_to_hex([int(c * 255) for c in new_rgb])
 
+def format_summary_output(tokens: Dict, brand_color: str, style: str) -> str:
+    """Format tokens as summary text"""
+    output = []
+    output.append("=" * 60)
+    output.append("DESIGN SYSTEM TOKENS")
+    output.append("=" * 60)
+    output.append(f"\nStyle: {style}")
+    output.append(f"Brand Color: {brand_color}")
+    output.append("\nGenerated Tokens:")
+    output.append(f"  - Colors: {len(tokens['colors'])} palettes")
+    output.append(f"  - Typography: {len(tokens['typography'])} categories")
+    output.append(f"  - Spacing: {len(tokens['spacing'])} values")
+    output.append(f"  - Shadows: {len(tokens['shadows'])} styles")
+    output.append(f"  - Breakpoints: {len(tokens['breakpoints'])} sizes")
+    output.append("\nExport formats available: json, css, scss")
+    return "\n".join(output)
+
 def main():
-    import sys
-    
-    generator = DesignTokenGenerator()
-    
-    # Get parameters
-    brand_color = sys.argv[1] if len(sys.argv) > 1 else "#0066CC"
-    style = sys.argv[2] if len(sys.argv) > 2 else "modern"
-    output_format = sys.argv[3] if len(sys.argv) > 3 else "json"
-    
-    # Generate tokens
-    tokens = generator.generate_complete_system(brand_color, style)
-    
-    # Output
-    if output_format == 'summary':
-        print("=" * 60)
-        print("DESIGN SYSTEM TOKENS")
-        print("=" * 60)
-        print(f"\n🎨 Style: {style}")
-        print(f"🎨 Brand Color: {brand_color}")
-        print("\n📊 Generated Tokens:")
-        print(f"  • Colors: {len(tokens['colors'])} palettes")
-        print(f"  • Typography: {len(tokens['typography'])} categories")
-        print(f"  • Spacing: {len(tokens['spacing'])} values")
-        print(f"  • Shadows: {len(tokens['shadows'])} styles")
-        print(f"  • Breakpoints: {len(tokens['breakpoints'])} sizes")
-        print("\n💾 Export formats available: json, css, scss")
-    else:
-        print(generator.export_tokens(tokens, output_format))
+    parser = argparse.ArgumentParser(
+        description='Generate comprehensive design system tokens from brand color',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Generate tokens with default settings
+  %(prog)s
+
+  # Generate with custom brand color
+  %(prog)s --brand "#FF5733"
+
+  # Generate with different style
+  %(prog)s --brand "#0066CC" --style classic
+
+  # Export as CSS
+  %(prog)s --output css
+
+  # Export as SCSS to file
+  %(prog)s -o scss -f design-tokens.scss
+
+  # Export as JSON for Figma
+  %(prog)s -o json -f tokens.json
+
+  # Show summary
+  %(prog)s --summary
+
+Style options: modern, classic, playful
+Output formats: json, css, scss, text (summary)
+
+For more information, see the skill documentation.
+        """
+    )
+
+    parser.add_argument('--brand', default='#0066CC', help='Brand color in hex format (default: #0066CC)')
+    parser.add_argument('--style', choices=['modern', 'classic', 'playful'], default='modern',
+                       help='Design style (default: modern)')
+    parser.add_argument('--output', '-o', choices=['text', 'json', 'css', 'scss'], default='json',
+                       help='Output format (default: json)')
+    parser.add_argument('--file', '-f', help='Write output to file instead of stdout')
+    parser.add_argument('--summary', action='store_true', help='Show summary instead of full tokens')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose output with detailed information')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.0')
+
+    args = parser.parse_args()
+
+    try:
+        # Validate brand color format
+        if not args.brand.startswith('#') or len(args.brand) != 7:
+            print(f"Error: Invalid brand color format: {args.brand}", file=sys.stderr)
+            print("Expected format: #RRGGBB (e.g., #0066CC)", file=sys.stderr)
+            sys.exit(1)
+
+        if args.verbose:
+            print(f"Generating design system with {args.style} style", file=sys.stderr)
+            print(f"Brand color: {args.brand}", file=sys.stderr)
+
+        # Generate tokens
+        generator = DesignTokenGenerator()
+        tokens = generator.generate_complete_system(args.brand, args.style)
+
+        if args.verbose:
+            print(f"Generated {len(tokens)} token categories", file=sys.stderr)
+
+        # Format output
+        if args.summary or args.output == 'text':
+            output = format_summary_output(tokens, args.brand, args.style)
+        elif args.output == 'json':
+            output = generator.export_tokens(tokens, 'json')
+        elif args.output == 'css':
+            output = generator.export_tokens(tokens, 'css')
+        elif args.output == 'scss':
+            output = generator.export_tokens(tokens, 'scss')
+        else:
+            output = generator.export_tokens(tokens, 'json')
+
+        # Write output
+        if args.file:
+            try:
+                with open(args.file, 'w') as f:
+                    f.write(output)
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            print(output)
+
+        sys.exit(0)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

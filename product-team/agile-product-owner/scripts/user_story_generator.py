@@ -4,7 +4,10 @@ User Story Generator with INVEST Criteria
 Creates well-formed user stories with acceptance criteria
 """
 
+import argparse
 import json
+import sys
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 class UserStoryGenerator:
@@ -325,63 +328,205 @@ def create_sample_epic():
         ]
     }
 
-def main():
-    import sys
-    
-    generator = UserStoryGenerator()
-    
-    if len(sys.argv) > 1 and sys.argv[1] == 'sprint':
-        # Generate sprint planning
-        capacity = int(sys.argv[2]) if len(sys.argv) > 2 else 30
-        
-        # Create sample backlog
-        epic = create_sample_epic()
-        backlog = generator.generate_epic_stories(epic)
-        
-        # Plan sprint
-        sprint = generator.generate_sprint_stories(capacity, backlog)
-        
-        print("=" * 60)
-        print("SPRINT PLANNING")
-        print("=" * 60)
-        print(f"Sprint Capacity: {sprint['capacity']} points")
-        print(f"Committed: {sprint['total_points']} points ({sprint['utilization']}%)")
-        print(f"Stories: {len(sprint['committed'])} committed + {len(sprint['stretch'])} stretch")
-        print("\n📋 COMMITTED STORIES:\n")
-        
-        for story in sprint['committed']:
-            print(f"  [{story['priority'][:1].upper()}] {story['id']}: {story['title']} ({story['estimation']}pts)")
-        
-        if sprint['stretch']:
-            print("\n🎯 STRETCH GOALS:\n")
-            for story in sprint['stretch']:
-                print(f"  [{story['priority'][:1].upper()}] {story['id']}: {story['title']} ({story['estimation']}pts)")
-    
+def format_text_output(stories: List[Dict], sprint_data: Dict = None, verbose: bool = False) -> str:
+    """Format stories as human-readable text"""
+    output = []
+
+    if sprint_data:
+        # Sprint planning format
+        output.append("=" * 60)
+        output.append("SPRINT PLANNING")
+        output.append("=" * 60)
+        output.append(f"Sprint Capacity: {sprint_data['capacity']} points")
+        output.append(f"Committed: {sprint_data['total_points']} points ({sprint_data['utilization']}%)")
+        output.append(f"Stories: {len(sprint_data['committed'])} committed + {len(sprint_data['stretch'])} stretch")
+        output.append("\nCOMMITTED STORIES:\n")
+
+        for story in sprint_data['committed']:
+            output.append(f"  [{story['priority'][:1].upper()}] {story['id']}: {story['title']} ({story['estimation']}pts)")
+
+        if sprint_data['stretch']:
+            output.append("\nSTRETCH GOALS:\n")
+            for story in sprint_data['stretch']:
+                output.append(f"  [{story['priority'][:1].upper()}] {story['id']}: {story['title']} ({story['estimation']}pts)")
     else:
-        # Generate stories for epic
-        epic = create_sample_epic()
-        stories = generator.generate_epic_stories(epic)
-        
-        print(f"Generated {len(stories)} stories from epic: {epic['name']}\n")
-        
-        # Display first 3 stories in detail
-        for story in stories[:3]:
-            print(generator.format_story_output(story))
-            print("\n")
-        
-        # Summary of all stories
-        print("=" * 60)
-        print("BACKLOG SUMMARY")
-        print("=" * 60)
+        # Regular epic breakdown format
+        generator = UserStoryGenerator()
+        output.append(f"Generated {len(stories)} stories\n")
+
+        # Display stories in detail or summary based on verbose
+        if verbose:
+            for story in stories:
+                output.append(generator.format_story_output(story))
+                output.append("\n")
+        else:
+            for story in stories[:3]:
+                output.append(generator.format_story_output(story))
+                output.append("\n")
+
+            if len(stories) > 3:
+                output.append(f"... and {len(stories) - 3} more stories\n")
+
+        # Summary
+        output.append("=" * 60)
+        output.append("BACKLOG SUMMARY")
+        output.append("=" * 60)
         total_points = sum(s['estimation'] for s in stories)
-        print(f"Total Stories: {len(stories)}")
-        print(f"Total Points: {total_points}")
-        print(f"Average Size: {total_points/len(stories):.1f} points")
-        print("\nPriority Breakdown:")
+        output.append(f"Total Stories: {len(stories)}")
+        output.append(f"Total Points: {total_points}")
+        output.append(f"Average Size: {total_points/len(stories):.1f} points")
+        output.append("\nPriority Breakdown:")
         for priority in ['critical', 'high', 'medium', 'low']:
             count = len([s for s in stories if s['priority'] == priority])
             if count > 0:
-                print(f"  {priority.capitalize()}: {count} stories")
+                output.append(f"  {priority.capitalize()}: {count} stories")
+
+    return "\n".join(output)
+
+def format_json_output(stories: List[Dict], sprint_data: Dict = None) -> str:
+    """Format stories as JSON"""
+    result = {
+        'metadata': {
+            'tool': 'user_story_generator',
+            'version': '1.0.0',
+            'total_stories': len(stories)
+        },
+        'stories': stories
+    }
+
+    if sprint_data:
+        result['sprint'] = sprint_data
+
+    return json.dumps(result, indent=2)
+
+def format_csv_output(stories: List[Dict]) -> str:
+    """Format stories as CSV"""
+    import io
+    csv_output = io.StringIO()
+
+    # CSV header
+    csv_output.write('id,title,type,narrative,priority,estimation,invest_check\n')
+
+    # CSV rows
+    for story in stories:
+        invest = ','.join(f"{k}:{v}" for k, v in story['invest_check'].items())
+        csv_output.write(f"{story['id']},{story['title']},{story['type']},{story['narrative']},{story['priority']},{story['estimation']},\"{invest}\"\n")
+
+    return csv_output.getvalue()
+
+def load_epic_from_json(filepath: str) -> Dict:
+    """Load epic definition from JSON file"""
+    try:
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Error: Input file not found: {filepath}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in file: {e}", file=sys.stderr)
+        sys.exit(1)
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Generate INVEST-compliant user stories from epic requirements',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Generate stories from sample epic
+  %(prog)s
+
+  # Generate stories from JSON epic file
+  %(prog)s epic.json
+
+  # Sprint planning with 30 point capacity
+  %(prog)s --sprint --capacity 30
+
+  # Sprint planning from epic file
+  %(prog)s epic.json --sprint --capacity 20
+
+  # Export as JSON
+  %(prog)s --output json
+
+  # Export as CSV for Jira import
+  %(prog)s -o csv -f backlog.csv
+
+For more information, see the skill documentation.
+        """
+    )
+
+    parser.add_argument('input', nargs='?', help='JSON file with epic definition (optional, uses sample if not provided)')
+    parser.add_argument('--sprint', action='store_true', help='Generate sprint planning instead of just epic breakdown')
+    parser.add_argument('--capacity', type=int, default=30, help='Sprint capacity in story points (default: 30)')
+    parser.add_argument('--output', '-o', choices=['text', 'json', 'csv'], default='text', help='Output format (default: text)')
+    parser.add_argument('--file', '-f', help='Write output to file instead of stdout')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Show all stories in detail (not just first 3)')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.0')
+
+    args = parser.parse_args()
+
+    try:
+        generator = UserStoryGenerator()
+
+        # Load epic (from file or use sample)
+        if args.input:
+            if args.verbose:
+                print(f"Loading epic from: {args.input}", file=sys.stderr)
+            epic = load_epic_from_json(args.input)
+        else:
+            if args.verbose:
+                print("Using sample epic data", file=sys.stderr)
+            epic = create_sample_epic()
+
+        # Generate stories from epic
+        if args.verbose:
+            print(f"Generating stories for epic: {epic['name']}", file=sys.stderr)
+
+        stories = generator.generate_epic_stories(epic)
+
+        if args.verbose:
+            print(f"Generated {len(stories)} stories", file=sys.stderr)
+
+        # Generate output based on mode
+        sprint_data = None
+        if args.sprint:
+            if args.verbose:
+                print(f"Planning sprint with capacity {args.capacity} points", file=sys.stderr)
+            sprint_data = generator.generate_sprint_stories(args.capacity, stories)
+
+        # Format output
+        if args.output == 'json':
+            output = format_json_output(stories, sprint_data)
+        elif args.output == 'csv':
+            output = format_csv_output(stories)
+        else:  # text
+            output = format_text_output(stories, sprint_data, args.verbose)
+
+        # Write output
+        if args.file:
+            try:
+                with open(args.file, 'w') as f:
+                    f.write(output)
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            print(output)
+
+        sys.exit(0)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

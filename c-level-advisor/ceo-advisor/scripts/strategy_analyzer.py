@@ -1,12 +1,28 @@
 #!/usr/bin/env python3
 """
 Strategic Planning Analyzer - Comprehensive business strategy assessment tool
+
+This tool helps CEOs and business leaders perform comprehensive strategic analysis
+using multiple frameworks (SWOT, Porter's Five Forces, BCG Matrix) with actionable
+recommendations and implementation roadmaps.
+
+Usage:
+    python strategy_analyzer.py company_data.json
+    python strategy_analyzer.py company_data.json --output json
+    python strategy_analyzer.py company_data.json -o json -f strategy_report.json
+
+Author: claude-skills
+Version: 2.0.0
+Last Updated: 2025-11-05
 """
 
+import argparse
 import json
+import math
+import sys
+from pathlib import Path
 from typing import Dict, List, Tuple
 from datetime import datetime, timedelta
-import math
 
 class StrategyAnalyzer:
     def __init__(self):
@@ -509,7 +525,7 @@ def analyze_strategy(company_data: Dict) -> str:
     """Main function to analyze strategy"""
     analyzer = StrategyAnalyzer()
     results = analyzer.analyze_strategic_position(company_data)
-    
+
     # Format output
     output = [
         f"=== Strategic Analysis Report ===",
@@ -520,24 +536,24 @@ def analyze_strategy(company_data: Dict) -> str:
         f"",
         "Strategic Pillars:"
     ]
-    
+
     for pillar, analysis in results['pillar_analysis'].items():
         output.append(f"  {pillar.replace('_', ' ').title()}: {analysis['score']:.1f} ({analysis['level']})")
         for factor in analysis['factors'][:2]:  # Show top 2 factors
             output.append(f"    • {factor['factor']}: {factor['status']}")
-    
+
     output.extend([
         f"",
         "Strategic Options:"
     ])
-    
+
     for i, option in enumerate(results['strategic_options'][:3], 1):
         output.append(f"\n{i}. {option['name']} (Priority: {option['priority']}/10)")
         output.append(f"   Type: {option['type']}")
         output.append(f"   Investment: {option['investment']}")
         output.append(f"   Timeframe: {option['timeframe']}")
         output.append(f"   Impact: {option['expected_impact']}")
-    
+
     output.extend([
         f"",
         f"Risk Assessment:",
@@ -548,62 +564,233 @@ def analyze_strategy(company_data: Dict) -> str:
         f"",
         "Strategic Roadmap:"
     ])
-    
+
     for phase in results['roadmap']['phases'][:3]:
         output.append(f"  {phase['phase']} ({phase['months']}): {phase['focus']}")
         for initiative in phase['initiatives']:
             output.append(f"    • {initiative}")
-    
+
     output.extend([
         f"",
         "Key Recommendations:"
     ])
-    
+
     for rec in results['recommendations'][:5]:
         output.append(f"  • {rec}")
-    
+
     return '\n'.join(output)
 
-if __name__ == "__main__":
-    # Example usage
-    example_company = {
-        'name': 'TechCorp Inc.',
-        'market_position': {
-            'market_share': 35,
-            'brand_strength': 65,
-            'competitive_advantage': 70,
-            'customer_loyalty': 60
+
+def format_json_output(company_data: Dict) -> str:
+    """Format results as JSON with metadata"""
+    analyzer = StrategyAnalyzer()
+    results = analyzer.analyze_strategic_position(company_data)
+
+    output = {
+        "metadata": {
+            "tool": "strategy_analyzer.py",
+            "version": "2.0.0",
+            "timestamp": datetime.now().isoformat()
         },
-        'financial_health': {
-            'revenue_growth': 45,
-            'profitability': 40,
-            'cash_flow': 55,
-            'unit_economics': 60
+        "inputs": {
+            "company_data": company_data
         },
-        'organizational_capability': {
-            'talent': 70,
-            'culture': 65,
-            'leadership': 75,
-            'agility': 60
-        },
-        'growth_potential': {
-            'market_size': 80,
-            'expansion_opportunities': 70,
-            'product_pipeline': 60,
-            'partnerships': 55
-        },
-        'competitive_forces': {
-            'rivalry': 70,
-            'suppliers': 40,
-            'buyers': 60,
-            'substitutes': 50,
-            'new_entrants': 45
-        },
-        'context': {
-            'industry_disruption': True,
-            'cash_available': 150000000
-        },
-        'timeline': 18
+        "results": results
     }
-    
-    print(analyze_strategy(example_company))
+
+    return json.dumps(output, indent=2)
+
+
+def main():
+    """
+    Main entry point with standardized argument parsing.
+
+    Parses command-line arguments, validates input, performs strategic analysis,
+    and writes output in the specified format.
+    """
+    parser = argparse.ArgumentParser(
+        description='Comprehensive business strategy analysis with SWOT, Porter\'s Five Forces, BCG Matrix, and strategic roadmap',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Basic analysis with text output
+  %(prog)s company_data.json
+
+  # JSON output for board presentations
+  %(prog)s company_data.json --output json
+
+  # Save to file
+  %(prog)s company_data.json -o json -f strategy_report.json
+
+  # Verbose mode with detailed logging
+  %(prog)s company_data.json -v
+
+Input JSON Format:
+  {
+    "name": "TechCorp Inc.",
+    "market_position": {
+      "market_share": 35,
+      "brand_strength": 65,
+      "competitive_advantage": 70,
+      "customer_loyalty": 60
+    },
+    "financial_health": {
+      "revenue_growth": 45,
+      "profitability": 40,
+      "cash_flow": 55,
+      "unit_economics": 60
+    },
+    "organizational_capability": {
+      "talent": 70,
+      "culture": 65,
+      "leadership": 75,
+      "agility": 60
+    },
+    "growth_potential": {
+      "market_size": 80,
+      "expansion_opportunities": 70,
+      "product_pipeline": 60,
+      "partnerships": 55
+    },
+    "competitive_forces": {
+      "rivalry": 70,
+      "suppliers": 40,
+      "buyers": 60,
+      "substitutes": 50,
+      "new_entrants": 45
+    },
+    "context": {
+      "industry_disruption": true,
+      "cash_available": 150000000
+    },
+    "timeline": 18
+  }
+
+For more information, see:
+c-level-advisor/ceo-advisor/SKILL.md
+        """
+    )
+
+    # Positional arguments
+    parser.add_argument(
+        'input',
+        help='JSON file with company strategic data'
+    )
+
+    # Optional arguments
+    parser.add_argument(
+        '--output', '-o',
+        choices=['text', 'json'],
+        default='text',
+        help='Output format: text (default) or json'
+    )
+
+    parser.add_argument(
+        '--file', '-f',
+        help='Write output to file instead of stdout'
+    )
+
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Enable verbose output with detailed information'
+    )
+
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 2.0.0'
+    )
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    try:
+        # Validate input file
+        input_path = Path(args.input)
+
+        if not input_path.exists():
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        if not input_path.is_file():
+            print(f"Error: Path is not a file: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Read input content
+        if args.verbose:
+            print(f"Reading input file: {args.input}", file=sys.stderr)
+
+        try:
+            with open(input_path, 'r', encoding='utf-8') as f:
+                company_data = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON in input file: {e}", file=sys.stderr)
+            sys.exit(1)
+        except UnicodeDecodeError:
+            print(f"Error: Unable to read file as UTF-8 text: {args.input}", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate company_data has name
+        if 'name' not in company_data:
+            company_data['name'] = 'Company'  # Set default if missing
+
+        if args.verbose:
+            print(f"Analyzing strategic position for {company_data.get('name', 'Company')}...", file=sys.stderr)
+
+        # Process data
+        if args.output == 'json':
+            output = format_json_output(company_data)
+        else:  # text (default)
+            output = analyze_strategy(company_data)
+
+        # Write output to file or stdout
+        if args.file:
+            try:
+                output_path = Path(args.file)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(output)
+
+                if args.verbose:
+                    print(f"Results written to: {args.file}", file=sys.stderr)
+                else:
+                    print(f"Output saved to: {args.file}")
+
+            except PermissionError:
+                print(f"Error: Permission denied writing to: {args.file}", file=sys.stderr)
+                sys.exit(4)
+            except Exception as e:
+                print(f"Error writing output file: {e}", file=sys.stderr)
+                sys.exit(4)
+        else:
+            # Print to stdout
+            print(output)
+
+        # Success
+        sys.exit(0)
+
+    except FileNotFoundError as e:
+        print(f"Error: File not found: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except PermissionError as e:
+        print(f"Error: Permission denied: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except ValueError as e:
+        print(f"Error: Invalid input: {e}", file=sys.stderr)
+        sys.exit(3)
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(130)
+
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()

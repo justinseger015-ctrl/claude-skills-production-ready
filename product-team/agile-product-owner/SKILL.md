@@ -19,9 +19,32 @@ Complete toolkit for Product Owners to excel at backlog management and sprint ex
 ### user_story_generator.py
 Generates well-formed user stories with acceptance criteria from epics.
 
-**Usage**: 
-- Generate stories: `python scripts/user_story_generator.py`
-- Plan sprint: `python scripts/user_story_generator.py sprint [capacity]`
+**Usage:**
+```bash
+# Basic usage
+python3 scripts/user_story_generator.py input_epic.txt
+
+# JSON output
+python3 scripts/user_story_generator.py input_epic.txt --output json
+
+# Save to file
+python3 scripts/user_story_generator.py input_epic.txt -o json -f stories.json
+
+# Sprint planning with capacity
+python3 scripts/user_story_generator.py input_epic.txt --sprint --capacity 30
+
+# Verbose mode
+python3 scripts/user_story_generator.py input_epic.txt -v
+```
+
+**Available Options:**
+- `input`: Input file path (required)
+- `--output/-o`: Output format (text, json, csv) - default: text
+- `--file/-f`: Write output to file instead of stdout
+- `--sprint`: Enable sprint planning mode
+- `--capacity`: Sprint capacity in story points (default: 30)
+- `--verbose/-v`: Enable detailed output
+- `--help`: Show help message with examples
 
 **Features**:
 - Breaks epics into stories

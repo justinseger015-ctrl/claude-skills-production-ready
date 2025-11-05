@@ -19,7 +19,31 @@ Comprehensive toolkit for user-centered research and experience design.
 ### persona_generator.py
 Creates research-backed personas from user data and interviews.
 
-**Usage**: `python scripts/persona_generator.py [json]`
+**Usage:**
+```bash
+# Basic persona generation
+python3 scripts/persona_generator.py --data user_research.json
+
+# With segment filtering
+python3 scripts/persona_generator.py --data user_data.json --segment "premium"
+
+# JSON output
+python3 scripts/persona_generator.py --data user_research.json --output json
+
+# Save to file
+python3 scripts/persona_generator.py --data user_research.json -o json -f personas.json
+
+# Verbose mode
+python3 scripts/persona_generator.py --data user_research.json -v
+```
+
+**Available Options:**
+- `--data`: User research data file (JSON format) - required
+- `--segment`: Filter by user segment (optional)
+- `--output/-o`: Output format (text, json, csv) - default: text
+- `--file/-f`: Write output to file instead of stdout
+- `--verbose/-v`: Enable detailed output
+- `--help`: Show help message with examples
 
 **Features**:
 - Analyzes user behavior patterns
