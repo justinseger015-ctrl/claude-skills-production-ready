@@ -4,12 +4,13 @@ name: Smart Bidirectional Sync
 'on':
   issues:
     types: [labeled, closed, reopened]
-  projects_v2_item:
-    types: [edited]
+  # Note: projects_v2_item is not a valid GitHub Actions trigger
+  # Project board changes can only be tracked via polling or manual trigger
+  workflow_dispatch:
 
 # Prevent sync loops with debouncing
 concurrency:
-  group: smart-sync-${{ github.event.issue.number || github.event.projects_v2_item.node_id }}
+  group: smart-sync-${{ github.event.issue.number || github.run_id }}
   cancel-in-progress: true  # Cancel pending runs (debouncing effect)
 
 jobs:
@@ -56,11 +57,11 @@ jobs:
               echo "⏭️ Skipping: Not a status change or state change"
             fi
 
-          elif [ "${{ github.event_name }}" = "projects_v2_item" ]; then
-            # Project event → sync to issue
-            echo "direction=project-to-issue" >> $GITHUB_OUTPUT
-            echo "should_sync=true" >> $GITHUB_OUTPUT
-            echo "✅ Will sync: Project Board → Issue"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger - could be used for project → issue sync in future
+            echo "direction=manual" >> $GITHUB_OUTPUT
+            echo "should_sync=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Manual trigger (no automatic sync configured)"
 
           else
             echo "should_sync=false" >> $GITHUB_OUTPUT
