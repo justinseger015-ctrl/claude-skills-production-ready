@@ -16,17 +16,30 @@ This guide provides comprehensive instructions for creating **cs-* prefixed agen
 
 ### Production Agents
 
-**5 Agents Currently Available** (as of November 5, 2025):
+**14 Agents Currently Available** (as of November 6, 2025):
 
 | Agent | Domain | Description | Skills Used | Lines |
 |-------|--------|-------------|-------------|-------|
+| **Marketing (3 agents)** |||||
 | [cs-content-creator](marketing/cs-content-creator.md) | Marketing | AI-powered content creation with brand voice consistency and SEO optimization | content-creator | 327 |
 | [cs-demand-gen-specialist](marketing/cs-demand-gen-specialist.md) | Marketing | Demand generation and customer acquisition specialist | marketing-demand-acquisition | 289 |
+| [cs-product-marketer](marketing/cs-product-marketer.md) | Marketing | Product positioning, GTM strategy, and competitive analysis | marketing-strategy-pmm | 401 |
+| **C-Level (2 agents)** |||||
 | [cs-ceo-advisor](c-level/cs-ceo-advisor.md) | C-Level | Strategic leadership advisor for CEOs covering vision, strategy, board management | ceo-advisor | 360 |
 | [cs-cto-advisor](c-level/cs-cto-advisor.md) | C-Level | Technical leadership advisor for CTOs covering tech strategy and team scaling | cto-advisor | 412 |
+| **Product (5 agents)** |||||
 | [cs-product-manager](product/cs-product-manager.md) | Product | Product management agent for RICE prioritization and customer discovery | product-manager-toolkit | 407 |
+| [cs-agile-product-owner](product/cs-agile-product-owner.md) | Product | User story creation, backlog grooming, sprint planning | agile-product-owner | 490 |
+| [cs-product-strategist](product/cs-product-strategist.md) | Product | OKR cascades, strategic roadmaps, vision-driven prioritization | product-strategist | 524 |
+| [cs-ux-researcher](product/cs-ux-researcher.md) | Product | Persona development, usability testing, customer interview analysis | ux-researcher-designer | 621 |
+| [cs-ui-designer](product/cs-ui-designer.md) | Product | Design tokens, component libraries, design system documentation | ui-design-system | 716 |
+| **Project Management (4 agents)** |||||
+| [cs-senior-pm](project-management/cs-senior-pm.md) | Project Management | Portfolio planning, stakeholder management, program governance | senior-pm | 546 |
+| [cs-scrum-master](project-management/cs-scrum-master.md) | Project Management | Sprint ceremonies, team facilitation, Agile coaching | scrum-master | 588 |
+| [cs-jira-expert](project-management/cs-jira-expert.md) | Project Management | JQL queries, workflow configuration, automation rules | jira-expert | 710 |
+| [cs-confluence-expert](project-management/cs-confluence-expert.md) | Project Management | Space architecture, template creation, documentation governance | confluence-expert | 788 |
 
-**Total**: 1,795 lines of comprehensive agent documentation
+**Total**: 7,179 lines of comprehensive agent documentation
 
 **Template Available**: [templates/agent-template.md](../templates/agent-template.md) (318 lines) - Use this to create new agents
 

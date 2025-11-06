@@ -79,17 +79,30 @@ python3 marketing-skill/content-creator/scripts/brand_voice_analyzer.py \
 
 ## 🤖 Agent Catalog
 
-**5 specialized agents** that orchestrate skills and provide guided workflows (v1.0):
+**14 specialized agents** that orchestrate skills and provide guided workflows (v1.0):
 
 Agents are workflow orchestrators that intelligently invoke skills, coordinate Python tools, and guide you through complex multi-step processes. While skills provide the tools and knowledge, agents provide the intelligence to use them effectively.
 
 | Agent | Domain | Skills Used | Description |
 |-------|--------|-------------|-------------|
+| **Marketing Agents** ||||
 | [cs-content-creator](agents/marketing/cs-content-creator.md) | Marketing | content-creator | Create SEO-optimized marketing content with brand voice consistency |
 | [cs-demand-gen-specialist](agents/marketing/cs-demand-gen-specialist.md) | Marketing | marketing-demand-acquisition | Lead generation and conversion funnel optimization |
+| [cs-product-marketer](agents/marketing/cs-product-marketer.md) | Marketing | marketing-strategy-pmm | Product positioning, GTM strategy, and competitive analysis |
+| **C-Level Agents** ||||
 | [cs-ceo-advisor](agents/c-level/cs-ceo-advisor.md) | C-Level | ceo-advisor | Strategic planning, OKR setting, and board deck preparation |
 | [cs-cto-advisor](agents/c-level/cs-cto-advisor.md) | C-Level | cto-advisor | Tech roadmap planning, build vs buy decisions, team scaling |
+| **Product Agents** ||||
 | [cs-product-manager](agents/product/cs-product-manager.md) | Product | product-manager-toolkit | RICE prioritization, roadmap generation, customer discovery |
+| [cs-agile-product-owner](agents/product/cs-agile-product-owner.md) | Product | agile-product-owner | User story creation, backlog grooming, sprint planning |
+| [cs-product-strategist](agents/product/cs-product-strategist.md) | Product | product-strategist | OKR cascades, strategic roadmaps, vision-driven prioritization |
+| [cs-ux-researcher](agents/product/cs-ux-researcher.md) | Product | ux-researcher-designer | Persona development, usability testing, customer interview analysis |
+| [cs-ui-designer](agents/product/cs-ui-designer.md) | Product | ui-design-system | Design tokens, component libraries, design system documentation |
+| **Project Management Agents** ||||
+| [cs-senior-pm](agents/project-management/cs-senior-pm.md) | Project Management | senior-pm | Portfolio planning, stakeholder management, program governance |
+| [cs-scrum-master](agents/project-management/cs-scrum-master.md) | Project Management | scrum-master | Sprint ceremonies, team facilitation, Agile coaching |
+| [cs-jira-expert](agents/project-management/cs-jira-expert.md) | Project Management | jira-expert | JQL queries, workflow configuration, automation rules |
+| [cs-confluence-expert](agents/project-management/cs-confluence-expert.md) | Project Management | confluence-expert | Space architecture, template creation, documentation governance |
 
 ### Agents vs Skills
 
