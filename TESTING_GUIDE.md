@@ -533,9 +533,9 @@ echo $?  # Should be 0
 
 ## Additional Resources
 
-- **CLI Standards:** See `standards/cli-standards.md`
+- **CLI Standards:** See `documentation/standards/cli-standards.md`
 - **Python Template:** See `templates/python-cli-template.py`
-- **Migration Report:** See `CLI_MIGRATION_COMPLETE_2025-11-05.md`
+- **Migration Report:** See `documentation/migration/CLI_MIGRATION_COMPLETE_2025-11-05.md`
 - **Sample Files:** See `*/assets/README.md` in each skill directory
 
 ---
@@ -546,7 +546,7 @@ If tests fail or you need help:
 
 1. Check the script's `--help` output for correct usage
 2. Verify sample input file exists and is valid format
-3. Check `standards/cli-standards.md` for requirements
+3. Check `documentation/standards/cli-standards.md` for requirements
 4. Review test output for specific error messages
 5. Check CI/CD logs in GitHub Actions
 

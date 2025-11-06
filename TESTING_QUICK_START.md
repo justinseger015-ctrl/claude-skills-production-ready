@@ -391,8 +391,8 @@ pytest
 
 - [Pytest Documentation](https://docs.pytest.org/)
 - [tests/README.md](tests/README.md) - Complete testing guide
-- [PYTEST_IMPLEMENTATION_REPORT.md](PYTEST_IMPLEMENTATION_REPORT.md) - Full technical report
-- [standards/cli/cli-standards.md](standards/cli/cli-standards.md) - CLI requirements
+- [documentation/migration/PYTEST_IMPLEMENTATION_REPORT.md](documentation/migration/PYTEST_IMPLEMENTATION_REPORT.md) - Full technical report
+- [documentation/standards/cli-standards.md](documentation/standards/cli-standards.md) - CLI requirements
 
 ## Support
 

@@ -54,7 +54,7 @@ This major release standardizes all Python CLI tools with argparse, implements c
 - `TESTING_QUICK_START.md` - Quick reference guide
 
 **Documentation:**
-- `standards/cli-standards.md` (715 lines) - Comprehensive CLI patterns guide
+- `documentation/standards/cli-standards.md` (715 lines) - Comprehensive CLI patterns guide
 - `templates/python-cli-template.py` (268 lines) - Production-ready template
 - Migration reports and implementation summaries
 
@@ -106,11 +106,11 @@ Minimal breaking changes - basic positional argument usage preserved where possi
 
 ### Migration Guide
 
-See detailed migration documentation in [docs/migration/](docs/migration/):
-- `docs/migration/CLI_MIGRATION_COMPLETE_2025-11-05.md` - Comprehensive report
-- `docs/migration/PYTEST_IMPLEMENTATION_REPORT.md` - Testing framework details
+See detailed migration documentation in [documentation/migration/](documentation/migration/):
+- `documentation/migration/CLI_MIGRATION_COMPLETE_2025-11-05.md` - Comprehensive report
+- `documentation/migration/PYTEST_IMPLEMENTATION_REPORT.md` - Testing framework details
 - `TESTING_GUIDE.md` - Testing procedures
-- `standards/cli-standards.md` - CLI standards reference
+- `documentation/standards/cli-standards.md` - CLI standards reference
 
 ---
 

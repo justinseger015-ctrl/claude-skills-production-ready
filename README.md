@@ -72,7 +72,7 @@ python3 marketing-skill/content-creator/scripts/brand_voice_analyzer.py \
   input.txt --output json --file results.json
 ```
 
-**Learn More:** [TESTING_GUIDE.md](TESTING_GUIDE.md) | [standards/cli-standards.md](standards/cli-standards.md)
+**Learn More:** [TESTING_GUIDE.md](TESTING_GUIDE.md) | [documentation/standards/cli-standards.md](documentation/standards/cli-standards.md)
 
 ---
 
