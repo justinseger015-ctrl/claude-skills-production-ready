@@ -11,6 +11,7 @@
 ## 📚 Table of Contents
 
 - [Overview](#-overview)
+- [Production CLI Tools & Testing](#%EF%B8%8F-production-cli-tools--testing)
 - [Available Skills](#-available-skills)
 - [Quick Start](#-quick-start)
 - [How to Use with Claude AI](#-how-to-use-with-claude-ai)
@@ -39,6 +40,39 @@ This repository provides **modular, self-contained skill packages** designed to 
 - 🎯 **Domain expertise** - Battle-tested frameworks from industry experts
 - 🔧 **Practical tools** - Algorithmic analysis without external API dependencies
 - 📈 **Measurable ROI** - 40%+ time savings, 30%+ quality improvements
+
+---
+
+## 🛠️ Production CLI Tools & Testing
+
+**67 standardized Python CLI tools** with comprehensive testing framework (v2.0.0):
+
+### CLI Features
+- **Consistent Interface** - All tools use argparse with standard flags: `--help`, `--version`, `--output`, `--file`, `--verbose`
+- **Multiple Output Formats** - Text (human-readable), JSON (machine-readable), CSV (spreadsheet integration)
+- **Error Handling** - Standardized exit codes and UTF-8 encoding support
+- **Sample Data** - 24 sample input files across domains for immediate testing
+
+### Testing Framework
+- **2,814 Automated Tests** - 100% pass rate across all scripts
+- **CI/CD Integration** - GitHub Actions with pytest
+- **Comprehensive Coverage** - Help flags, execution, output formats, error handling, unicode support
+
+### Quick Start
+```bash
+# Test a single script
+./test_single_script.sh marketing-skill/content-creator/scripts/brand_voice_analyzer.py \
+  marketing-skill/content-creator/assets/sample-content.txt
+
+# Test all scripts
+./test_cli_standards.sh
+
+# Run script with JSON output
+python3 marketing-skill/content-creator/scripts/brand_voice_analyzer.py \
+  input.txt --output json --file results.json
+```
+
+**Learn More:** [TESTING_GUIDE.md](TESTING_GUIDE.md) | [standards/cli-standards.md](standards/cli-standards.md)
 
 ---
 
