@@ -116,17 +116,18 @@ jobs:
                 }
 
                 // Add comment explaining closure
-                const commentBody = [
-                  `## ✅ Completed via PR #${prNumber}`,
-                  ``,
-                  `**PR**: ${prTitle}`,
-                  `**URL**: ${prUrl}`,
-                  `**Merged by**: @${merger}`,
-                  ``,
-                  `This issue has been resolved and the changes have been merged into main.`,
-                  ``,
-                  `🤖 Automatically closed via PR merge automation`
-                ].join('\n');
+                const commentParts = [
+                  '## ✅ Completed via PR #' + prNumber,
+                  '',
+                  '**PR**: ' + prTitle,
+                  '**URL**: ' + prUrl,
+                  '**Merged by**: @' + merger,
+                  '',
+                  'This issue has been resolved and the changes have been merged into main.',
+                  '',
+                  '🤖 Automatically closed via PR merge automation'
+                ];
+                const commentBody = commentParts.join('\n');
 
                 await github.rest.issues.createComment({
                   owner: context.repo.owner,
