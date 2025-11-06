@@ -16,7 +16,7 @@ This guide provides comprehensive instructions for creating **cs-* prefixed agen
 
 ### Production Agents
 
-**14 Agents Currently Available** (as of November 6, 2025):
+**23 Agents Currently Available** (as of November 6, 2025):
 
 | Agent | Domain | Description | Skills Used | Lines |
 |-------|--------|-------------|-------------|-------|
@@ -38,8 +38,18 @@ This guide provides comprehensive instructions for creating **cs-* prefixed agen
 | [cs-scrum-master](project-management/cs-scrum-master.md) | Project Management | Sprint ceremonies, team facilitation, Agile coaching | scrum-master | 588 |
 | [cs-jira-expert](project-management/cs-jira-expert.md) | Project Management | JQL queries, workflow configuration, automation rules | jira-expert | 710 |
 | [cs-confluence-expert](project-management/cs-confluence-expert.md) | Project Management | Space architecture, template creation, documentation governance | confluence-expert | 788 |
+| **Engineering (9 agents)** |||||
+| [cs-backend-engineer](engineering/cs-backend-engineer.md) | Engineering | API development, database optimization, microservices architecture | senior-backend | 745 |
+| [cs-frontend-engineer](engineering/cs-frontend-engineer.md) | Engineering | React/Vue development, UI/UX implementation, frontend performance | senior-frontend | 982 |
+| [cs-fullstack-engineer](engineering/cs-fullstack-engineer.md) | Engineering | End-to-end development, API integration, full-stack architecture | senior-fullstack | 1,191 |
+| [cs-devops-engineer](engineering/cs-devops-engineer.md) | Engineering | CI/CD pipelines, infrastructure as code, container orchestration | senior-devops | 799 |
+| [cs-architect](engineering/cs-architect.md) | Engineering | System design, architecture patterns, scalability planning | senior-architect | 869 |
+| [cs-security-engineer](engineering/cs-security-engineer.md) | Engineering | Security audits, vulnerability assessment, secure coding | senior-security | 1,094 |
+| [cs-secops-engineer](engineering/cs-secops-engineer.md) | Engineering | Security operations, incident response, threat detection | senior-secops | 365 |
+| [cs-qa-engineer](engineering/cs-qa-engineer.md) | Engineering | Test automation, quality assurance, test strategy | senior-qa | 383 |
+| [cs-code-reviewer](engineering/cs-code-reviewer.md) | Engineering | Code review, quality assessment, refactoring guidance | code-reviewer | 427 |
 
-**Total**: 7,179 lines of comprehensive agent documentation
+**Total**: 14,034 lines of comprehensive agent documentation
 
 **Template Available**: [templates/agent-template.md](../templates/agent-template.md) (318 lines) - Use this to create new agents
 

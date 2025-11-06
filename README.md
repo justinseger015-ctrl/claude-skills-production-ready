@@ -79,7 +79,7 @@ python3 marketing-skill/content-creator/scripts/brand_voice_analyzer.py \
 
 ## 🤖 Agent Catalog
 
-**14 specialized agents** that orchestrate skills and provide guided workflows (v1.0):
+**23 specialized agents** that orchestrate skills and provide guided workflows (v1.0):
 
 Agents are workflow orchestrators that intelligently invoke skills, coordinate Python tools, and guide you through complex multi-step processes. While skills provide the tools and knowledge, agents provide the intelligence to use them effectively.
 
@@ -103,6 +103,16 @@ Agents are workflow orchestrators that intelligently invoke skills, coordinate P
 | [cs-scrum-master](agents/project-management/cs-scrum-master.md) | Project Management | scrum-master | Sprint ceremonies, team facilitation, Agile coaching |
 | [cs-jira-expert](agents/project-management/cs-jira-expert.md) | Project Management | jira-expert | JQL queries, workflow configuration, automation rules |
 | [cs-confluence-expert](agents/project-management/cs-confluence-expert.md) | Project Management | confluence-expert | Space architecture, template creation, documentation governance |
+| **Engineering Agents** ||||
+| [cs-backend-engineer](agents/engineering/cs-backend-engineer.md) | Engineering | senior-backend | API development, database optimization, microservices architecture |
+| [cs-frontend-engineer](agents/engineering/cs-frontend-engineer.md) | Engineering | senior-frontend | React/Vue development, UI/UX implementation, frontend performance |
+| [cs-fullstack-engineer](agents/engineering/cs-fullstack-engineer.md) | Engineering | senior-fullstack | End-to-end development, API integration, full-stack architecture |
+| [cs-devops-engineer](agents/engineering/cs-devops-engineer.md) | Engineering | senior-devops | CI/CD pipelines, infrastructure as code, container orchestration |
+| [cs-architect](agents/engineering/cs-architect.md) | Engineering | senior-architect | System design, architecture patterns, scalability planning |
+| [cs-security-engineer](agents/engineering/cs-security-engineer.md) | Engineering | senior-security | Security audits, vulnerability assessment, secure coding |
+| [cs-secops-engineer](agents/engineering/cs-secops-engineer.md) | Engineering | senior-secops | Security operations, incident response, threat detection |
+| [cs-qa-engineer](agents/engineering/cs-qa-engineer.md) | Engineering | senior-qa | Test automation, quality assurance, test strategy |
+| [cs-code-reviewer](agents/engineering/cs-code-reviewer.md) | Engineering | code-reviewer | Code review, quality assessment, refactoring guidance |
 
 ### Agents vs Skills
 
