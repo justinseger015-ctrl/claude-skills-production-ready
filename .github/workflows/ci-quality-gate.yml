@@ -89,15 +89,9 @@ jobs:
             safety check --full-report --file "$f" || true
           done
 
-      - name: Markdown link spot-check
-        run: |
-          npx --yes markdown-link-check@3.12.2 README.md
-        continue-on-error: true
-
       - name: Run pytest - CLI tests
         run: |
           pytest tests/ -v --tb=short -x
-        continue-on-error: true
 
       - name: Summarize results
         if: always()
