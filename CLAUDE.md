@@ -40,8 +40,6 @@ This repository uses **modular documentation**. For domain-specific guidance, se
 | **Standards Library** | [docs/standards/CLAUDE.md](docs/standards/CLAUDE.md) | Communication, quality, git, security standards |
 | **Templates** | [templates/CLAUDE.md](templates/CLAUDE.md) | Template system usage |
 
-**Current Sprint:** See [docs/delivery/sprint-11-05-2025/](docs/delivery/sprint-11-05-2025/) for active sprint context and progress.
-
 ## Architecture Overview
 
 ### Repository Structure
@@ -56,10 +54,12 @@ claude-code-skills/
 ├── agents/                    # Workflow orchestrator agents (cs-* prefix)
 │   ├── marketing/            # Marketing domain agents
 │   └── product/              # Product management agents
-├── docs/                      # Standards, migration docs, sprints
+├── docs/                      # Documentation and standards
 │   ├── standards/            # CLI, git, quality, security standards
-│   ├── implementation/       # Implementation plans
-│   └── delivery/             # Sprint tracking
+│   ├── testing/              # Testing guides and quick starts
+│   ├── INSTALL.md            # Installation guide
+│   ├── USAGE.md              # Usage examples and workflows
+│   └── WORKFLOW.md           # Git workflow guide
 ├── templates/                 # Reusable templates (agent, CLI, etc.)
 ├── tools/                     # Testing and validation scripts
 └── tests/                     # Automated pytest tests
@@ -220,23 +220,6 @@ python skills/marketing-team/content-creator/scripts/brand_voice_analyzer.py con
 - Keep scripts runnable with minimal setup (`pip install package` at most)
 - Document all dependencies in SKILL.md and update requirements.txt
 - Prefer standard library implementations
-
-## Current Sprint
-
-**Active Sprint:** sprint-11-05-2025 (Nov 5-19, 2025)
-**Goal:** Skill-Agent Integration Phase 1-2
-**Status:** ✅ COMPLETE - All 6 days finished, 3 agents deployed
-
-**Deliverables:**
-- 3 production agents: cs-content-creator, cs-demand-gen-specialist, cs-product-manager
-- 1 agent template for future development
-- Modular documentation structure (main + domain CLAUDE.md files)
-- Three-tier deployment pipeline (develop → staging → main)
-
-**Progress Tracking:**
-- [Sprint Plan](docs/delivery/sprint-11-05-2025/plan.md) - Day-by-day execution plan
-- [Sprint Context](docs/delivery/sprint-11-05-2025/context.md) - Goals, scope, risks
-- [Sprint Progress](docs/delivery/sprint-11-05-2025/PROGRESS.md) - Real-time auto-updating tracker
 
 ## Roadmap
 
@@ -476,10 +459,10 @@ python3.11 -m venv claude-skills_venv
 
 - **.gitignore:** Excludes .vscode/, .DS_Store, AGENTS.md, PROMPTS.md, .env*, *_venv/
 - **Standards Library:** [docs/standards/](docs/standards/) - Communication, quality, git, documentation, security
-- **Implementation Plans:** [docs/implementation/](docs/implementation/)
-- **Sprint Delivery:** [docs/delivery/](docs/delivery/)
-- **Workflow Guide:** [docs/WORKFLOW.md](docs/WORKFLOW.md)
-- **Git Standards:** [docs/standards/git/git-workflow-standards.md](docs/standards/git/git-workflow-standards.md)
+- **Workflow Guide:** [docs/WORKFLOW.md](docs/WORKFLOW.md) - Branch strategy and deployment pipeline
+- **Installation Guide:** [docs/INSTALL.md](docs/INSTALL.md) - Setup instructions
+- **Usage Guide:** [docs/USAGE.md](docs/USAGE.md) - Examples and workflows
+- **Testing Guides:** [docs/testing/](docs/testing/) - Testing documentation
 
 ## File Locations Quick Reference
 
@@ -499,10 +482,11 @@ claude-skills/
 │   ├── marketing/                 # Marketing agents
 │   ├── product/                   # Product agents
 │   └── CLAUDE.md                  # Agent development guide
-├── docs/                          # Implementation docs
+├── docs/                          # Documentation and standards
 │   ├── WORKFLOW.md                # Git workflow guide
-│   ├── implementation/            # Implementation plans
-│   ├── delivery/                  # Sprint tracking
+│   ├── INSTALL.md                 # Installation guide
+│   ├── USAGE.md                   # Usage examples
+│   ├── testing/                   # Testing guides
 │   └── standards/                 # Quality standards
 │       ├── communication/
 │       ├── quality/

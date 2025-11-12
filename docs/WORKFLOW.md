@@ -1,33 +1,36 @@
 # Development Workflow
 
-**Repository:** claude-code-skills
-**Branch Strategy:** feature → dev → main (PR only)
-**Last Updated:** November 5, 2025
+**Repository:** claude-skills (Pandora Edition)
+**Branch Strategy:** develop → staging → main (solo developer with quality gates)
+**Last Updated:** November 12, 2025
 
 ---
 
-## Quick Start
+## Quick Start (Solo Developer)
 
 ```bash
-# 1. Always start from dev
-git checkout dev
-git pull origin dev
+# 1. Work on develop branch
+git checkout develop
+git pull origin develop
 
-# 2. Create feature branch
-git checkout -b feature/agents-{name}
+# 2. Make changes and test locally
+# ... make your changes ...
+npm test  # or: python -m pytest
 
-# 3. Work and commit
+# 3. Commit with conventional format
 git add .
-git commit -m "feat(agents): implement {name}"
+git commit -m "feat(domain): description"
+git push origin develop
 
-# 4. Push to remote
-git push origin feature/agents-{name}
+# 4. Promote to staging (after tests pass)
+git checkout staging
+git merge develop
+npm test && git push origin staging
 
-# 5. Create PR to dev (NOT main)
-gh pr create --base dev --head feature/agents-{name}
-
-# 6. After PR approved and merged, delete feature branch
-git branch -d feature/agents-{name}
+# 5. Deploy to production (after staging validation)
+git checkout main
+git merge staging
+npm test && git push origin main
 ```
 
 ---
@@ -38,15 +41,21 @@ git branch -d feature/agents-{name}
 
 **main**
 - Production-ready code only
-- Protected: requires PR approval
-- No direct pushes allowed
-- Tagged releases only
+- All features fully validated in staging
+- Tagged releases for version tracking
+- Deploy from staging only
 
-**dev**
-- Integration branch
-- All feature branches merge here first
-- Testing and validation happens here
-- Periodically merged to main via PR
+**staging**
+- Pre-production validation environment
+- Promoted from develop after tests pass
+- Test complete workflows before production
+- Quality gate before main
+
+**develop**
+- Primary development branch
+- Direct push allowed for solo developer
+- Run tests before pushing
+- Promote to staging when ready
 
 ### Feature Branches
 
