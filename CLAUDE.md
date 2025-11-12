@@ -487,12 +487,7 @@ claude-skills/
 │   ├── INSTALL.md                 # Installation guide
 │   ├── USAGE.md                   # Usage examples
 │   ├── testing/                   # Testing guides
-│   └── standards/                 # Quality standards
-│       ├── communication/
-│       ├── quality/
-│       ├── git/
-│       ├── documentation/
-│       └── security/
+│   └── standards/                 # All standards (communication, quality, git, documentation, security)
 ├── templates/                     # Templates
 │   ├── agent-template.md          # Agent creation template
 │   └── skill-template.md          # Skill creation template
