@@ -135,6 +135,11 @@ N/A - All constitution principles pass or have clear attention items that don't 
    - **Research**: Review GitHub fork attribution patterns, MIT license requirements
    - **Output**: CONTRIBUTORS.md format and README.md attribution section template
 
+6. **Documentation Cleanup Audit**
+   - **Question**: Which documentation files contain upstream author references or repo links that should be removed?
+   - **Research**: Grep all docs for "Ali Rezvani", "alirezarezvani", upstream repo URLs, contribution guidelines
+   - **Output**: List of files requiring upstream reference removal (excluding CONTRIBUTORS.md and README.md)
+
 ### Decisions Log
 
 | Decision | Rationale | Alternatives Considered |
@@ -176,6 +181,7 @@ This phase documents the step-by-step commands for execution (will be detailed i
    - Document removal rationale in `migration-notes.md`
    - `git rm -r ra-qm-team/`
    - `git rm -r c-level-advisor/`
+   - `git rm UPSTREAM_CONTRIBUTION_GUIDE.md`
 
 6. **Path reference updates**
    - Update CLAUDE.md skill paths
@@ -184,10 +190,14 @@ This phase documents the step-by-step commands for execution (will be detailed i
    - Update templates if needed
    - Update Python scripts if hardcoded paths exist
 
-7. **Attribution updates**
-   - Create/update CONTRIBUTORS.md
-   - Update README.md with Ali Rezvani attribution
-   - Update project description for Pandora focus
+7. **Attribution and upstream reference cleanup**
+   - Create/update CONTRIBUTORS.md with Ali Rezvani attribution
+   - Update README.md with Ali Rezvani attribution and Pandora focus
+   - **REVIEW ALL OTHER DOCS** (in docs/ after move) to remove upstream author references and repo links
+     - Keep attribution ONLY in CONTRIBUTORS.md and README.md
+     - Remove references to Ali Rezvani's workflows, original repo links, upstream contribution guides
+     - Update to reflect Pandora-specific context
+   - Update project description for Pandora focus throughout
 
 8. **Validation**
    - Run markdown link checker
@@ -202,6 +212,9 @@ This phase documents the step-by-step commands for execution (will be detailed i
 **Removed Domains:**
 - ra-qm-team/ (12 skills): ISO 13485, MDR, FDA compliance - not applicable to Pandora
 - c-level-advisor/ceo-advisor/: Strategic planning - not needed for current Pandora focus
+
+**Removed Files:**
+- UPSTREAM_CONTRIBUTION_GUIDE.md: No longer contributing upstream, fork diverged for Pandora needs
 
 **Renamed Domains:**
 - marketing-skill/ → marketing-team/: Align with team-based naming

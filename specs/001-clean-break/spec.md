@@ -105,8 +105,10 @@ As a new contributor to the Pandora claude-skills project, I need clear document
   - MOVE: CTO advisor skill from `c-level-advisor/cto-advisor/` to `engineering-team/cto-advisor/`
   - All removed content MUST be documented in migration notes with removal rationale
 - **FR-008**: System MUST update project description, mission statement, and documentation to reflect Pandora-specific use cases rather than generic organizational use
-- **FR-009**: System MUST validate all markdown links are not broken after restructuring
-- **FR-010**: System MUST update .gitignore if needed to reflect new folder structure
+- **FR-009**: System MUST remove UPSTREAM_CONTRIBUTION_GUIDE.md file (no longer contributing to upstream)
+- **FR-010**: System MUST review and clean all documentation files (except CONTRIBUTORS.md and README.md) to remove upstream author references, original repo links, and upstream contribution guidelines, replacing with Pandora-specific context
+- **FR-011**: System MUST validate all markdown links are not broken after restructuring
+- **FR-012**: System MUST update .gitignore if needed to reflect new folder structure
 
 ### Key Entities
 
