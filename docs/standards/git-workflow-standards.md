@@ -300,9 +300,6 @@ echo "✅ Commit message format valid"
 
 echo "Running pre-push validation..."
 
-# Run quality checks
-/review
-
 # Check for TODO comments in production code
 if git diff origin/main...HEAD | grep -i "TODO"; then
     echo "⚠️  TODO comments found - consider addressing before push"

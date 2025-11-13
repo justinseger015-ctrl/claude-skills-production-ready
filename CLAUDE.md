@@ -353,31 +353,7 @@ done
 
 Available slash commands (from `.claude/commands/`):
 
-```bash
-# Git and commit workflows
-/git:cm     # Stage changes and create conventional commit (no push)
-/git:cp     # Stage, commit, and push following git governance
-/git:pr     # Create pull request from current branch
-
-# Quality gates
-/review           # Run local review gate before pushing
-/security-scan    # Run security scan gate
-```
-
-**Usage Example:**
-```bash
-# Make changes
-vim skills/marketing-team/content-creator/SKILL.md
-
-# Review changes
-/review
-
-# Commit with conventional format
-/git:cm
-
-# Create pull request
-/git:pr develop
-```
+See `.claude/commands/` directory for available slash commands. The repository uses custom slash commands for workflow automation.
 
 ## Key Principles
 
