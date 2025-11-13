@@ -294,6 +294,11 @@ cp templates/skill-template.md skills/<domain-team>/<skill-name>/SKILL.md
 
 # 6. Test skill integration
 python skills/<domain-team>/<skill-name>/scripts/<tool>.py --help
+
+# 7. Save any analysis outputs to output/ directory
+# Use timestamped filenames: YYYY-MM-DD_HH-MM-SS_topic_agent-name.md
+TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+echo "Analysis results..." > output/analysis/${TIMESTAMP}_skill-analysis_cs-agent.md
 ```
 
 ### Creating a New Agent
@@ -459,9 +464,43 @@ python3.9 -m venv claude-skills_venv
 python3.11 -m venv claude-skills_venv
 ```
 
+## Agent Output Directory
+
+All agent-generated reports, analyses, and outputs are saved to the `output/` directory with timestamped filenames.
+
+**Naming Convention:** `YYYY-MM-DD_HH-MM-SS_<topic>_<agent-name>.md`
+
+**Examples:**
+- `2025-11-13_13-55-52_architecture-review_cs-architect.md`
+- `2025-11-13_14-22-10_code-review_cs-code-reviewer.md`
+- `2025-11-13_16-45-30_security-scan_cs-secops.md`
+
+**Directory Structure:**
+- `output/architecture/` - Architecture reviews, diagrams, design docs
+- `output/reviews/` - Code reviews, quality assessments
+- `output/analysis/` - Dependency, performance, security analysis
+- `output/reports/` - General reports and summaries
+
+**Usage:**
+```bash
+# Save agent output with timestamp
+TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+python3 skills/engineering-team/senior-architect/scripts/project_architect.py --input . \
+  > output/architecture/${TIMESTAMP}_architecture-review_cs-architect.md
+```
+
+**Git Workflow:** By default, all `output/` files are gitignored. To commit a specific report:
+```bash
+git add -f output/architecture/2025-11-13_13-55-52_architecture-review_cs-architect.md
+git commit -m "docs(architecture): add architecture review from cs-architect"
+```
+
+See [output/README.md](output/README.md) for complete guidelines.
+
 ## Additional Resources
 
-- **.gitignore:** Excludes .vscode/, .DS_Store, AGENTS.md, PROMPTS.md, .env*, *_venv/
+- **.gitignore:** Excludes .vscode/, .DS_Store, AGENTS.md, PROMPTS.md, .env*, *_venv/, output/*
+- **Output Directory:** [output/README.md](output/README.md) - Agent output naming conventions and guidelines
 - **Standards Library:** [docs/standards/](docs/standards/) - Communication, quality, git, documentation, security
 - **Workflow Guide:** [docs/WORKFLOW.md](docs/WORKFLOW.md) - Branch strategy and deployment pipeline
 - **Installation Guide:** [docs/INSTALL.md](docs/INSTALL.md) - Setup instructions
@@ -492,6 +531,12 @@ claude-skills/
 │   ├── USAGE.md                   # Usage examples
 │   ├── testing/                   # Testing guides
 │   └── standards/                 # All standards (communication, quality, git, documentation, security)
+├── output/                        # Agent-generated reports (gitignored by default)
+│   ├── architecture/              # Architecture reviews, diagrams, design docs
+│   ├── reviews/                   # Code reviews, quality assessments
+│   ├── analysis/                  # Dependency, performance, security analysis
+│   ├── reports/                   # General reports and summaries
+│   └── README.md                  # Output directory guidelines
 ├── templates/                     # Templates
 │   ├── agent-template.md          # Agent creation template
 │   └── skill-template.md          # Skill creation template
