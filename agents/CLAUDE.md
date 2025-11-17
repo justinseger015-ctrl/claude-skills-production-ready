@@ -16,7 +16,7 @@ This guide provides comprehensive instructions for creating **cs-* prefixed agen
 
 ### Production Agents
 
-**28 Agents Currently Available** (as of November 6, 2025):
+**27 Agents Currently Available** (as of November 17, 2025):
 
 | Agent | Domain | Description | Skills Used | Lines |
 |-------|--------|-------------|-------------|-------|
@@ -386,6 +386,6 @@ After creating an agent:
 
 ---
 
-**Last Updated:** November 5, 2025
+**Last Updated:** November 17, 2025
 **Current Sprint:** sprint-11-05-2025 (Skill-Agent Integration Phase 1-2)
 **Related:** See [main CLAUDE.md](../CLAUDE.md) for repository overview

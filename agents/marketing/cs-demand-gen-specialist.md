@@ -30,7 +30,7 @@ The cs-demand-gen-specialist agent bridges the gap between marketing strategy an
    - **Features:** CAC calculation by channel, LTV:CAC ratio, payback period analysis, ROI metrics
    - **Use Cases:** Budget allocation, channel performance evaluation, campaign ROI analysis
 
-**Note:** Additional tools (demand_gen_analyzer.py, funnel_optimizer.py) planned for future releases per marketing roadmap.
+**Note:** Additional tools (funnel_optimizer.py, campaign_analyzer.py) planned for future releases per marketing roadmap.
 
 ### Knowledge Bases
 
