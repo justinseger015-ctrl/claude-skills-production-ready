@@ -2,7 +2,7 @@
 
 **Purpose:** Ensure all refactored skills meet Anthropic's official Agent Skills standards
 **Version:** 1.0
-**Last Updated:** November 6, 2025
+**Last Updated:** November 17, 2025
 
 ---
 

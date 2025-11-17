@@ -88,4 +88,4 @@ These tests are also run automatically in GitHub Actions:
 
 ---
 
-**Last Updated:** November 6, 2025
+**Last Updated:** November 17, 2025

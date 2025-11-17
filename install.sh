@@ -92,7 +92,7 @@ display_welcome() {
     echo ""
     echo "What you'll get:"
     echo "  • 27 production agents (Marketing, Product, Delivery, Engineering)"
-    echo "  • 77 Python CLI automation tools"
+    echo "  • 53 Python CLI automation tools"
     echo "  • Comprehensive standards library"
     echo "  • Templates and workflows"
     echo ""
@@ -302,7 +302,7 @@ USAGE:
    - Upload skills from: $INSTALL_DIR/skills/
    - Reference in your Project
 
-3. Python Tools (77 total):
+3. Python Tools (53 total):
    - All scripts in: $INSTALL_DIR/skills/*/scripts/*.py
    - Run with: python3 path/to/script.py --help
 
