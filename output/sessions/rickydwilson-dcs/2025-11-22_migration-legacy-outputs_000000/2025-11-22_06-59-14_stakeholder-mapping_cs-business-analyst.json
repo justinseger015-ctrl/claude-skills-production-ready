@@ -1,0 +1,164 @@
+{
+  "process_name": "Process Improvement Initiative",
+  "analysis_date": "2025-11-22",
+  "stakeholder_count": 7,
+  "stakeholders": [
+    {
+      "name": "Sarah",
+      "role": "Finance Manager",
+      "department": "Finance",
+      "contact": "sarah@company.com",
+      "influence_score": 3,
+      "interest_score": 4,
+      "classification": "Key Player",
+      "engagement_strategy": "Active partnership - Weekly updates, direct involvement in decisions, co-create solutions. Emphasize ROI, cost savings, and budget implications. Involve in key decisions and milestone reviews. Seek input on major changes before implementation.",
+      "impact_areas": [
+        "Budget",
+        "Resources",
+        "Finance Operations"
+      ],
+      "relationships": [
+        " (reports to)",
+        "Mike (manages)",
+        "Jessica (manages)"
+      ],
+      "priority": "Critical",
+      "risk_level": "High - Must maintain strong relationship"
+    },
+    {
+      "name": "Tom",
+      "role": "Procurement Lead",
+      "department": "Procurement",
+      "contact": "tom@company.com",
+      "influence_score": 2,
+      "interest_score": 3,
+      "classification": "Keep Informed",
+      "engagement_strategy": "Provide adequate information - Involve in feedback and detailed communication",
+      "impact_areas": [
+        "Resources",
+        "Procurement Operations"
+      ],
+      "relationships": [
+        " (reports to)"
+      ],
+      "priority": "Medium",
+      "risk_level": "Low - Can be champions/advocates"
+    },
+    {
+      "name": "Mike",
+      "role": "AP Clerk",
+      "department": "Finance",
+      "contact": "mike@company.com",
+      "influence_score": 1,
+      "interest_score": 4,
+      "classification": "Keep Informed",
+      "engagement_strategy": "Provide adequate information - Involve in feedback and detailed communication",
+      "impact_areas": [
+        "Finance Operations"
+      ],
+      "relationships": [
+        " (reports to)",
+        "Sarah (collaborates)"
+      ],
+      "priority": "Medium",
+      "risk_level": "Low - Can be champions/advocates"
+    },
+    {
+      "name": "Jessica",
+      "role": "Controller",
+      "department": "Finance",
+      "contact": "jessica@company.com",
+      "influence_score": 1,
+      "interest_score": 4,
+      "classification": "Keep Informed",
+      "engagement_strategy": "Provide adequate information - Involve in feedback and detailed communication",
+      "impact_areas": [
+        "Finance Operations"
+      ],
+      "relationships": [
+        " (reports to)",
+        "Sarah (collaborates)"
+      ],
+      "priority": "Medium",
+      "risk_level": "Low - Can be champions/advocates"
+    },
+    {
+      "name": "Payment Processing Team",
+      "role": "Payment Processor",
+      "department": "Finance Operations",
+      "contact": "payments@company.com",
+      "influence_score": 1,
+      "interest_score": 2,
+      "classification": "Monitor",
+      "engagement_strategy": "Minimal effort - General communications and major milestone updates",
+      "impact_areas": [
+        "Process Changes",
+        "Finance Operations Operations"
+      ],
+      "relationships": [
+        " (reports to)"
+      ],
+      "priority": "Low",
+      "risk_level": "Low - Awareness only needed"
+    },
+    {
+      "name": "Vendors",
+      "role": "External Vendor",
+      "department": "External",
+      "contact": "various",
+      "influence_score": 1,
+      "interest_score": 2,
+      "classification": "Monitor",
+      "engagement_strategy": "Minimal effort - General communications and major milestone updates",
+      "impact_areas": [
+        "External Operations"
+      ],
+      "relationships": [
+        " (reports to)"
+      ],
+      "priority": "Low",
+      "risk_level": "Low - Awareness only needed"
+    },
+    {
+      "name": "Audit Team",
+      "role": "Internal Audit",
+      "department": "Compliance",
+      "contact": "audit@company.com",
+      "influence_score": 1,
+      "interest_score": 2,
+      "classification": "Monitor",
+      "engagement_strategy": "Minimal effort - General communications and major milestone updates",
+      "impact_areas": [
+        "Compliance Operations"
+      ],
+      "relationships": [
+        " (reports to)"
+      ],
+      "priority": "Low",
+      "risk_level": "Low - Awareness only needed"
+    }
+  ],
+  "classification_summary": {
+    "Key Player": 1,
+    "Keep Informed": 3,
+    "Monitor": 3
+  },
+  "engagement_plan": {
+    "high_priority": [
+      "Sarah"
+    ],
+    "medium_priority": [
+      "Tom",
+      "Mike",
+      "Jessica"
+    ],
+    "low_priority": [
+      "Payment Processing Team",
+      "Vendors",
+      "Audit Team"
+    ]
+  },
+  "recommendations": [
+    "30%+ stakeholders have low interest - Develop change management plan to increase engagement and reduce resistance"
+  ]
+}
