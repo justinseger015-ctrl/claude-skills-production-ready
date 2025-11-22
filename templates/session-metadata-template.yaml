@@ -37,8 +37,8 @@ status:
 # Auto-populated when outputs are added to session
 # DO NOT manually edit - use session_manager.py add-output
 outputs: []
-# Example entry:
-# - file: "analysis/2025-11-22_06-58-38_invoice-process-analysis_cs-business-analyst.md"
+# Example entry (flat structure - files in session root):
+# - file: "2025-11-22_06-58-38_invoice-process-analysis_cs-business-analyst.md"
 #   agent: "cs-business-analyst"
 #   type: "analysis"  # architecture | analysis | reviews | reports | artifacts
 #   created_at: "2025-11-22T06:58:38Z"

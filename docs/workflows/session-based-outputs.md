@@ -24,12 +24,9 @@ A **session** is a logical unit of work tied to:
 ```
 output/sessions/rickydwilson-dcs/2025-11-22_feature-invoice-automation_a3f42c/
 ├── .session-metadata.yaml        # All context and tracking
-├── analysis/
-│   └── 2025-11-22_08-15-30_invoice-process-analysis_cs-business-analyst.md
-├── architecture/
-│   └── 2025-11-22_09-45-00_system-architecture_cs-architect.md
-└── reports/
-    └── 2025-11-22_16-00-00_executive-summary_cs-business-analyst.md
+├── 2025-11-22_08-15-30_invoice-process-analysis_cs-business-analyst.md
+├── 2025-11-22_09-45-00_system-architecture_cs-architect.md
+└── 2025-11-22_16-00-00_executive-summary_cs-business-analyst.md
 ```
 
 ### Session ID Format
@@ -76,12 +73,12 @@ export CLAUDE_SESSION_DIR=$(python3 scripts/session_manager.py current | grep "P
 # Step 4: Generate architecture analysis
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/engineering-team/senior-architect/scripts/project_architect.py --input . \
-  > ${CLAUDE_SESSION_DIR}/architecture/${TIMESTAMP}_architecture-review_cs-architect.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_architecture-review_cs-architect.md
 
 # Step 5: Generate business analysis
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/product-team/business-analyst-toolkit/scripts/process_analyzer.py transcript.md \
-  > ${CLAUDE_SESSION_DIR}/analysis/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
 
 # Step 6: Review session
 python3 scripts/session_manager.py report
@@ -130,12 +127,12 @@ python3 scripts/session_manager.py create \
 export CLAUDE_SESSION_DIR=$(python3 scripts/session_manager.py current | grep "Path:" | cut -d' ' -f2)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/product-team/product-manager/scripts/user_story_generator.py requirements.md \
-  > ${CLAUDE_SESSION_DIR}/reports/${TIMESTAMP}_user-stories_cs-product-manager.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_user-stories_cs-product-manager.md
 
 # Step 3: Generate roadmap
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/product-team/product-manager/scripts/roadmap_prioritizer.py backlog.csv \
-  > ${CLAUDE_SESSION_DIR}/reports/${TIMESTAMP}_roadmap-prioritization_cs-product-manager.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_roadmap-prioritization_cs-product-manager.md
 
 # Step 4: Close and commit
 python3 scripts/session_manager.py close
@@ -159,12 +156,12 @@ python3 scripts/session_manager.py create \
 export CLAUDE_SESSION_DIR=$(python3 scripts/session_manager.py current | grep "Path:" | cut -d' ' -f2)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/engineering-team/senior-secops/scripts/security_scanner.py --input . \
-  > ${CLAUDE_SESSION_DIR}/analysis/${TIMESTAMP}_security-scan_cs-secops.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_security-scan_cs-secops.md
 
 # Step 3: Generate remediation report
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 # ... generate report ...
-echo "Remediation steps..." > ${CLAUDE_SESSION_DIR}/reports/${TIMESTAMP}_remediation-plan_cs-secops.md
+echo "Remediation steps..." > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_remediation-plan_cs-secops.md
 
 # Step 4: Close and notify stakeholders
 python3 scripts/session_manager.py close
@@ -186,7 +183,7 @@ python3 scripts/session_manager.py create \
 export CLAUDE_SESSION_DIR=$(python3 scripts/session_manager.py current | grep "Path:" | cut -d' ' -f2)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 # ... run analysis ...
-echo "Performance metrics..." > ${CLAUDE_SESSION_DIR}/analysis/${TIMESTAMP}_perf-analysis_cs-architect.md
+echo "Performance metrics..." > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_perf-analysis_cs-architect.md
 
 # Step 3: Close when done (expires in 30 days)
 python3 scripts/session_manager.py close

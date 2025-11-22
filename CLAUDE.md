@@ -292,10 +292,12 @@ cp templates/skill-template.md skills/<domain-team>/<skill-name>/SKILL.md
 # 6. Test skill integration
 python skills/<domain-team>/<skill-name>/scripts/<tool>.py --help
 
-# 7. Save any analysis outputs to output/ directory
-# Use timestamped filenames: YYYY-MM-DD_HH-MM-SS_topic_agent-name.md
+# 7. Save any analysis outputs to output/sessions/ directory
+# Create session first, then save outputs (flat structure)
+python scripts/session_manager.py create --name skill-analysis --team engineering-team
+CLAUDE_SESSION_DIR=$(python scripts/session_manager.py current | grep "Path:" | cut -d' ' -f2)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-echo "Analysis results..." > output/analysis/${TIMESTAMP}_skill-analysis_cs-agent.md
+echo "Analysis results..." > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_skill-analysis_cs-agent.md
 ```
 
 ### Creating a New Agent
@@ -481,11 +483,11 @@ python3 scripts/session_manager.py create \
   --project "Invoice Automation" \
   --team engineering
 
-# 2. Generate outputs to session
+# 2. Generate outputs to session (flat structure)
 export CLAUDE_SESSION_DIR=$(python3 scripts/session_manager.py current | grep "Path:" | cut -d' ' -f2)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/product-team/business-analyst-toolkit/scripts/process_analyzer.py transcript.md \
-  > ${CLAUDE_SESSION_DIR}/analysis/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
 
 # 3. Close session when complete
 python3 scripts/session_manager.py close
@@ -498,11 +500,7 @@ output/
 │   └── {user}/
 │       └── {session-id}/
 │           ├── .session-metadata.yaml  # Session context
-│           ├── architecture/
-│           ├── analysis/
-│           ├── reviews/
-│           ├── reports/
-│           └── artifacts/
+│           └── *.md                    # All outputs (flat structure, categorized via metadata)
 ├── shared/
 │   ├── promoted-to-confluence/         # Manually promoted outputs
 │   └── team-resources/                 # Team-shared resources

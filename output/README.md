@@ -10,11 +10,7 @@ output/
 │   └── {user}/                         # User-specific directory
 │       └── {session-id}/               # Unique work session
 │           ├── .session-metadata.yaml  # Session context and tracking
-│           ├── architecture/           # Architecture outputs
-│           ├── analysis/              # Analysis outputs
-│           ├── reviews/               # Review outputs
-│           ├── reports/               # Report outputs
-│           └── artifacts/             # Supporting files (JSON, CSV, diagrams)
+│           └── *.md                    # All outputs (flat structure, categorized via metadata)
 ├── shared/                            # Cross-user shared resources
 │   ├── promoted-to-confluence/        # Outputs promoted to Confluence
 │   │   └── {space-key}/              # Confluence space
@@ -50,10 +46,10 @@ python3 scripts/session_manager.py create \
 # Get current session directory
 export CLAUDE_SESSION_DIR=$(python3 scripts/session_manager.py current | grep "Path:" | cut -d' ' -f2)
 
-# Generate outputs to current session
+# Generate outputs to current session (flat structure)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/product-team/business-analyst-toolkit/scripts/process_analyzer.py transcript.md \
-  > ${CLAUDE_SESSION_DIR}/analysis/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
 ```
 
 ### 3. Close Session
@@ -183,7 +179,7 @@ See `templates/session-metadata-template.yaml` for complete schema.
    ```bash
    python3 scripts/promote_to_confluence.py \
      --session 2025-11-22_feature-invoice-automation_a3f42c \
-     --file analysis/2025-11-22_06-58-38_invoice-process-analysis_cs-business-analyst.md \
+     --file 2025-11-22_06-58-38_invoice-process-analysis_cs-business-analyst.md \
      --confluence-url "https://company.atlassian.net/wiki/spaces/PROJ/pages/123456" \
      --notify "sarah@company.com,mike@company.com"
    ```
@@ -228,7 +224,7 @@ git commit -m "feat(sessions): create session for invoice automation analysis
 - Team: Engineering"
 
 # After adding outputs
-git add output/sessions/rickydwilson-dcs/2025-11-22_feature-invoice-automation_a3f42c/analysis/
+git add output/sessions/rickydwilson-dcs/2025-11-22_feature-invoice-automation_a3f42c/
 git commit -m "docs(analysis): add invoice process analysis
 
 - Agent: cs-business-analyst
@@ -254,13 +250,13 @@ Agents now write to `$CLAUDE_SESSION_DIR` instead of flat directories:
 # Old pattern (deprecated)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/product-team/business-analyst-toolkit/scripts/process_analyzer.py transcript.md \
-  > output/analysis/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
+  > output/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
 
 # New pattern (session-based)
 export CLAUDE_SESSION_DIR=$(python3 scripts/session_manager.py current | grep "Path:" | cut -d' ' -f2)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/product-team/business-analyst-toolkit/scripts/process_analyzer.py transcript.md \
-  > ${CLAUDE_SESSION_DIR}/analysis/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_invoice-process-analysis_cs-business-analyst.md
 ```
 
 ### Agent Examples
@@ -274,7 +270,7 @@ python3 scripts/session_manager.py create --ticket PROJ-123 --project "Invoice P
 export CLAUDE_SESSION_DIR=$(python3 scripts/session_manager.py current | grep "Path:" | cut -d' ' -f2)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/product-team/business-analyst-toolkit/scripts/process_analyzer.py transcript.md \
-  > ${CLAUDE_SESSION_DIR}/analysis/${TIMESTAMP}_process-analysis_cs-business-analyst.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_process-analysis_cs-business-analyst.md
 
 # Close session
 python3 scripts/session_manager.py close
@@ -289,7 +285,7 @@ python3 scripts/session_manager.py create --ticket PROJ-123 --project "System Ar
 export CLAUDE_SESSION_DIR=$(python3 scripts/session_manager.py current | grep "Path:" | cut -d' ' -f2)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 python3 skills/engineering-team/senior-architect/scripts/project_architect.py --input . \
-  > ${CLAUDE_SESSION_DIR}/architecture/${TIMESTAMP}_architecture-review_cs-architect.md
+  > ${CLAUDE_SESSION_DIR}/${TIMESTAMP}_architecture-review_cs-architect.md
 
 # Close session
 python3 scripts/session_manager.py close
@@ -378,7 +374,7 @@ git pull origin develop
 
 - **Session Guide**: `docs/workflows/session-based-outputs.md`
 - **Metadata Template**: `templates/session-metadata-template.yaml`
-- **ADR**: `output/sessions/rickydwilson-dcs/2025-11-22_migration-legacy-outputs_000000/architecture/2025-11-22_07-53-43_session-based-output-adr_cs-architect.md`
+- **ADR**: `output/sessions/rickydwilson-dcs/2025-11-22_migration-legacy-outputs_000000/2025-11-22_07-53-43_session-based-output-adr_cs-architect.md`
 
 ---
 

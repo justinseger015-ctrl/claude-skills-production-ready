@@ -321,16 +321,11 @@ def create_session(
         if session_dir.exists():
             return False, "Session collision detected (extremely rare). Please try again.", None
 
-    # Create directories
+    # Create session directory (flat structure)
     try:
         session_dir.mkdir(parents=True, exist_ok=True)
-        (session_dir / "architecture").mkdir(exist_ok=True)
-        (session_dir / "analysis").mkdir(exist_ok=True)
-        (session_dir / "reviews").mkdir(exist_ok=True)
-        (session_dir / "reports").mkdir(exist_ok=True)
-        (session_dir / "artifacts").mkdir(exist_ok=True)
     except Exception as e:
-        return False, f"Failed to create session directories: {e}", None
+        return False, f"Failed to create session directory: {e}", None
 
     # Create metadata
     metadata = create_session_metadata(
