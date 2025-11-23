@@ -1,26 +1,29 @@
 ---
 name: confluence-expert
 description: Atlassian Confluence expert for creating and managing spaces, knowledge bases, documentation, planning, product discovery, page layouts, macros, templates, and all Confluence features. Use for documentation strategy, space architecture, content organization, and collaborative knowledge management.
+license: MIT
 metadata:
   version: 1.0.0
   author: Claude Skills Team
   category: delivery
   domain: confluence expert
-  updated: 2025-11-22
+  updated: 2025-11-23
   keywords:
-    - atlassian
-    - confluence
-    - expert
-    - creating
-    - managing
-    - spaces
-    - knowledge
-    - bases
-    - documentation
-    - planning
+  - atlassian
+  - confluence
+  - expert
+  - creating
+  - managing
+  - spaces
+  - knowledge
+  - bases
+  - documentation
+  - planning
   tech-stack:
-    - Python 3.8+
+  - Python 3.8+
+  python-tools: []
 ---
+
 
 # Atlassian Confluence Expert
 

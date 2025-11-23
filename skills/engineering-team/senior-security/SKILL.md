@@ -1,7 +1,26 @@
 ---
 name: senior-security
 description: Comprehensive security engineering skill for application security, penetration testing, security architecture, and compliance auditing. Includes security assessment tools, threat modeling, crypto implementation, and security automation. Use when designing security architecture, conducting penetration tests, implementing cryptography, or performing security audits.
+license: MIT
+metadata:
+  version: 1.0.0
+  author: Claude Skills Team
+  category: Engineering
+  domain: engineering
+  updated: 2025-11-23
+  keywords:
+  - engineering
+  - senior
+  - security
+  tech-stack:
+  - Python 3.8+
+  - Markdown
+  python-tools:
+  - pentest_automator.py
+  - security_auditor.py
+  - threat_modeler.py
 ---
+
 
 license: MIT
 metadata:

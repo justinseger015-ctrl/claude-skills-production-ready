@@ -1,46 +1,25 @@
 ---
 name: senior-fullstack
 description: Comprehensive fullstack development skill for building complete web applications with React, Next.js, Node.js, GraphQL, and PostgreSQL. Includes project scaffolding, code quality analysis, architecture patterns, and complete tech stack guidance. Use when building new projects, analyzing code quality, implementing design patterns, or setting up development workflows.
----
-
 license: MIT
 metadata:
   version: 1.0.0
   author: Claude Skills Team
-  category: engineering
-  domain: fullstack
-  updated: 2025-11-08
+  category: Engineering
+  domain: engineering
+  updated: 2025-11-23
   keywords:
-    - fullstack development
-    - web development
-    - project scaffolding
-    - code quality
-    - architecture patterns
-    - React
-    - Next.js
-    - Node.js
-    - GraphQL
-    - PostgreSQL
-    - end-to-end development
-    - API development
-    - database design
-    - DevOps
-    - testing
+  - engineering
+  - senior
+  - fullstack
   tech-stack:
-    - React
-    - Next.js
-    - Node.js
-    - GraphQL
-    - PostgreSQL
-    - Prisma
-    - TypeScript
-    - Docker
-    - Kubernetes
-    - GitHub Actions
+  - Python 3.8+
+  - Markdown
   python-tools:
-    - fullstack_scaffolder.py
-    - project_scaffolder.py
-    - code_quality_analyzer.py
+  - code_quality_analyzer.py
+  - fullstack_scaffolder.py
+  - project_scaffolder.py
+---
 
 # Senior Fullstack Developer
 

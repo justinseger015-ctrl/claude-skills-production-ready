@@ -1,7 +1,26 @@
 ---
 name: code-reviewer
 description: Comprehensive code review skill for TypeScript, JavaScript, Python, Swift, Kotlin, Go. Includes automated code analysis, best practice checking, security scanning, and review checklist generation. Use when reviewing pull requests, providing code feedback, identifying issues, or ensuring code quality standards.
+license: MIT
+metadata:
+  version: 1.0.0
+  author: Claude Skills Team
+  category: Engineering
+  domain: engineering
+  updated: 2025-11-23
+  keywords:
+  - engineering
+  - code
+  - reviewer
+  tech-stack:
+  - Python 3.8+
+  - Markdown
+  python-tools:
+  - code_quality_checker.py
+  - pr_analyzer.py
+  - review_report_generator.py
 ---
+
 
 license: MIT
 metadata:

@@ -2,18 +2,30 @@
 name: business-analyst-toolkit
 description: Use when analyzing business processes, mapping workflows, documenting requirements, and designing improvements for operational efficiency
 license: MIT
-version: 1.0.0
-author: Claude Skills Library
-domain: product-team
-created: 2025-11-21
-updated: 2025-11-21
-tags: [business-analysis, process-mapping, requirements, workflow, improvement]
 metadata:
-  tools: 7
-  references: 0
-  templates: 4
-  target_users: [business-analysts, process-owners, project-managers, product-managers]
+  version: 1.0.0
+  author: Claude Skills Library
+  category: Product Management
+  domain: product-team
+  updated: 2025-11-23
+  keywords:
+  - product
+  - business
+  - analyst
+  - toolkit
+  tech-stack:
+  - Python 3.8+
+  - Markdown
+  python-tools:
+  - charter_builder.py
+  - gap_analyzer.py
+  - improvement_planner.py
+  - kpi_calculator.py
+  - process_parser.py
+  - raci_generator.py
+  - stakeholder_mapper.py
 ---
+
 
 # Business Analyst Toolkit
 

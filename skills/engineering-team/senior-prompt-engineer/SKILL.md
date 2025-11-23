@@ -1,7 +1,27 @@
 ---
 name: senior-prompt-engineer
 description: World-class prompt engineering skill for LLM optimization, prompt patterns, structured outputs, and AI product development. Expertise in Claude, GPT-4, prompt design patterns, few-shot learning, chain-of-thought, and AI evaluation. Includes RAG optimization, agent design, and LLM system architecture. Use when building AI products, optimizing LLM performance, designing agentic systems, or implementing advanced prompting techniques.
+license: MIT
+metadata:
+  version: 1.0.0
+  author: Claude Skills Team
+  category: Engineering
+  domain: engineering
+  updated: 2025-11-23
+  keywords:
+  - engineering
+  - senior
+  - prompt
+  - engineer
+  tech-stack:
+  - Python 3.8+
+  - Markdown
+  python-tools:
+  - agent_orchestrator.py
+  - prompt_optimizer.py
+  - rag_evaluator.py
 ---
+
 
 license: MIT
 metadata:

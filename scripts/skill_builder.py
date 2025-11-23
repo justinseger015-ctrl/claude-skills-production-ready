@@ -41,52 +41,98 @@ def simple_yaml_parse(yaml_str: str) -> Dict:
     """
     Simple YAML parser for skill frontmatter (standard library only)
 
-    Handles basic key-value pairs and lists.
-    Does NOT support nested objects or complex YAML features.
+    Handles basic key-value pairs, lists, and one level of nesting.
+    Supports nested metadata objects.
     """
     result = {}
     current_key = None
     list_items = []
+    in_nested = False
+    nested_key = None
+    nested_dict = {}
 
     for line in yaml_str.strip().split('\n'):
-        line = line.strip()
+        stripped = line.strip()
+        indent = len(line) - len(line.lstrip())
 
-        if not line or line.startswith('#'):
+        if not stripped or stripped.startswith('#'):
             continue
 
         # List item
-        if line.startswith('- '):
-            item = line[2:].strip()
+        if stripped.startswith('- '):
+            item = stripped[2:].strip()
             list_items.append(item)
             continue
 
         # Key-value pair
-        if ':' in line:
+        if ':' in stripped:
             # Save previous list if any
             if current_key and list_items:
-                result[current_key] = list_items
+                if in_nested:
+                    nested_dict[current_key] = list_items
+                else:
+                    result[current_key] = list_items
                 list_items = []
 
-            key, value = line.split(':', 1)
+            key, value = stripped.split(':', 1)
             key = key.strip()
             value = value.strip()
 
-            # Handle inline lists [item1, item2]
-            if value.startswith('[') and value.endswith(']'):
-                items = value[1:-1].split(',')
-                result[key] = [item.strip() for item in items]
-                current_key = None
-            # Empty value - expect list on next lines
-            elif not value:
-                current_key = key
-            # Simple value
+            # Nested object (indented with 2+ spaces)
+            if indent >= 2:
+                in_nested = True
+                # Handle inline lists [item1, item2]
+                if value.startswith('[') and value.endswith(']'):
+                    if value == '[]':
+                        nested_dict[key] = []
+                    else:
+                        items = value[1:-1].split(',')
+                        nested_dict[key] = [item.strip() for item in items]
+                    current_key = None
+                # Empty value - expect list on next lines
+                elif not value:
+                    current_key = key
+                # Simple value
+                else:
+                    nested_dict[key] = value
+                    current_key = None
+            # Top-level key
             else:
-                result[key] = value
-                current_key = None
+                # Save previous nested dict if any
+                if in_nested and nested_key:
+                    result[nested_key] = nested_dict
+                    nested_dict = {}
+
+                in_nested = False
+
+                # Handle inline lists [item1, item2]
+                if value.startswith('[') and value.endswith(']'):
+                    if value == '[]':
+                        result[key] = []
+                    else:
+                        items = value[1:-1].split(',')
+                        result[key] = [item.strip() for item in items]
+                    current_key = None
+                # Empty value - could be nested object or list
+                elif not value:
+                    current_key = key
+                    nested_key = key
+                    in_nested = False
+                # Simple value
+                else:
+                    result[key] = value
+                    current_key = None
 
     # Save final list if any
     if current_key and list_items:
-        result[current_key] = list_items
+        if in_nested:
+            nested_dict[current_key] = list_items
+        else:
+            result[current_key] = list_items
+
+    # Save final nested dict if any
+    if in_nested and nested_key:
+        result[nested_key] = nested_dict
 
     return result
 

@@ -1,26 +1,29 @@
 ---
 name: jira-expert
 description: Atlassian Jira expert for creating and managing projects, planning, product discovery, JQL queries, workflows, custom fields, automation, reporting, and all Jira features. Use for Jira project setup, configuration, advanced search, dashboard creation, workflow design, and technical Jira operations.
+license: MIT
 metadata:
   version: 1.0.0
   author: Claude Skills Team
   category: delivery
   domain: jira expert
-  updated: 2025-11-22
+  updated: 2025-11-23
   keywords:
-    - atlassian
-    - jira
-    - expert
-    - creating
-    - managing
-    - projects
-    - planning
-    - product
-    - discovery
-    - jql
+  - atlassian
+  - jira
+  - expert
+  - creating
+  - managing
+  - projects
+  - planning
+  - product
+  - discovery
+  - jql
   tech-stack:
-    - Python 3.8+
+  - Python 3.8+
+  python-tools: []
 ---
+
 
 # Atlassian Jira Expert
 

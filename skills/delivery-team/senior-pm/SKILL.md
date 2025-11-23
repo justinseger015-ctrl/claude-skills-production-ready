@@ -1,26 +1,29 @@
 ---
 name: senior-pm
 description: Senior Project Manager for Software, SaaS, and digital web/mobile applications. Use for strategic planning, portfolio management, stakeholder alignment, risk management, roadmap development, budget oversight, cross-functional team leadership, and executive reporting for software products.
+license: MIT
 metadata:
   version: 1.0.0
   author: Claude Skills Team
   category: delivery
   domain: senior pm
-  updated: 2025-11-22
+  updated: 2025-11-23
   keywords:
-    - senior
-    - project
-    - manager
-    - software
-    - saas
-    - digital
-    - web
-    - mobile
-    - applications
-    - use
+  - senior
+  - project
+  - manager
+  - software
+  - saas
+  - digital
+  - web
+  - mobile
+  - applications
+  - use
   tech-stack:
-    - Python 3.8+
+  - Python 3.8+
+  python-tools: []
 ---
+
 
 # Senior Project Management Expert
 

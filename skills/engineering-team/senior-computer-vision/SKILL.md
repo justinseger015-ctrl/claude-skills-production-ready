@@ -1,7 +1,27 @@
 ---
 name: senior-computer-vision
 description: World-class computer vision skill for image/video processing, object detection, segmentation, and visual AI systems. Expertise in PyTorch, OpenCV, YOLO, SAM, diffusion models, and vision transformers. Includes 3D vision, video analysis, real-time processing, and production deployment. Use when building vision AI systems, implementing object detection, training custom vision models, or optimizing inference pipelines.
+license: MIT
+metadata:
+  version: 1.0.0
+  author: Claude Skills Team
+  category: Engineering
+  domain: engineering
+  updated: 2025-11-23
+  keywords:
+  - engineering
+  - senior
+  - computer
+  - vision
+  tech-stack:
+  - Python 3.8+
+  - Markdown
+  python-tools:
+  - dataset_pipeline_builder.py
+  - inference_optimizer.py
+  - vision_model_trainer.py
 ---
+
 
 license: MIT
 metadata:

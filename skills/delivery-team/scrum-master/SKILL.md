@@ -1,26 +1,29 @@
 ---
 name: scrum-master
 description: Scrum Master for agile software development teams. Use for sprint planning, daily standups, retrospectives, backlog refinement, velocity tracking, removing impediments, facilitating ceremonies, coaching teams on agile practices, and managing sprint execution for R&D and development teams.
+license: MIT
 metadata:
   version: 1.0.0
   author: Claude Skills Team
   category: delivery
   domain: scrum master
-  updated: 2025-11-22
+  updated: 2025-11-23
   keywords:
-    - scrum
-    - master
-    - agile
-    - software
-    - development
-    - teams
-    - use
-    - sprint
-    - planning
-    - daily
+  - scrum
+  - master
+  - agile
+  - software
+  - development
+  - teams
+  - use
+  - sprint
+  - planning
+  - daily
   tech-stack:
-    - Python 3.8+
+  - Python 3.8+
+  python-tools: []
 ---
+
 
 # Scrum Master Expert
 

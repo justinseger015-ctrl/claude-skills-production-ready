@@ -1,7 +1,27 @@
 ---
 name: senior-data-scientist
 description: World-class data science skill for statistical modeling, experimentation, causal inference, and advanced analytics. Expertise in Python (NumPy, Pandas, Scikit-learn), R, SQL, statistical methods, A/B testing, time series, and business intelligence. Includes experiment design, feature engineering, model evaluation, and stakeholder communication. Use when designing experiments, building predictive models, performing causal analysis, or driving data-driven decisions.
+license: MIT
+metadata:
+  version: 1.0.0
+  author: Claude Skills Team
+  category: Engineering
+  domain: engineering
+  updated: 2025-11-23
+  keywords:
+  - engineering
+  - senior
+  - data
+  - scientist
+  tech-stack:
+  - Python 3.8+
+  - Markdown
+  python-tools:
+  - experiment_designer.py
+  - feature_engineering_pipeline.py
+  - model_evaluation_suite.py
 ---
+
 
 license: MIT
 metadata:

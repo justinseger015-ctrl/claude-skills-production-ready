@@ -1,7 +1,26 @@
 ---
 name: senior-devops
 description: Comprehensive DevOps skill for CI/CD, infrastructure automation, containerization, and cloud platforms (AWS, GCP, Azure). Includes pipeline setup, infrastructure as code, deployment automation, and monitoring. Use when setting up pipelines, deploying applications, managing infrastructure, implementing monitoring, or optimizing deployment processes.
+license: MIT
+metadata:
+  version: 1.0.0
+  author: Claude Skills Team
+  category: Engineering
+  domain: engineering
+  updated: 2025-11-23
+  keywords:
+  - engineering
+  - senior
+  - devops
+  tech-stack:
+  - Python 3.8+
+  - Markdown
+  python-tools:
+  - deployment_manager.py
+  - pipeline_generator.py
+  - terraform_scaffolder.py
 ---
+
 
 license: MIT
 metadata:
