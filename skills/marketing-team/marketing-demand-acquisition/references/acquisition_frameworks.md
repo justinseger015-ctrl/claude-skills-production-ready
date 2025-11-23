@@ -30,7 +30,7 @@ Example:
 
 **CAC Payback Period:**
 ```
-CAC Payback = CAC / (Monthly Revenue per Customer × Gross Margin %)
+CAC Payback = CAC / (Monthly Revenue per Customer Ã— Gross Margin %)
 
 Target: <12 months for healthy SaaS business
 ```
@@ -41,7 +41,7 @@ Target: <12 months for healthy SaaS business
 
 **Formula:**
 ```
-LTV = (Average Revenue per Customer × Gross Margin %) / Monthly Churn Rate
+LTV = (Average Revenue per Customer Ã— Gross Margin %) / Monthly Churn Rate
 LTV:CAC Ratio = LTV / CAC
 
 Example:
@@ -50,7 +50,7 @@ Example:
 - Monthly Churn: 2% (0.02)
 - CAC: $2,000
 
-LTV = ($500 × 0.80) / 0.02 = $20,000
+LTV = ($500 Ã— 0.80) / 0.02 = $20,000
 LTV:CAC = $20,000 / $2,000 = 10:1
 ```
 
@@ -160,8 +160,8 @@ Mar Users   100%     55%     42%     40%     38%
 **Definition:** Users become paying customers
 
 **Monetization Models:**
-- Freemium (free plan ’ paid upgrade)
-- Free trial (14-30 days ’ subscription)
+- Freemium (free plan Â’ paid upgrade)
+- Free trial (14-30 days Â’ subscription)
 - Reverse trial (start paid, refund if not satisfied)
 - Usage-based (pay per API call, seat, etc.)
 - Tiered pricing (Starter, Pro, Enterprise)
@@ -185,7 +185,7 @@ Mar Users   100%     55%     42%     40%     38%
 
 **Referral Loop Formula:**
 ```
-Viral Coefficient (K) = % of customers who refer × # of referrals per customer
+Viral Coefficient (K) = % of customers who refer Ã— # of referrals per customer
 
 K > 1.0 = Viral growth (self-sustaining)
 K = 0.5 = 50% of growth comes from referrals
@@ -193,7 +193,7 @@ K = 0.5 = 50% of growth comes from referrals
 Example:
 - 20% of customers refer
 - Average 3 referrals per customer
-- K = 0.20 × 3 = 0.6 (60% of growth from referrals)
+- K = 0.20 Ã— 3 = 0.6 (60% of growth from referrals)
 ```
 
 **Key Metrics:**
@@ -245,15 +245,15 @@ Example:
 
 ```
                 Progress-Making Forces
-                        “
+                        Â“
         Push (Pain)          Pull (Attraction)
          of current           of new solution
-                        “
-    [Current State] -----’ [Desired State]
-                        ‘
+                        Â“
+    [Current State] -----Â’ [Desired State]
+                        Â‘
         Anxiety              Habit
          of new solution      of present
-                        ‘
+                        Â‘
                 Change-Resisting Forces
 ```
 
@@ -382,7 +382,7 @@ Rate each factor 1-10:
 
 **Campaign Structure:**
 ```
-Account ’ Campaign ’ Ad Group ’ Keywords & Ads
+Account Â’ Campaign Â’ Ad Group Â’ Keywords & Ads
 
 Best Practice Structure:
 - Separate campaigns by funnel stage (TOFU, MOFU, BOFU)
@@ -436,7 +436,7 @@ Tier 3: Cold Prospecting
 
 **Content Strategy:**
 ```
-Keyword Research ’ Content Creation ’ On-Page SEO ’ Link Building ’ Monitoring
+Keyword Research Â’ Content Creation Â’ On-Page SEO Â’ Link Building Â’ Monitoring
 
 Priority Tiers:
 1. High-intent commercial keywords (low difficulty, high conversion)
@@ -518,8 +518,8 @@ Priority Tiers:
 
 **Target Metrics:**
 - CAC: $500 (LTV $5,000 = 10:1 LTV:CAC)
-- MQL’SQL: 20%
-- SQL’Customer: 25%
+- MQLÂ’SQL: 20%
+- SQLÂ’Customer: 25%
 - Goal: 20 new customers/month
 
 **Approach:**
@@ -543,7 +543,7 @@ Priority Tiers:
 
 4. Measure and optimize
    - Calculate CAC by channel
-   - Analyze MQL’SQL conversion by source
+   - Analyze MQLÂ’SQL conversion by source
    - Double down on winners, pause losers
 
 **Month 5-6: Scale**
@@ -605,9 +605,9 @@ Priority Tiers:
    - Free product in exchange for content
 
 **Outcome:**
-- Revenue growth: $200k ’ $480k (140% increase in 6 months)
-- CAC decreased: $25 ’ $18 (scale efficiency)
-- Repeat purchase rate: 15% ’ 28% (email + loyalty program)
+- Revenue growth: $200k Â’ $480k (140% increase in 6 months)
+- CAC decreased: $25 Â’ $18 (scale efficiency)
+- Repeat purchase rate: 15% Â’ 28% (email + loyalty program)
 - Channel mix: 60% Meta, 20% Email, 10% SEO, 10% Influencer
 
 ### Example 3: Product-Led Growth (PLG) Strategy
@@ -628,7 +628,7 @@ Priority Tiers:
    - Trigger-based emails (nudge inactive users)
 
 2. Aha moment faster
-   - Checklist: Connect integration ’ Import data ’ Create first project
+   - Checklist: Connect integration Â’ Import data Â’ Create first project
    - Progress bar (gamification: 80% complete!)
    - In-app tooltips for key features
 
@@ -660,10 +660,10 @@ Priority Tiers:
    - Track referrals via unique links
 
 **Outcome:**
-- Activation rate: 25% ’ 42% (onboarding improvements)
-- Free-to-paid: 2% ’ 5.8% (feature gating + nudges)
-- Viral coefficient: 0.0 ’ 0.4 (referral program)
-- Paid customers: 200 ’ 580 (190% growth in 12 months)
+- Activation rate: 25% Â’ 42% (onboarding improvements)
+- Free-to-paid: 2% Â’ 5.8% (feature gating + nudges)
+- Viral coefficient: 0.0 Â’ 0.4 (referral program)
+- Paid customers: 200 Â’ 580 (190% growth in 12 months)
 
 ## Resources
 
