@@ -28,10 +28,6 @@ tags:
   - documentation
   - automation
   - maintenance
-  - readme
-  - changelog
-  - catalog
-  - git-workflow
 related-commands:
   - /workflow.validate-docs
   - /workflow.generate-catalog
@@ -89,20 +85,11 @@ Documentation drift is a common problem in rapidly evolving repositories. This c
 ## Usage
 
 ```bash
-# Basic usage - update all documentation
-/update.docs
-
-# Verbose mode - show all scanning and update details
-/update.docs --verbose
-
-# Dry run - preview changes without writing any files
-/update.docs --dry-run
-
-# Update only specific sections
-/update.docs --sections readme changelog
-
-# Force update even if files appear current
-/update.docs --force
+/update.docs                              # Basic usage - update all documentation
+/update.docs --verbose                    # Verbose mode - show scanning details
+/update.docs --dry-run                    # Dry run - preview changes
+/update.docs --sections readme changelog  # Update specific sections
+/update.docs --force                      # Force update even if current
 ```
 
 ### Arguments
@@ -111,6 +98,54 @@ Documentation drift is a common problem in rapidly evolving repositories. This c
 - `--dry-run` - Preview all changes without writing to disk (optional)
 - `--sections` - Limit updates to specific documentation files: `readme`, `changelog`, `agents-catalog`, `skills-catalog` (optional, default: all)
 - `--force` - Rewrite documentation even if counts haven't changed (optional)
+
+---
+
+## Examples
+
+### Basic Documentation Update
+
+```bash
+/update.docs
+```
+
+**Output:**
+```
+Scanning repository...
+✓ Found 28 agents in agents/ directory
+✓ Found 28 skills in skills/ directory
+✓ Found 67 Python tools
+✓ Found 5 new commits since last update
+
+Updating documentation...
+✓ Updated README.md (agent count: 28, skill count: 28)
+✓ Updated CHANGELOG.md (5 new entries)
+✓ Updated docs/AGENTS_CATALOG.md
+✓ Updated docs/SKILLS_CATALOG.md
+
+All documentation synchronized successfully.
+```
+
+### Dry Run Preview
+
+```bash
+/update.docs --dry-run
+```
+
+**Output:**
+```
+Scanning repository (dry run)...
+✓ Found 28 agents in agents/ directory
+✓ Found 28 skills in skills/ directory
+
+Would update:
+- README.md (agent count: 28, skill count: 28)
+- CHANGELOG.md (5 new entries)
+- docs/AGENTS_CATALOG.md
+- docs/SKILLS_CATALOG.md
+
+Use /update.docs to apply changes.
+```
 
 ---
 
@@ -266,7 +301,6 @@ This command leverages:
 This command may execute:
 
 ```bash
-# Optional markdown validation tool
 python skills/engineering-team/code-reviewer/scripts/validate_markdown.py README.md
 python skills/engineering-team/code-reviewer/scripts/validate_markdown.py CHANGELOG.md
 ```

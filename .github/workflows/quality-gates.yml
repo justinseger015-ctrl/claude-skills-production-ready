@@ -204,7 +204,7 @@ jobs:
         if: needs.detect-changes.outputs.commands_changed == 'true'
         run: |
           echo "Validating changed commands..."
-          python3 scripts/validate_all_commands.py --verbose || true
+          python3 scripts/validate_all_commands.py --verbose
 
   # =============================================================================
   # STAGING BRANCH - Full validation before pre-production
@@ -246,7 +246,7 @@ jobs:
       - name: Validate ALL commands (14)
         run: |
           echo "=== Validating all commands ==="
-          python3 scripts/validate_all_commands.py --verbose || true
+          python3 scripts/validate_all_commands.py --verbose
 
       - name: Test Python tools --help
         run: |
