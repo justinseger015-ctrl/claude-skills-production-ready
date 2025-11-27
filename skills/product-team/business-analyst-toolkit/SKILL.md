@@ -1,29 +1,64 @@
 ---
+
+# === CORE IDENTITY ===
 name: business-analyst-toolkit
+title: Business Analyst Toolkit
 description: Use when analyzing business processes, mapping workflows, documenting requirements, and designing improvements for operational efficiency
+domain: product
+subdomain: product-team-general
+
+# === WEBSITE DISPLAY ===
+difficulty: intermediate
+time-saved: """TODO: Quantify time savings"""
+frequency: """TODO: Estimate usage frequency"""
+use-cases:
+  - Primary workflow for Business Analyst Toolkit
+  - Analysis and recommendations for business analyst toolkit tasks
+  - Best practices implementation for business analyst toolkit
+  - Integration with related skills and workflows
+
+# === RELATIONSHIPS ===
+related-agents: []
+related-skills: []
+related-commands: []
+orchestrated-by: []
+
+# === TECHNICAL ===
+dependencies:
+  scripts: []
+  references: []
+  assets: []
+compatibility:
+  python-version: 3.8+
+  platforms: [macos, linux, windows]
+tech-stack: [Python 3.8+, Markdown]
+
+# === EXAMPLES ===
+examples:
+  -
+    title: Example Usage
+    input: "TODO: Add example input for business-analyst-toolkit"
+    output: "TODO: Add expected output"
+
+# === ANALYTICS ===
+stats:
+  downloads: 0
+  stars: 0
+  rating: 0.0
+  reviews: 0
+
+# === VERSIONING ===
+version: v1.0.0
+author: Claude Skills Library
+contributors: []
+created: 2025-11-21
+updated: 2025-11-23
 license: MIT
-metadata:
-  version: 1.0.0
-  author: Claude Skills Library
-  category: Product Management
-  domain: product-team
-  updated: 2025-11-23
-  keywords:
-  - product
-  - business
-  - analyst
-  - toolkit
-  tech-stack:
-  - Python 3.8+
-  - Markdown
-  python-tools:
-  - charter_builder.py
-  - gap_analyzer.py
-  - improvement_planner.py
-  - kpi_calculator.py
-  - process_parser.py
-  - raci_generator.py
-  - stakeholder_mapper.py
+
+# === DISCOVERABILITY ===
+tags: [analyst, business, design, product, toolkit]
+featured: false
+verified: true
 ---
 
 
