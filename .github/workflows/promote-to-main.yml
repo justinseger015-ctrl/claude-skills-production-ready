@@ -115,8 +115,7 @@ jobs:
             --base main \
             --head staging \
             --title "Release: Promote staging to main" \
-            --body-file pr_body.md \
-            --label "release"
+            --body-file pr_body.md
 
           echo "✓ Created PR for staging → main promotion"
 
