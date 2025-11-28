@@ -7,7 +7,7 @@ description: Machine learning specialist for model development, training optimiz
 domain: engineering
 subdomain: ai-ml-engineering
 skills: senior-ml-engineer
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

@@ -7,7 +7,7 @@ description: Test-Driven Development specialist for red-green-refactor workflows
 domain: engineering
 subdomain: test-driven-development
 skills: senior-qa
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

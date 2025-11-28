@@ -7,7 +7,7 @@ description: Data science specialist for statistical analysis, predictive modeli
 domain: engineering
 subdomain: data-engineering
 skills: senior-data-scientist
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

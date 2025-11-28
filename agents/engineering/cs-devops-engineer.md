@@ -7,7 +7,7 @@ description: DevOps specialist for CI/CD pipelines, infrastructure as code, cont
 domain: engineering
 subdomain: devops-operations
 skills: senior-devops
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

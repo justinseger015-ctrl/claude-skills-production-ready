@@ -296,7 +296,7 @@ example_usage: /command-name arg      # Quick example
 requires_input: false                 # Needs user-provided data?
 requires_context: false               # Needs project context?
 estimated_time: 30s                   # Execution time
-model_preference: sonnet              # sonnet, opus, or haiku
+model_preference: opus                # opus (default), sonnet, or haiku
 tools_required: [Read, Write, Bash]   # Claude Code tools
 output_format: markdown               # markdown, json, text, file
 interactive: false                    # Prompts during execution?
@@ -346,11 +346,11 @@ related_skills: [skill-name]          # Related skills
 - `false` = read-only analysis and reporting
 - Commands marked dangerous should ask for confirmation
 
-**model_preference** (optional, default: sonnet)
+**model_preference** (optional, default: opus)
 - Preferred Claude model for execution
-- `haiku` = Fast, simple tasks (< 10 seconds)
-- `sonnet` = Balanced performance (most commands)
-- `opus` = Complex reasoning, strategic decisions
+- `opus` = Default for all commands - same price as Sonnet but faster and better quality
+- `haiku` = Fast, simple tasks requiring speed over depth (< 10 seconds)
+- `sonnet` = Legacy option, use opus instead
 
 ---
 

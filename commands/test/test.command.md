@@ -10,6 +10,7 @@ frequency: "As-needed"
 use-cases:
   - "Testing command builder validation functionality"
   - "Demonstrating proper command structure"
+model_preference: haiku
 dependencies:
   tools:
     - Read

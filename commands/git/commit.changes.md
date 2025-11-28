@@ -18,7 +18,7 @@ example_usage: "/commit.changes"
 requires_input: false
 requires_context: true
 estimated_time: "2-5 minutes"
-model_preference: sonnet
+model_preference: opus
 tools_required: [Bash, Read, Grep]
 output_format: text
 interactive: true

@@ -7,7 +7,7 @@ description: Product marketing specialist for positioning strategy, GTM executio
 domain: marketing
 subdomain: content-marketing
 skills: marketing-team/marketing-strategy-pmm
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

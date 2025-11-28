@@ -7,7 +7,7 @@ description: Agile product owner agent for user story generation, sprint plannin
 domain: product
 subdomain: product-management
 skills: product-team/agile-product-owner
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

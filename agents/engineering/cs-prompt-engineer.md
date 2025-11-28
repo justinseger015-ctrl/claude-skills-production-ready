@@ -7,7 +7,7 @@ description: Prompt engineering specialist for LLM optimization, RAG systems, pr
 domain: engineering
 subdomain: ai-ml-engineering
 skills: senior-prompt-engineer
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

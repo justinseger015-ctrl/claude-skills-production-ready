@@ -7,7 +7,7 @@ description: AI-powered content creation specialist for brand voice consistency,
 domain: marketing
 subdomain: content-marketing
 skills: marketing-team/content-creator
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

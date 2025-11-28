@@ -7,7 +7,7 @@ description: Technical leadership advisor for technology strategy, team scaling,
 domain: engineering
 subdomain: system-architecture
 skills: cto-advisor
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

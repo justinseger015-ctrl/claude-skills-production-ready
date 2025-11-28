@@ -7,7 +7,7 @@ description: Security specialist for threat modeling, vulnerability assessment, 
 domain: engineering
 subdomain: security-engineering
 skills: senior-security
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

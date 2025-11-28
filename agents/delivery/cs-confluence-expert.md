@@ -7,7 +7,7 @@ description: Confluence documentation specialist for knowledge management, space
 domain: delivery
 subdomain: delivery-tools
 skills: confluence-expert
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

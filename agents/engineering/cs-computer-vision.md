@@ -7,7 +7,7 @@ description: Computer vision specialist for image classification, object detecti
 domain: engineering
 subdomain: ai-ml-engineering
 skills: senior-computer-vision
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

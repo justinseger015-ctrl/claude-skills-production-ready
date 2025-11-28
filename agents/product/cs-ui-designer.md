@@ -7,7 +7,7 @@ description: UI design system agent for design token management, component libra
 domain: product
 subdomain: ux-design
 skills: product-team/ui-design-system
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

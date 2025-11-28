@@ -7,7 +7,7 @@ description: Data engineering specialist for ETL/ELT pipelines, data warehousing
 domain: engineering
 subdomain: data-engineering
 skills: senior-data-engineer
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

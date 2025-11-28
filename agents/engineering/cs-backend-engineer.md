@@ -7,7 +7,7 @@ description: Backend development specialist for API design, database optimizatio
 domain: engineering
 subdomain: backend-development
 skills: senior-backend
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

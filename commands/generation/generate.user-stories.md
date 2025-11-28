@@ -23,6 +23,7 @@ related-skills:
 related-commands:
   - /prioritize.features
   - /create.pr
+model_preference: opus
 dependencies:
   tools:
     - Read

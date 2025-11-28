@@ -7,7 +7,7 @@ description: Product management agent for feature prioritization, customer disco
 domain: product
 subdomain: product-management
 skills: product-team/product-manager-toolkit
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

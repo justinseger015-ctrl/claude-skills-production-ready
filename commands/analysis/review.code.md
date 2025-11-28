@@ -40,6 +40,7 @@ related-commands:
   - /git.create-pr
 
 # === TECHNICAL ===
+model_preference: opus
 dependencies:
   tools:
     - Read

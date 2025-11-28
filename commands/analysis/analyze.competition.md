@@ -36,6 +36,7 @@ related-commands:
   - /audit.security
 
 # === TECHNICAL ===
+model_preference: opus
 dependencies:
   tools:
     - Read

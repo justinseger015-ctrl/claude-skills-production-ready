@@ -23,7 +23,7 @@ example_usage: "/pr-create"
 requires_input: false
 requires_context: true
 estimated_time: "1-2 minutes"
-model_preference: sonnet
+model_preference: opus
 tools_required: [Bash, Read, Write, Grep]
 output_format: markdown
 interactive: false

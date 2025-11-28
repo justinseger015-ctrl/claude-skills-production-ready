@@ -7,7 +7,7 @@ description: Business process analysis, workflow mapping, gap identification, an
 domain: product
 subdomain: product-management
 skills: business-analyst-toolkit
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

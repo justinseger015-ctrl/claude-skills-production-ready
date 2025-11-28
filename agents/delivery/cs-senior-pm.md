@@ -7,7 +7,7 @@ description: Strategic program management specialist for portfolio planning, sta
 domain: delivery
 subdomain: delivery-general
 skills: senior-pm
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

@@ -7,7 +7,7 @@ description: Security operations specialist for incident response, security auto
 domain: engineering
 subdomain: security-engineering
 skills: senior-secops
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

@@ -39,6 +39,7 @@ related-commands:
   - /review.code
 
 # === TECHNICAL ===
+model_preference: opus
 dependencies:
   tools:
     - Read

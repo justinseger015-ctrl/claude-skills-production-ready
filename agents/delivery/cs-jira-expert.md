@@ -7,7 +7,7 @@ description: Jira workflow automation specialist for issue management, JQL queri
 domain: delivery
 subdomain: delivery-tools
 skills: jira-expert
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

@@ -7,7 +7,7 @@ description: Demand generation and customer acquisition specialist for lead gene
 domain: marketing
 subdomain: content-marketing
 skills: marketing-team/marketing-demand-acquisition
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

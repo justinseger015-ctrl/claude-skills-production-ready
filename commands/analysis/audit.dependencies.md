@@ -12,7 +12,7 @@ requires_input: false
 requires_context: true
 estimated_time: 15m
 related_commands: [audit.security]
-model_preference: sonnet
+model_preference: opus
 tools_required: [Read, Bash, Grep, Glob]
 output_format: markdown
 interactive: true

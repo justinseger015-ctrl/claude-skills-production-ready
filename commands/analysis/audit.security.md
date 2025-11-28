@@ -12,6 +12,7 @@ use-cases:
   - Detect hardcoded secrets and credentials in codebase
   - Generate compliance audit reports for security reviews
   - Prepare code for production release with security validation
+model_preference: opus
 dependencies:
   tools:
     - Read

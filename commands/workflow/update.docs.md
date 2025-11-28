@@ -19,7 +19,7 @@ example_usage: "/update.docs"
 requires_input: false
 requires_context: false
 estimated_time: "2-3 minutes"
-model_preference: sonnet
+model_preference: opus
 tools_required: [Read, Write, Glob, Bash]
 output_format: markdown
 interactive: false

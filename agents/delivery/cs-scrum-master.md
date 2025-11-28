@@ -7,7 +7,7 @@ description: Scrum facilitation specialist for sprint ceremonies, team coaching,
 domain: delivery
 subdomain: agile-delivery
 skills: scrum-master
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

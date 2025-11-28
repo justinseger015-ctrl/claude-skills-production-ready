@@ -7,7 +7,7 @@ description: Product strategy agent for OKR cascade generation, strategic planni
 domain: product
 subdomain: product-management
 skills: product-team/product-strategist
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

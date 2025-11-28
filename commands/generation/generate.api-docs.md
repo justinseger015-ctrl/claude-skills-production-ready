@@ -14,6 +14,7 @@ use-cases:
   - Produce interactive API documentation with executable examples
   - Generate client SDK documentation and integration guides
   - Maintain up-to-date API docs synchronized with code changes
+model_preference: opus
 dependencies:
   tools:
     - Read

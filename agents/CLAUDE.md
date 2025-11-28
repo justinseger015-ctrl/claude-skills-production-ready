@@ -177,33 +177,30 @@ killall -9 node python npm
 
 Choose the appropriate Claude model based on agent type and task complexity:
 
-### Opus (Complex Reasoning)
-**When to use:** Deep analysis, strategic planning, complex coordination
-- **Strengths:** Superior reasoning, nuanced understanding, strategic thinking
-- **Best for:** Strategic planning requiring deep analysis, complex workflow coordination, architectural decisions
+### Opus 4.5 (Recommended Default)
+**When to use:** All tasks - same price as Sonnet but faster and better quality
+- **Strengths:** Superior reasoning, faster execution, excellent code generation, nuanced understanding
+- **Best for:** All agent tasks - strategic planning, code development, testing, review, general-purpose
 - **Examples:**
-  - `cs-ceo-advisor` - Business strategy and vision
+  - All agents now default to `model: opus`
   - `cs-architect` - System design and patterns
-  - `cs-product-strategist` - Product vision and roadmaps
-
-### Sonnet (Balanced Performance - Default)
-**When to use:** Most implementation and quality tasks
-- **Strengths:** Excellent code generation, fast execution, reliable output
-- **Best for:** Code development, testing, review, general-purpose tasks
-- **Examples:**
+  - `cs-fullstack-engineer` - Full application development
   - `cs-code-reviewer` - Code quality assessment
-  - `cs-fullstack` - Full application development
-  - `cs-backend-engineer` - API and service development
-  - `cs-qa-engineer` - Test automation
+
+### Sonnet (Legacy Option)
+**When to use:** Still valid, but Opus 4.5 is now preferred at same price point
+- **Strengths:** Excellent code generation, reliable output
+- **Best for:** If you need to specify Sonnet explicitly for compatibility
+- **Note:** All agents have been updated to use Opus by default
 
 ### Haiku (Fast, Simple Tasks)
-**When to use:** Simple, repetitive, or time-sensitive tasks
+**When to use:** Simple, repetitive, or time-sensitive tasks where speed > depth
 - **Strengths:** Very fast response, low resource usage, cost-effective
-- **Best for:** Simple automation, data formatting, quick checks
+- **Best for:** Simple automation, data formatting, quick checks, commit messages
 - **Examples:**
-  - `cs-data-formatter` - Data transformation tasks
-  - `cs-status-checker` - Quick system checks
-  - `cs-doc-generator` - Template-based documentation
+  - Simple git operations (branch cleanup, commit messages)
+  - Quick status checks
+  - Template-based documentation generation
 
 ## MCP Integration Patterns
 

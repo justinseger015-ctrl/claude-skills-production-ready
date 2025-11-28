@@ -7,7 +7,7 @@ description: Code review specialist for quality assessment, security analysis, a
 domain: engineering
 subdomain: quality-assurance
 skills: code-reviewer
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

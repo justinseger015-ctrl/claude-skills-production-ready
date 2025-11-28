@@ -7,7 +7,7 @@ description: Quality assurance specialist for test automation, quality metrics, 
 domain: engineering
 subdomain: quality-assurance
 skills: senior-qa
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

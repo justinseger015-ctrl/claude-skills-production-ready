@@ -7,7 +7,7 @@ description: Frontend development specialist for React/Vue components, UI/UX imp
 domain: engineering
 subdomain: frontend-development
 skills: engineering-team/senior-frontend
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

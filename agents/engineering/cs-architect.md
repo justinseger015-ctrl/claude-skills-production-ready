@@ -7,7 +7,7 @@ description: System architecture specialist for design patterns, scalability pla
 domain: engineering
 subdomain: system-architecture
 skills: senior-architect
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

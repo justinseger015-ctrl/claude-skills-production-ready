@@ -23,6 +23,7 @@ related-commands:
   - /feature-analyze
   - /roadmap-generate
   - /okr-cascade
+model_preference: opus
 dependencies:
   tools:
     - Read

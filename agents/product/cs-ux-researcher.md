@@ -7,7 +7,7 @@ description: UX research agent for user persona generation, usability testing, u
 domain: product
 subdomain: user-research
 skills: product-team/ux-researcher-designer
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

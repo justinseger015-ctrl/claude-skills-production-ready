@@ -7,7 +7,7 @@ description: Full-stack development specialist for end-to-end application archit
 domain: engineering
 subdomain: fullstack-development
 skills: senior-fullstack
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: advanced

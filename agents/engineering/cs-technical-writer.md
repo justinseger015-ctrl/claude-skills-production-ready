@@ -6,7 +6,7 @@ description: Documentation specialist for README generation, CHANGELOG managemen
 domain: engineering
 subdomain: documentation
 skills: technical-writer
-model: sonnet
+model: opus
 
 # === WEBSITE DISPLAY ===
 difficulty: intermediate
