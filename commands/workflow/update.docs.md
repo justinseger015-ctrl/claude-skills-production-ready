@@ -38,8 +38,10 @@ related-commands:
 related-agents:
   - cs-documentation-manager
   - cs-agile-product-owner
+  - cs-technical-writer
 related-skills:
   - engineering-team/code-reviewer
+  - engineering-team/technical-writer
   - product-team/product-manager-toolkit
 dependencies:
   tools:
@@ -47,7 +49,10 @@ dependencies:
     - Write
     - Glob
     - Bash
-  scripts: []
+  scripts:
+    - engineering-team/technical-writer/scripts/doc_quality_analyzer.py
+    - engineering-team/technical-writer/scripts/readme_generator.py
+    - engineering-team/technical-writer/scripts/changelog_generator.py
   python-packages: []
 compatibility:
   claude-ai: true
@@ -260,17 +265,26 @@ This command works well with:
 
 This command leverages:
 
+- **[technical-writer](../../skills/engineering-team/technical-writer/)** - Primary documentation skill with quality analysis, README generation, and CHANGELOG management
 - **[code-reviewer](../../skills/engineering-team/code-reviewer/)** - Validates markdown syntax and documentation quality
 - **[product-manager-toolkit](../../skills/product-team/product-manager-toolkit/)** - Helps organize statistics and metrics
 
 ### Python Tools
 
-This command may execute:
+This command uses tools from the technical-writer skill:
 
 ```bash
-# Optional markdown validation tool
+# Documentation quality analysis
+python skills/engineering-team/technical-writer/scripts/doc_quality_analyzer.py docs/ --format json
+
+# README statistics update
+python skills/engineering-team/technical-writer/scripts/readme_generator.py ./ --sections stats --merge
+
+# CHANGELOG generation from git commits
+python skills/engineering-team/technical-writer/scripts/changelog_generator.py --since HEAD~10 --prepend
+
+# Optional markdown validation
 python skills/engineering-team/code-reviewer/scripts/validate_markdown.py README.md
-python skills/engineering-team/code-reviewer/scripts/validate_markdown.py CHANGELOG.md
 ```
 
 ---
@@ -320,7 +334,7 @@ python skills/engineering-team/code-reviewer/scripts/validate_markdown.py CHANGE
 
 ---
 
-**Last Updated:** November 24, 2025
-**Version:** 1.0.0
+**Last Updated:** November 28, 2025
+**Version:** 1.1.0
 **Maintained By:** Claude Skills Team
 **Feedback:** Create an issue in the repository or contact @claude-skills-team
