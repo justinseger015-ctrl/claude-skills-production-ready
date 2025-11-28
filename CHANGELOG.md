@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Agents**: 30 (was 29) - added cs-tdd-engineer
 - **Skills**: 31 (unchanged) - senior-qa enhanced with TDD tools
 - **Commands**: 16 (was 15) - added /generate.tdd
-- **Python Tools**: 85 (was 80) - added 5 TDD tools to senior-qa
+- **Python Tools**: 82 (was 77) - added 5 TDD tools to senior-qa
 
 ---
 
