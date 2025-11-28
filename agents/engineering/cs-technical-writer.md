@@ -1,5 +1,4 @@
 ---
-
 # === CORE IDENTITY ===
 name: cs-technical-writer
 title: Technical Writer Specialist

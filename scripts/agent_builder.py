@@ -421,7 +421,7 @@ class AgentValidator:
 
         if 'classification' in frontmatter:
             if isinstance(frontmatter['classification'], dict):
-                valid_types = ['strategic', 'implementation', 'quality', 'coordination']
+                valid_types = ['strategic', 'implementation', 'quality', 'coordination', 'domain-specific']
                 if 'type' in frontmatter['classification']:
                     if frontmatter['classification']['type'] not in valid_types:
                         return False, f"Invalid classification type: {frontmatter['classification']['type']}"
