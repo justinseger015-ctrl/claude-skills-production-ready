@@ -355,12 +355,12 @@ Examples:
   %(prog)s --velocity 23 25 21 --json
 
 Health Score Components (6-metric formula):
-  - Velocity Stability: 15%
-  - Velocity Trend: 15%
-  - Completion Rate: 25%
-  - Capacity Utilization: 15%
-  - Blocker Impact: 20%
-  - Team Morale: 10%
+  - Velocity Stability: 15%%
+  - Velocity Trend: 15%%
+  - Completion Rate: 25%%
+  - Capacity Utilization: 15%%
+  - Blocker Impact: 20%%
+  - Team Morale: 10%%
         """
     )
 
