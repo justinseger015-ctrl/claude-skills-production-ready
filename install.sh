@@ -88,11 +88,11 @@ display_welcome() {
     print_header "Claude Skills Installation"
     echo ""
     echo "This script will help you install the claude-skills repository"
-    echo "containing 27 production agents and 26 Pandora-focused skill packages."
+    echo "containing 30 production agents and 31 skill packages."
     echo ""
     echo "What you'll get:"
-    echo "  • 27 production agents (Marketing, Product, Delivery, Engineering)"
-    echo "  • 53 Python CLI automation tools"
+    echo "  • 30 production agents (Marketing, Product, Delivery, Engineering)"
+    echo "  • 82 Python CLI automation tools"
     echo "  • Comprehensive standards library"
     echo "  • Templates and workflows"
     echo ""
@@ -115,11 +115,11 @@ ask_questions() {
     # Question 2: Which agents to install
     echo ""
     echo "2. Which agent domains do you need?"
-    echo "   a) All agents (27 production agents) - Recommended"
+    echo "   a) All agents (30 production agents) - Recommended"
     echo "   b) Marketing only (3 agents)"
-    echo "   c) Product only (5 agents)"
+    echo "   c) Product only (6 agents)"
     echo "   d) Delivery only (4 agents)"
-    echo "   e) Engineering only (15 agents)"
+    echo "   e) Engineering only (17 agents)"
     echo ""
     read -p "Choose (a/b/c/d/e) [a]: " AGENT_SELECTION
     AGENT_SELECTION=${AGENT_SELECTION:-a}
@@ -178,9 +178,9 @@ install_agents() {
 
     case $AGENT_SELECTION in
         a) # All agents
-            print_info "Installing all 27 production agents..."
+            print_info "Installing all 30 production agents..."
             cp -r agents/* "$INSTALL_DIR/agents/" 2>/dev/null || true
-            print_success "Installed 27 production agents (3 marketing, 5 product, 4 delivery, 15 engineering)"
+            print_success "Installed 30 production agents (3 marketing, 6 product, 4 delivery, 17 engineering)"
             ;;
         b) # Marketing only
             print_info "Installing marketing agents..."
@@ -215,14 +215,14 @@ install_agents() {
 install_skills() {
     print_header "Installing Skill Packages"
 
-    print_info "Installing 26 Pandora-focused skill packages..."
+    print_info "Installing 31 skill packages..."
 
     # Copy skills directory (all 4 domains)
     if [ -d "skills" ]; then
         case $AGENT_SELECTION in
             a) # All skills
                 cp -r skills "$INSTALL_DIR/" 2>/dev/null || true
-                print_success "Installed all 26 skill packages (4 domains)"
+                print_success "Installed all 31 skill packages (4 domains)"
                 ;;
             b) # Marketing only
                 mkdir -p "$INSTALL_DIR/skills"
@@ -302,7 +302,7 @@ USAGE:
    - Upload skills from: $INSTALL_DIR/skills/
    - Reference in your Project
 
-3. Python Tools (53 total):
+3. Python Tools (82 total):
    - All scripts in: $INSTALL_DIR/skills/*/scripts/*.py
    - Run with: python3 path/to/script.py --help
 
