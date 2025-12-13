@@ -5,7 +5,7 @@
 This document provides detailed descriptions of all available skills in the Claude Skills Library. Each skill is a self-contained package with Python CLI tools, expert knowledge bases, and ready-to-use templates.
 
 **Validation Status**: 31/31 passing (100%)
-**Last Validated**: November 28, 2025
+**Last Validated**: December 13, 2025
 
 ## Validation
 
@@ -26,7 +26,7 @@ See [Builder Standards](standards/builder-standards.md) for complete validation 
 
 - [Marketing Skills](#marketing-skills) - 3 skills
 - [Product Team Skills](#product-team-skills) - 6 skills
-- [Engineering Team Skills](#engineering-team-skills) - 16 skills
+- [Engineering Team Skills](#engineering-team-skills) - 17 skills
 - [Delivery Team Skills](#delivery-team-skills) - 4 skills
 
 ---
@@ -205,7 +205,7 @@ Business process analysis, workflow mapping, gap identification, and improvement
 
 ## Engineering Team Skills
 
-**16 comprehensive engineering skills** covering code review, architecture, backend, frontend, fullstack, DevOps, security, QA, AI/ML, data, technical writing, and CTO advisory.
+**17 comprehensive engineering skills** covering code review, architecture, backend, frontend, fullstack, DevOps, security, QA, AI/ML, data, technical writing, legacy modernization, and CTO advisory.
 
 ### 🔍 Code Reviewer
 **Status:** ✅ Production Ready | **Version:** 1.0
@@ -348,6 +348,29 @@ Security operations, incident response, threat hunting, and compliance automatio
 - **Security Metrics** - MTTD, MTTR, security posture dashboards
 
 **Learn More:** [skills/engineering-team/senior-secops/SKILL.md](../skills/engineering-team/senior-secops/SKILL.md)
+
+---
+
+### 🏚️ Legacy Codebase Analyzer
+**Status:** ✅ Production Ready | **Version:** 1.0
+
+Comprehensive legacy codebase analysis for technical debt quantification, security vulnerability scanning, and modernization roadmap generation.
+
+**What's Included:**
+- **Codebase Inventory** - Multi-language detection, dependency extraction, LOC metrics (Python CLI)
+- **Security Vulnerability Scanner** - Secret detection, OWASP patterns, compliance gaps (Python CLI)
+- **Performance Bottleneck Detector** - N+1 queries, O(n²) patterns, memory issues (Python CLI)
+- **Code Quality Analyzer** - Cyclomatic complexity, duplication detection, code smells (Python CLI)
+- **Architecture Health Analyzer** - Dependency graphs, circular dependencies, coupling metrics (Python CLI)
+- **Technical Debt Scorer** - Five-category weighted scoring with business impact (Python CLI)
+- **Modernization Roadmap Generator** - 4-phase roadmaps with ROI estimates (Python CLI)
+- **Analysis Framework** - Assessment methodology, severity classification, benchmarks
+- **Modernization Patterns** - Migration strategies, strangler fig, database patterns
+- **Executive Summary Template** - Board-ready one-page format
+- **Technical Debt Report Template** - Detailed findings by category
+- **Roadmap Template** - Phased implementation with milestones
+
+**Learn More:** [skills/engineering-team/legacy-codebase-analyzer/SKILL.md](../skills/engineering-team/legacy-codebase-analyzer/SKILL.md)
 
 ---
 
@@ -587,6 +610,6 @@ Project management, resource planning, stakeholder management, and delivery exce
 
 ---
 
-**Last Updated:** November 28, 2025
+**Last Updated:** December 13, 2025
 **Total Skills:** 31 production-ready skills
-**Total CLI Tools:** 74 Python automation tools
+**Total CLI Tools:** 89 Python automation tools

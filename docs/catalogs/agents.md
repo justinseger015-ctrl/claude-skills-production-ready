@@ -1,11 +1,11 @@
 # Agent Catalog
 
-**Complete catalog of 30 production agents for Pandora's SDLC (v2.0)**
+**Complete catalog of 31 production agents for Pandora's SDLC (v2.0)**
 
 Agents are workflow orchestrators that intelligently invoke skills, coordinate Python tools, and guide you through complex multi-step processes. While skills provide the tools and knowledge, agents provide the intelligence to use them effectively.
 
-**Validation Status**: 30/30 passing (100%)
-**Last Validated**: November 28, 2025
+**Validation Status**: 31/31 passing (100%)
+**Last Validated**: December 13, 2025
 
 ## Validation
 
@@ -30,7 +30,7 @@ See [Builder Standards](standards/builder-standards.md) for complete validation 
 - [Agents vs Skills](#agents-vs-skills)
 - [Marketing Agents](#marketing-agents) - 3 agents
 - [Product Agents](#product-agents) - 6 agents
-- [Engineering Agents](#engineering-agents) - 17 agents
+- [Engineering Agents](#engineering-agents) - 18 agents
 - [Delivery Agents](#delivery-agents) - 4 agents
 
 ---
@@ -237,7 +237,7 @@ Business process analysis, workflow mapping, gap identification, and improvement
 
 ## Engineering Agents
 
-**17 engineering agents** covering code review, architecture, backend, frontend, fullstack, DevOps, security, QA, TDD, AI/ML, data, technical writing, and CTO advisory.
+**18 engineering agents** covering code review, architecture, backend, frontend, fullstack, DevOps, security, QA, TDD, AI/ML, data, technical writing, legacy modernization, and CTO advisory.
 
 ### 🔍 cs-code-reviewer
 **Domain:** Engineering | **Skills Used:** code-reviewer
@@ -564,6 +564,31 @@ Documentation quality, README generation, CHANGELOG maintenance, and API documen
 
 ---
 
+### 🏚️ cs-legacy-codebase-analyzer
+**Domain:** Engineering | **Skills Used:** legacy-codebase-analyzer
+
+Comprehensive legacy codebase analysis for technical debt quantification, security vulnerability scanning, and modernization roadmap generation. Board-ready reports in hours instead of weeks.
+
+**Key Workflows:**
+- Complete codebase assessment (inventory, dependencies, architecture)
+- Security and vulnerability analysis
+- Technical debt quantification with business impact
+- Modernization roadmap generation (4-phase approach)
+- Executive summary preparation
+
+**Python Tools Used:**
+- `codebase_inventory.py` - Multi-language detection, dependency extraction
+- `security_vulnerability_scanner.py` - Secret detection, OWASP patterns
+- `performance_bottleneck_detector.py` - N+1 queries, O(n²) patterns
+- `code_quality_analyzer.py` - Complexity, duplication, code smells
+- `architecture_health_analyzer.py` - Dependency graphs, coupling metrics
+- `technical_debt_scorer.py` - Five-category weighted scoring
+- `modernization_roadmap_generator.py` - 4-phase roadmaps with ROI
+
+[View Agent →](../agents/engineering/cs-legacy-codebase-analyzer.md)
+
+---
+
 ## Delivery Agents
 
 **4 delivery agents** covering Atlassian tools (Jira, Confluence) and agile delivery practices.
@@ -651,6 +676,6 @@ Project management, resource planning, stakeholder management, and delivery exce
 
 ---
 
-**Last Updated:** November 28, 2025
-**Total Agents:** 30 production agents (v2.0)
+**Last Updated:** December 13, 2025
+**Total Agents:** 31 production agents (v2.0)
 **Agent Naming:** cs-* prefix (claude-skills)

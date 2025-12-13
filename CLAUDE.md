@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 30 production agents, 31 skills across 4 domains with 82 Python automation tools, 16 slash commands.
+**Current Scope:** 31 production agents, 31 skills across 4 domains with 89 Python automation tools, 16 slash commands.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -64,13 +64,13 @@ claude-skills/
 ├── skills/                    # All skill packages organized by domain
 │   ├── marketing-team/        # 3 marketing skills + Python tools
 │   ├── product-team/          # 7 product skills + Python tools
-│   ├── engineering-team/      # 16 engineering skills + Python tools
+│   ├── engineering-team/      # 17 engineering skills + Python tools
 │   └── delivery-team/         # 4 delivery/PM skills + Atlassian MCP
 ├── agents/                    # Workflow orchestrator agents (cs-* prefix)
 │   ├── marketing/            # 3 agents
 │   ├── product/              # 6 agents
 │   ├── delivery/             # 4 agents
-│   └── engineering/          # 16 agents
+│   └── engineering/          # 18 agents
 ├── commands/                  # Slash commands library
 │   ├── analysis/             # Analysis commands (5)
 │   ├── generation/           # Code generation (2)
@@ -400,6 +400,7 @@ python3 -c "print('Python environment ready')"
 | Data science | [cs-data-scientist](agents/engineering/cs-data-scientist.md) | Analysis, statistics, modeling, insights |
 | Prompt engineering | [cs-prompt-engineer](agents/engineering/cs-prompt-engineer.md) | LLM prompts, AI interactions, prompt optimization |
 | CTO advisory | [cs-cto-advisor](agents/engineering/cs-cto-advisor.md) | Technical strategy, team scaling, technology decisions |
+| Legacy codebase analysis | [cs-legacy-codebase-analyzer](agents/engineering/cs-legacy-codebase-analyzer.md) | Technical debt assessment, modernization roadmaps, security scanning |
 
 ### Product Tasks
 
@@ -479,7 +480,7 @@ Common issues and solutions documented in domain-specific CLAUDE.md files:
 
 ---
 
-**Last Updated:** November 28, 2025
-**Current Status:** 30 production agents, 31 skills across 4 domains, 82 Python tools, 16 slash commands
+**Last Updated:** December 13, 2025
+**Current Status:** 31 production agents, 31 skills across 4 domains, 89 Python tools, 16 slash commands
 **Python Version:** 3.8+ required
 **Dependencies:** None - all tools use Python standard library only

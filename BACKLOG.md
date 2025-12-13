@@ -14,53 +14,7 @@ Product backlog for claude-skills repository. This is a temporary location until
 
 ## Medium Priority
 
-### Legacy Codebase Analyzer Skill & Agent
-**Type:** Feature
-**Effort:** Large
-**Description:** Create new `legacy-codebase-analyzer` skill and `cs-legacy-codebase-analyzer` agent for comprehensive technical debt analysis and modernization strategy development.
-
-**Skill Package:**
-- **Location:** `skills/engineering-team/legacy-codebase-analyzer/`
-- **7 Python Tools:** codebase_inventory.py, security_vulnerability_scanner.py, performance_bottleneck_detector.py, code_quality_analyzer.py, architecture_health_analyzer.py, technical_debt_scorer.py, modernization_roadmap_generator.py
-- **3 References:** analysis_framework.md, modernization_patterns.md, deliverable_templates.md
-- **3 Assets:** executive_summary_template.md, technical_debt_report_template.md, roadmap_template.md
-
-**Agent:**
-- **Location:** `agents/engineering/cs-legacy-codebase-analyzer.md`
-- **Type:** Quality (Red) - Heavy analysis, resource-intensive
-- **Model:** opus
-
-**Acceptance Criteria:**
-- [ ] Create skill package with all Python tools (standard library only)
-- [ ] All 7 Python tools support `--help` and JSON output
-- [ ] Create comprehensive SKILL.md with 5+ workflows
-- [ ] Create agent with proper YAML frontmatter
-- [ ] Document 5 key workflows in agent
-- [ ] Validate with `python3 scripts/skill_builder.py --validate`
-- [ ] Validate with `python3 scripts/agent_builder.py --validate`
-- [ ] Add to AGENTS_CATALOG.md and SKILLS_CATALOG.md
-- [ ] Update CLAUDE.md with new skill/agent references
-
-**Related Prompts:** Legacy Codebase Analysis & Modernization Agent prompt (provided by user)
-
-**Integration Points:**
-- Complements `senior-architect` (architecture analysis)
-- Complements `code-reviewer` (code quality metrics)
-- Complements `senior-secops` (security scanning)
-- Complements `cto-advisor` (strategic tech debt view)
-
----
-
-### Jira Integration Testing
-**Type:** Task
-**Effort:** Small
-**Description:** Test the `delivery-team/jira-expert` skill by migrating this backlog to Jira.
-
-**Acceptance Criteria:**
-- [ ] Create Jira project for claude-skills
-- [ ] Migrate all backlog items to Jira
-- [ ] Test skill's Jira MCP integration
-- [ ] Document any issues or improvements needed
+*(Empty - items moved to Completed)*
 
 ---
 
@@ -325,6 +279,32 @@ skills/engineering-team/senior-security/scripts/threat_modeler.py
 ---
 
 ## Completed
+
+### Legacy Codebase Analyzer Skill & Agent
+**Type:** Feature
+**Effort:** Large
+**Completed:** 2025-12-13
+**Description:** Comprehensive legacy codebase analysis skill and agent for technical debt quantification, security vulnerability scanning, and modernization roadmap generation.
+
+**Deliverables:**
+- **Skill:** `skills/engineering-team/legacy-codebase-analyzer/`
+- **Agent:** `agents/engineering/cs-legacy-codebase-analyzer.md`
+- **7 Python Tools:** codebase_inventory.py, security_vulnerability_scanner.py, performance_bottleneck_detector.py, code_quality_analyzer.py, architecture_health_analyzer.py, technical_debt_scorer.py, modernization_roadmap_generator.py
+- **3 Reference Docs:** analysis_framework.md, modernization_patterns.md, deliverable_templates.md
+- **3 Asset Templates:** executive_summary_template.md, technical_debt_report_template.md, roadmap_template.md
+
+**Acceptance Criteria:**
+- [x] Create skill package with all Python tools (standard library only)
+- [x] All 7 Python tools support `--help` and JSON output
+- [x] Create comprehensive SKILL.md with 5+ workflows
+- [x] Create agent with proper YAML frontmatter
+- [x] Document 5 key workflows in agent
+- [x] Validate with `python3 scripts/skill_builder.py --validate` (9/9 checks passing)
+- [x] Validate with `python3 scripts/agent_builder.py --validate` (9/9 checks passing)
+- [x] Add to agents.md and skills.md catalogs
+- [x] Update CLAUDE.md with new skill/agent references
+
+---
 
 ### CI/CD Auto-Promotion Pipeline
 **Type:** Feature
