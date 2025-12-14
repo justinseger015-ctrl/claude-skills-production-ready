@@ -117,6 +117,134 @@ class FrontendScaffolder:
     - ESLint + Prettier
     """
 
+    # Base dependencies shared across all frameworks
+    BASE_DEV_DEPS = {
+        "typescript": "^5.3.3",
+        "@types/node": "^20.10.0",
+        "prettier": "^3.1.0",
+        "eslint": "^8.55.0",
+    }
+
+    # Framework-specific dependency configurations
+    FRAMEWORK_DEPS = {
+        ProjectFramework.NEXTJS: {
+            "deps": {
+                "next": "^14.0.4",
+                "react": "^18.2.0",
+                "react-dom": "^18.2.0",
+            },
+            "dev_deps": {
+                "@types/react": "^18.2.0",
+                "@types/react-dom": "^18.2.0",
+                "eslint-config-next": "^14.0.4",
+            },
+            "scripts": {
+                "dev": "next dev",
+                "build": "next build",
+                "start": "next start",
+                "lint": "next lint",
+            },
+        },
+        ProjectFramework.VITE_REACT: {
+            "deps": {
+                "react": "^18.2.0",
+                "react-dom": "^18.2.0",
+            },
+            "dev_deps": {
+                "@types/react": "^18.2.0",
+                "@types/react-dom": "^18.2.0",
+                "@vitejs/plugin-react": "^4.2.1",
+                "vite": "^5.0.0",
+                "eslint-plugin-react-hooks": "^4.6.0",
+                "eslint-plugin-react-refresh": "^0.4.5",
+            },
+            "scripts": {
+                "dev": "vite",
+                "build": "tsc && vite build",
+                "preview": "vite preview",
+                "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+            },
+        },
+        ProjectFramework.NUXT: {
+            "deps": {},
+            "dev_deps": {
+                "nuxt": "^3.9.0",
+                "vue": "^3.4.0",
+                "@pinia/nuxt": "^0.5.1",
+                "pinia": "^2.1.7",
+            },
+            "scripts": {
+                "dev": "nuxt dev",
+                "build": "nuxt build",
+                "generate": "nuxt generate",
+                "preview": "nuxt preview",
+                "lint": "eslint .",
+            },
+        },
+    }
+
+    # Styling dependencies
+    STYLING_DEPS = {
+        Styling.TAILWIND: {
+            "tailwindcss": "^3.4.0",
+            "postcss": "^8.4.32",
+            "autoprefixer": "^10.4.16",
+        },
+        Styling.CSS_MODULES: {},
+    }
+
+    # State management dependencies
+    STATE_DEPS = {
+        StateManagement.ZUSTAND: {"zustand": "^4.4.7"},
+        StateManagement.REDUX: {
+            "@reduxjs/toolkit": "^2.0.1",
+            "react-redux": "^9.0.4",
+        },
+        StateManagement.JOTAI: {"jotai": "^2.6.0"},
+        StateManagement.PINIA: {"pinia": "^2.1.7"},
+        StateManagement.NONE: {},
+    }
+
+    # Testing dependencies per framework
+    TESTING_DEPS = {
+        "base": {"@testing-library/jest-dom": "^6.1.5"},
+        ProjectFramework.VITE_REACT: {
+            "deps": {
+                "vitest": "^1.1.0",
+                "@testing-library/react": "^14.1.2",
+                "jsdom": "^23.0.1",
+            },
+            "scripts": {
+                "test": "vitest",
+                "test:coverage": "vitest run --coverage",
+            },
+        },
+        "default": {
+            "deps": {
+                "jest": "^29.7.0",
+                "@testing-library/react": "^14.1.2",
+                "jest-environment-jsdom": "^29.7.0",
+            },
+            "scripts": {
+                "test": "jest",
+                "test:coverage": "jest --coverage",
+            },
+        },
+    }
+
+    # Husky dependencies
+    HUSKY_DEPS = {
+        "husky": "^8.0.3",
+        "lint-staged": "^15.2.0",
+    }
+
+    # Common scripts
+    COMMON_SCRIPTS = {
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "typecheck": "tsc --noEmit",
+    }
+
     def __init__(self, config: ProjectConfig):
         if config.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -525,132 +653,41 @@ useHead({
         self._write_file(project_dir, "assets/css/main.css", main_css)
 
     def _create_package_json(self, project_dir: Path) -> None:
-        """Generate package.json with appropriate dependencies."""
+        """Generate package.json with appropriate dependencies using data-driven approach."""
         name = self.config.name.lower().replace(" ", "-")
 
-        # Base dependencies
+        # Start with base dev dependencies
         deps: Dict[str, str] = {}
-        dev_deps: Dict[str, str] = {
-            "typescript": "^5.3.3",
-            "@types/node": "^20.10.0",
-            "prettier": "^3.1.0",
-            "eslint": "^8.55.0",
-        }
-
+        dev_deps: Dict[str, str] = dict(self.BASE_DEV_DEPS)
         scripts: Dict[str, str] = {}
 
-        # Framework-specific configuration
-        if self.config.framework == ProjectFramework.NEXTJS:
-            deps.update({
-                "next": "^14.0.4",
-                "react": "^18.2.0",
-                "react-dom": "^18.2.0",
-            })
-            dev_deps.update({
-                "@types/react": "^18.2.0",
-                "@types/react-dom": "^18.2.0",
-                "eslint-config-next": "^14.0.4",
-            })
-            scripts.update({
-                "dev": "next dev",
-                "build": "next build",
-                "start": "next start",
-                "lint": "next lint",
-            })
+        # Add framework-specific dependencies
+        framework_config = self.FRAMEWORK_DEPS[self.config.framework]
+        deps.update(framework_config["deps"])
+        dev_deps.update(framework_config["dev_deps"])
+        scripts.update(framework_config["scripts"])
 
-        elif self.config.framework == ProjectFramework.VITE_REACT:
-            deps.update({
-                "react": "^18.2.0",
-                "react-dom": "^18.2.0",
-            })
-            dev_deps.update({
-                "@types/react": "^18.2.0",
-                "@types/react-dom": "^18.2.0",
-                "@vitejs/plugin-react": "^4.2.1",
-                "vite": "^5.0.0",
-                "eslint-plugin-react-hooks": "^4.6.0",
-                "eslint-plugin-react-refresh": "^0.4.5",
-            })
-            scripts.update({
-                "dev": "vite",
-                "build": "tsc && vite build",
-                "preview": "vite preview",
-                "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-            })
+        # Add styling dependencies
+        dev_deps.update(self.STYLING_DEPS.get(self.config.styling, {}))
 
-        else:  # Nuxt
-            dev_deps.update({
-                "nuxt": "^3.9.0",
-                "vue": "^3.4.0",
-                "@pinia/nuxt": "^0.5.1",
-                "pinia": "^2.1.7",
-            })
-            scripts.update({
-                "dev": "nuxt dev",
-                "build": "nuxt build",
-                "generate": "nuxt generate",
-                "preview": "nuxt preview",
-                "lint": "eslint .",
-            })
+        # Add state management dependencies (skip Pinia for Nuxt - already included)
+        if self.config.state_management != StateManagement.PINIA or self.config.framework != ProjectFramework.NUXT:
+            deps.update(self.STATE_DEPS.get(self.config.state_management, {}))
 
-        # Styling dependencies
-        if self.config.styling == Styling.TAILWIND:
-            dev_deps.update({
-                "tailwindcss": "^3.4.0",
-                "postcss": "^8.4.32",
-                "autoprefixer": "^10.4.16",
-            })
-
-        # State management
-        if self.config.state_management == StateManagement.ZUSTAND:
-            deps["zustand"] = "^4.4.7"
-        elif self.config.state_management == StateManagement.REDUX:
-            deps.update({
-                "@reduxjs/toolkit": "^2.0.1",
-                "react-redux": "^9.0.4",
-            })
-        elif self.config.state_management == StateManagement.JOTAI:
-            deps["jotai"] = "^2.6.0"
-        elif self.config.state_management == StateManagement.PINIA:
-            if self.config.framework != ProjectFramework.NUXT:
-                deps["pinia"] = "^2.1.7"
-
-        # Testing dependencies
+        # Add testing dependencies
         if self.config.include_testing:
-            dev_deps.update({
-                "@testing-library/jest-dom": "^6.1.5",
-            })
-            if self.config.framework == ProjectFramework.VITE_REACT:
-                dev_deps.update({
-                    "vitest": "^1.1.0",
-                    "@testing-library/react": "^14.1.2",
-                    "jsdom": "^23.0.1",
-                })
-                scripts["test"] = "vitest"
-                scripts["test:coverage"] = "vitest run --coverage"
-            else:
-                dev_deps.update({
-                    "jest": "^29.7.0",
-                    "@testing-library/react": "^14.1.2",
-                    "jest-environment-jsdom": "^29.7.0",
-                })
-                scripts["test"] = "jest"
-                scripts["test:coverage"] = "jest --coverage"
+            dev_deps.update(self.TESTING_DEPS["base"])
+            testing_config = self.TESTING_DEPS.get(self.config.framework, self.TESTING_DEPS["default"])
+            dev_deps.update(testing_config["deps"])
+            scripts.update(testing_config["scripts"])
 
-        # Husky
+        # Add Husky dependencies
         if self.config.include_husky:
-            dev_deps.update({
-                "husky": "^8.0.3",
-                "lint-staged": "^15.2.0",
-            })
+            dev_deps.update(self.HUSKY_DEPS)
             scripts["prepare"] = "husky install"
 
-        # Common scripts
-        scripts.update({
-            "format": "prettier --write .",
-            "format:check": "prettier --check .",
-            "typecheck": "tsc --noEmit",
-        })
+        # Add common scripts
+        scripts.update(self.COMMON_SCRIPTS)
 
         package_json = {
             "name": name,
@@ -661,7 +698,7 @@ useHead({
             "devDependencies": dev_deps,
         }
 
-        # Lint-staged config
+        # Add lint-staged config if Husky is enabled
         if self.config.include_husky:
             package_json["lint-staged"] = {
                 "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],

@@ -110,6 +110,17 @@ DEFAULT_CANARY_PERCENTAGE = 10
 DEFAULT_ROLLING_MAX_UNAVAILABLE = 1
 DEFAULT_ROLLING_MAX_SURGE = 1
 
+# Deployment step duration constants (in seconds)
+DURATION_QUICK = 5           # Configuration changes
+DURATION_SHORT = 10          # Traffic switches, relabeling
+DURATION_VERIFY = 30         # Verification, health checks
+DURATION_STANDARD = 60       # Standard operations (create, scale)
+DURATION_DEPLOY = 90         # Deployment operations
+DURATION_FULL_DEPLOY = 120   # Full deployment with verification
+DURATION_MONITOR = 300       # Monitoring periods (5 minutes)
+DURATION_PER_REPLICA = 30    # Time per replica for rolling updates
+MAX_WAIT_HEALTHY = 300       # Maximum wait for healthy status
+
 
 # ============================================================================
 # DATA CLASSES
@@ -222,6 +233,52 @@ class DeploymentManager:
     STRATEGIES = {s.value for s in DeploymentStrategy}
     ACTIONS = {a.value for a in DeploymentAction}
     ENVIRONMENTS = {e.value for e in Environment}
+
+    # Deployment step definitions for data-driven generation
+    # Format: (name, description_template, action, target_suffix, duration, rollback_action)
+    # Use {app}, {version}, {replicas}, {percentage}, {max_unavailable}, {max_surge} placeholders
+
+    BLUE_GREEN_STEPS = [
+        ("prepare_green_environment", "Prepare green environment with version {version}", "create_deployment", "-green", 60, "delete_deployment"),
+        ("deploy_green", "Deploy {app} {version} to green", "apply_deployment", "-green", 120, "rollback_deployment"),
+        ("scale_green", "Scale green to {replicas} replicas", "scale", "-green", 60, "scale_down"),
+        ("health_check_green", "Verify green environment health", "health_check", "-green", "health_check", "none"),
+        ("switch_traffic", "Switch traffic from blue to green", "update_service", "-service", 10, "switch_to_blue"),
+        ("verify_traffic", "Verify traffic is flowing to green", "verify_traffic", "-green", 30, "switch_to_blue"),
+        ("cleanup_blue", "Scale down blue environment (keep for rollback)", "scale_down", "-blue", 30, "scale_up_blue"),
+        ("finalize", "Rename green to blue, finalize deployment", "relabel", "", 10, "none"),
+    ]
+
+    CANARY_STEPS = [
+        ("create_canary", "Create canary deployment with version {version}", "create_deployment", "-canary", 60, "delete_canary"),
+        ("deploy_canary", "Deploy {app} {version} to canary", "apply_deployment", "-canary", 90, "rollback_deployment"),
+        ("health_check_canary", "Verify canary health", "health_check", "-canary", "health_check", "none"),
+        ("route_traffic_canary", "Route {percentage}% traffic to canary", "update_traffic_split", "-service", 10, "remove_canary_traffic"),
+        ("monitor_canary", "Monitor canary metrics for {percentage}% traffic", "monitor", "-canary", 300, "remove_canary_traffic"),
+        ("promote_canary_50", "Promote canary to 50% traffic", "update_traffic_split", "-service", 10, "remove_canary_traffic"),
+        ("monitor_50", "Monitor 50% traffic split", "monitor", "", 300, "reduce_canary_traffic"),
+        ("full_rollout", "Route 100% traffic to new version", "update_traffic_split", "-service", 10, "restore_traffic"),
+        ("cleanup_old", "Remove old version deployment", "delete_deployment", "-stable", 30, "none"),
+        ("promote_canary", "Relabel canary as stable", "relabel", "-canary", 10, "none"),
+    ]
+
+    ROLLING_STEPS = [
+        ("update_deployment_spec", "Update deployment spec to version {version}", "update_deployment", "", 10, "restore_deployment_spec"),
+        ("configure_rolling_update", "Configure rolling update (maxUnavailable={max_unavailable}, maxSurge={max_surge})", "configure_strategy", "", 5, "none"),
+        ("apply_rolling_update", "Apply rolling update across {replicas} replicas", "apply_deployment", "", "rolling", "rollback_deployment"),
+        ("wait_for_pods", "Wait for all pods to be ready", "wait_ready", "", 60, "none"),
+        ("health_check", "Verify deployment health", "health_check", "", "health_check", "rollback_deployment"),
+        ("cleanup_old_replicasets", "Clean up old ReplicaSets", "cleanup", "", 10, "none"),
+    ]
+
+    RECREATE_STEPS = [
+        ("scale_down_current", "Scale down current deployment to 0", "scale", "", 60, "scale_up"),
+        ("wait_termination", "Wait for all pods to terminate", "wait_termination", "", 60, "none"),
+        ("update_deployment", "Update deployment to version {version}", "update_deployment", "", 10, "restore_deployment"),
+        ("scale_up_new", "Scale up new deployment to {replicas} replicas", "scale", "", 90, "scale_down"),
+        ("wait_ready", "Wait for all pods to be ready", "wait_ready", "", 60, "none"),
+        ("health_check", "Verify deployment health", "health_check", "", "health_check", "rollback"),
+    ]
 
     def __init__(
         self,
@@ -480,7 +537,7 @@ class DeploymentManager:
         self._log(f"Command health check: {hc.command}")
         return True, f"Command health check passed: {hc.command}"
 
-    def wait_for_healthy(self, host: str = "localhost", max_wait: int = 300) -> bool:
+    def wait_for_healthy(self, host: str = "localhost", max_wait: int = MAX_WAIT_HEALTHY) -> bool:
         """
         Wait for application to become healthy.
 
@@ -557,304 +614,80 @@ class DeploymentManager:
         self.current_plan = plan
         return plan
 
+    def _build_steps_from_definitions(
+        self,
+        step_definitions: List[tuple],
+        context: Optional[Dict[str, Any]] = None
+    ) -> List[DeploymentStep]:
+        """
+        Build DeploymentStep objects from step definition tuples.
+
+        Args:
+            step_definitions: List of tuples (name, desc_template, action, target_suffix, duration, rollback)
+            context: Optional dict with placeholder values (app, version, replicas, etc.)
+
+        Returns:
+            List of DeploymentStep objects
+        """
+        if context is None:
+            context = {}
+
+        # Build context from config
+        ctx = {
+            'app': self.config.app_name,
+            'version': self.config.version,
+            'replicas': self.config.replicas,
+            'percentage': self.config.canary_percentage,
+            'max_unavailable': self.config.rolling_max_unavailable,
+            'max_surge': self.config.rolling_max_surge,
+        }
+        ctx.update(context)
+
+        health_timeout = self.config.health_check.timeout if self.config.health_check else 30
+
+        steps = []
+        for order, (name, desc_template, action, target_suffix, duration, rollback) in enumerate(step_definitions, 1):
+            # Format description with context
+            description = desc_template.format(**ctx)
+
+            # Build target
+            target = f"{self.config.app_name}{target_suffix}"
+
+            # Calculate duration (handle special cases)
+            if duration == "health_check":
+                estimated_duration = health_timeout
+            elif duration == "rolling":
+                estimated_duration = self.config.replicas * DURATION_PER_REPLICA
+            else:
+                estimated_duration = duration
+
+            steps.append(DeploymentStep(
+                order=order,
+                name=name,
+                description=description,
+                action=action,
+                target=target,
+                estimated_duration=estimated_duration,
+                rollback_action=rollback
+            ))
+
+        return steps
+
     def _plan_blue_green(self) -> List[DeploymentStep]:
         """Generate blue-green deployment steps."""
-        steps = [
-            DeploymentStep(
-                order=1,
-                name="prepare_green_environment",
-                description=f"Prepare green environment with version {self.config.version}",
-                action="create_deployment",
-                target=f"{self.config.app_name}-green",
-                estimated_duration=60,
-                rollback_action="delete_deployment"
-            ),
-            DeploymentStep(
-                order=2,
-                name="deploy_green",
-                description=f"Deploy {self.config.app_name} v{self.config.version} to green",
-                action="apply_deployment",
-                target=f"{self.config.app_name}-green",
-                estimated_duration=120,
-                rollback_action="rollback_deployment"
-            ),
-            DeploymentStep(
-                order=3,
-                name="scale_green",
-                description=f"Scale green to {self.config.replicas} replicas",
-                action="scale",
-                target=f"{self.config.app_name}-green",
-                estimated_duration=60,
-                rollback_action="scale_down"
-            ),
-            DeploymentStep(
-                order=4,
-                name="health_check_green",
-                description="Verify green environment health",
-                action="health_check",
-                target=f"{self.config.app_name}-green",
-                estimated_duration=self.config.health_check.timeout if self.config.health_check else 30,
-                rollback_action="none"
-            ),
-            DeploymentStep(
-                order=5,
-                name="switch_traffic",
-                description="Switch traffic from blue to green",
-                action="update_service",
-                target=f"{self.config.app_name}-service",
-                estimated_duration=10,
-                rollback_action="switch_to_blue"
-            ),
-            DeploymentStep(
-                order=6,
-                name="verify_traffic",
-                description="Verify traffic is flowing to green",
-                action="verify_traffic",
-                target=f"{self.config.app_name}-green",
-                estimated_duration=30,
-                rollback_action="switch_to_blue"
-            ),
-            DeploymentStep(
-                order=7,
-                name="cleanup_blue",
-                description="Scale down blue environment (keep for rollback)",
-                action="scale_down",
-                target=f"{self.config.app_name}-blue",
-                estimated_duration=30,
-                rollback_action="scale_up_blue"
-            ),
-            DeploymentStep(
-                order=8,
-                name="finalize",
-                description="Rename green to blue, finalize deployment",
-                action="relabel",
-                target=f"{self.config.app_name}",
-                estimated_duration=10,
-                rollback_action="none"
-            )
-        ]
-        return steps
+        return self._build_steps_from_definitions(self.BLUE_GREEN_STEPS)
 
     def _plan_canary(self) -> List[DeploymentStep]:
         """Generate canary deployment steps."""
-        percentage = self.config.canary_percentage
-        steps = [
-            DeploymentStep(
-                order=1,
-                name="create_canary",
-                description=f"Create canary deployment with version {self.config.version}",
-                action="create_deployment",
-                target=f"{self.config.app_name}-canary",
-                estimated_duration=60,
-                rollback_action="delete_canary"
-            ),
-            DeploymentStep(
-                order=2,
-                name="deploy_canary",
-                description=f"Deploy {self.config.app_name} v{self.config.version} to canary",
-                action="apply_deployment",
-                target=f"{self.config.app_name}-canary",
-                estimated_duration=90,
-                rollback_action="rollback_deployment"
-            ),
-            DeploymentStep(
-                order=3,
-                name="health_check_canary",
-                description="Verify canary health",
-                action="health_check",
-                target=f"{self.config.app_name}-canary",
-                estimated_duration=self.config.health_check.timeout if self.config.health_check else 30,
-                rollback_action="none"
-            ),
-            DeploymentStep(
-                order=4,
-                name="route_traffic_canary",
-                description=f"Route {percentage}% traffic to canary",
-                action="update_traffic_split",
-                target=f"{self.config.app_name}-service",
-                estimated_duration=10,
-                rollback_action="remove_canary_traffic"
-            ),
-            DeploymentStep(
-                order=5,
-                name="monitor_canary",
-                description=f"Monitor canary metrics for {percentage}% traffic",
-                action="monitor",
-                target=f"{self.config.app_name}-canary",
-                estimated_duration=300,  # 5 minutes monitoring
-                rollback_action="remove_canary_traffic"
-            ),
-            DeploymentStep(
-                order=6,
-                name="promote_canary_50",
-                description="Promote canary to 50% traffic",
-                action="update_traffic_split",
-                target=f"{self.config.app_name}-service",
-                estimated_duration=10,
-                rollback_action="remove_canary_traffic"
-            ),
-            DeploymentStep(
-                order=7,
-                name="monitor_50",
-                description="Monitor 50% traffic split",
-                action="monitor",
-                target=f"{self.config.app_name}",
-                estimated_duration=300,
-                rollback_action="reduce_canary_traffic"
-            ),
-            DeploymentStep(
-                order=8,
-                name="full_rollout",
-                description="Route 100% traffic to new version",
-                action="update_traffic_split",
-                target=f"{self.config.app_name}-service",
-                estimated_duration=10,
-                rollback_action="restore_traffic"
-            ),
-            DeploymentStep(
-                order=9,
-                name="cleanup_old",
-                description="Remove old version deployment",
-                action="delete_deployment",
-                target=f"{self.config.app_name}-stable",
-                estimated_duration=30,
-                rollback_action="none"
-            ),
-            DeploymentStep(
-                order=10,
-                name="promote_canary",
-                description="Relabel canary as stable",
-                action="relabel",
-                target=f"{self.config.app_name}-canary",
-                estimated_duration=10,
-                rollback_action="none"
-            )
-        ]
-        return steps
+        return self._build_steps_from_definitions(self.CANARY_STEPS)
 
     def _plan_rolling(self) -> List[DeploymentStep]:
         """Generate rolling deployment steps."""
-        replicas = self.config.replicas
-        max_unavailable = self.config.rolling_max_unavailable
-        max_surge = self.config.rolling_max_surge
-
-        steps = [
-            DeploymentStep(
-                order=1,
-                name="update_deployment_spec",
-                description=f"Update deployment spec to version {self.config.version}",
-                action="update_deployment",
-                target=f"{self.config.app_name}",
-                estimated_duration=10,
-                rollback_action="restore_deployment_spec"
-            ),
-            DeploymentStep(
-                order=2,
-                name="configure_rolling_update",
-                description=f"Configure rolling update (maxUnavailable={max_unavailable}, maxSurge={max_surge})",
-                action="configure_strategy",
-                target=f"{self.config.app_name}",
-                estimated_duration=5,
-                rollback_action="none"
-            ),
-            DeploymentStep(
-                order=3,
-                name="apply_rolling_update",
-                description=f"Apply rolling update across {replicas} replicas",
-                action="apply_deployment",
-                target=f"{self.config.app_name}",
-                estimated_duration=replicas * 30,  # ~30s per replica
-                rollback_action="rollback_deployment"
-            ),
-            DeploymentStep(
-                order=4,
-                name="wait_for_pods",
-                description="Wait for all pods to be ready",
-                action="wait_ready",
-                target=f"{self.config.app_name}",
-                estimated_duration=60,
-                rollback_action="none"
-            ),
-            DeploymentStep(
-                order=5,
-                name="health_check",
-                description="Verify deployment health",
-                action="health_check",
-                target=f"{self.config.app_name}",
-                estimated_duration=self.config.health_check.timeout if self.config.health_check else 30,
-                rollback_action="rollback_deployment"
-            ),
-            DeploymentStep(
-                order=6,
-                name="cleanup_old_replicasets",
-                description="Clean up old ReplicaSets",
-                action="cleanup",
-                target=f"{self.config.app_name}",
-                estimated_duration=10,
-                rollback_action="none"
-            )
-        ]
-        return steps
+        return self._build_steps_from_definitions(self.ROLLING_STEPS)
 
     def _plan_recreate(self) -> List[DeploymentStep]:
         """Generate recreate deployment steps (stop all, then start all)."""
-        steps = [
-            DeploymentStep(
-                order=1,
-                name="scale_down_current",
-                description="Scale down current deployment to 0",
-                action="scale",
-                target=f"{self.config.app_name}",
-                estimated_duration=60,
-                rollback_action="scale_up"
-            ),
-            DeploymentStep(
-                order=2,
-                name="wait_termination",
-                description="Wait for all pods to terminate",
-                action="wait_termination",
-                target=f"{self.config.app_name}",
-                estimated_duration=60,
-                rollback_action="none"
-            ),
-            DeploymentStep(
-                order=3,
-                name="update_deployment",
-                description=f"Update deployment to version {self.config.version}",
-                action="update_deployment",
-                target=f"{self.config.app_name}",
-                estimated_duration=10,
-                rollback_action="restore_deployment"
-            ),
-            DeploymentStep(
-                order=4,
-                name="scale_up_new",
-                description=f"Scale up new deployment to {self.config.replicas} replicas",
-                action="scale",
-                target=f"{self.config.app_name}",
-                estimated_duration=90,
-                rollback_action="scale_down"
-            ),
-            DeploymentStep(
-                order=5,
-                name="wait_ready",
-                description="Wait for all pods to be ready",
-                action="wait_ready",
-                target=f"{self.config.app_name}",
-                estimated_duration=60,
-                rollback_action="none"
-            ),
-            DeploymentStep(
-                order=6,
-                name="health_check",
-                description="Verify deployment health",
-                action="health_check",
-                target=f"{self.config.app_name}",
-                estimated_duration=self.config.health_check.timeout if self.config.health_check else 30,
-                rollback_action="rollback"
-            )
-        ]
-        return steps
+        return self._build_steps_from_definitions(self.RECREATE_STEPS)
 
     def _generate_rollback_plan(self, steps: List[DeploymentStep]) -> List[DeploymentStep]:
         """Generate rollback plan from deployment steps."""
@@ -1034,7 +867,7 @@ class DeploymentManager:
                     description=f"Update deployment to version {to_version}",
                     action="update_deployment",
                     target=self.config.app_name,
-                    estimated_duration=30
+                    estimated_duration=DURATION_VERIFY
                 ),
                 DeploymentStep(
                     order=2,
@@ -1042,7 +875,7 @@ class DeploymentManager:
                     description="Wait for rollback to complete",
                     action="wait_ready",
                     target=self.config.app_name,
-                    estimated_duration=60
+                    estimated_duration=DURATION_STANDARD
                 ),
                 DeploymentStep(
                     order=3,
@@ -1050,7 +883,7 @@ class DeploymentManager:
                     description="Verify rollback health",
                     action="health_check",
                     target=self.config.app_name,
-                    estimated_duration=30
+                    estimated_duration=DURATION_VERIFY
                 )
             ]
 

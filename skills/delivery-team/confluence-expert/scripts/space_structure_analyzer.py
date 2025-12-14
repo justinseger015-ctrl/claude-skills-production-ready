@@ -13,7 +13,7 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(
@@ -25,12 +25,12 @@ logger = logging.getLogger(__name__)
 class SpaceStructureAnalyzer:
     """Analyzes Confluence space structure and documentation patterns"""
 
-    def __init__(self, space_path: str, verbose: bool = False):
-        self.space_path = Path(space_path)
-        self.verbose = verbose
+    def __init__(self, space_path: str, verbose: bool = False) -> None:
+        self.space_path: Path = Path(space_path)
+        self.verbose: bool = verbose
         if verbose:
             logging.getLogger().setLevel(logging.DEBUG)
-        self.results = {
+        self.results: Dict[str, Any] = {
             'analyzed_at': datetime.now().isoformat(),
             'space_path': str(space_path),
             'pages_count': 0,
@@ -40,7 +40,7 @@ class SpaceStructureAnalyzer:
         }
         logger.debug("SpaceStructureAnalyzer initialized")
 
-    def run(self) -> Dict:
+    def run(self) -> Dict[str, Any]:
         """Execute the space structure analysis"""
         logger.debug(f"Starting space structure analysis for: {self.space_path}")
         if self.verbose:
@@ -64,7 +64,7 @@ class SpaceStructureAnalyzer:
             print(f"❌ Error: {e}", file=sys.stderr)
             sys.exit(1)
 
-    def validate_path(self):
+    def validate_path(self) -> None:
         """Validate the space path exists"""
         if not self.space_path.exists():
             raise ValueError(f"Path does not exist: {self.space_path}")
@@ -75,20 +75,20 @@ class SpaceStructureAnalyzer:
         if self.verbose:
             print(f"✓ Path validated")
 
-    def analyze_structure(self):
+    def analyze_structure(self) -> None:
         """Analyze the documentation structure"""
         logger.debug("Analyzing documentation structure")
-        md_files = list(self.space_path.rglob('*.md'))
+        md_files: List[Path] = list(self.space_path.rglob('*.md'))
         self.results['pages_count'] = len(md_files)
 
         if len(md_files) == 0:
             logger.warning("No markdown files found in space path")
 
         # Check for standard documentation patterns
-        required_pages = ['README.md', 'OVERVIEW.md', 'INDEX.md']
-        found_pages = [f.name for f in md_files]
+        required_pages: List[str] = ['README.md', 'OVERVIEW.md', 'INDEX.md']
+        found_pages: List[str] = [f.name for f in md_files]
 
-        missing = [page for page in required_pages if page not in found_pages]
+        missing: List[str] = [page for page in required_pages if page not in found_pages]
         if missing:
             self.results['issues'].append({
                 'type': 'missing_core_pages',
@@ -97,7 +97,7 @@ class SpaceStructureAnalyzer:
             })
 
         # Check directory depth
-        max_depth = max([len(f.relative_to(self.space_path).parts) for f in md_files]) if md_files else 0
+        max_depth: int = max([len(f.relative_to(self.space_path).parts) for f in md_files]) if md_files else 0
         if max_depth > 4:
             self.results['issues'].append({
                 'type': 'excessive_nesting',
@@ -108,10 +108,10 @@ class SpaceStructureAnalyzer:
         if self.verbose:
             print(f"✓ Found {len(md_files)} documentation pages")
 
-    def check_best_practices(self):
+    def check_best_practices(self) -> None:
         """Check against Confluence best practices"""
         # Check for navigation structure
-        has_index = any(f.name.lower() in ['index.md', 'toc.md', 'contents.md']
+        has_index: bool = any(f.name.lower() in ['index.md', 'toc.md', 'contents.md']
                        for f in self.space_path.rglob('*.md'))
 
         if not has_index:
@@ -122,20 +122,20 @@ class SpaceStructureAnalyzer:
             })
 
         # Check for templates directory
-        has_templates = (self.space_path / 'templates').exists()
+        has_templates: bool = (self.space_path / 'templates').exists()
         if not has_templates:
             self.results['recommendations'].append(
                 "Create a templates/ directory for reusable page templates"
             )
 
         # Check for assets organization
-        has_assets = (self.space_path / 'assets').exists()
+        has_assets: bool = (self.space_path / 'assets').exists()
         if not has_assets:
             self.results['recommendations'].append(
                 "Create an assets/ directory for images and attachments"
             )
 
-    def generate_recommendations(self):
+    def generate_recommendations(self) -> None:
         """Generate improvement recommendations"""
         if self.results['pages_count'] == 0:
             self.results['recommendations'].append(
@@ -154,9 +154,9 @@ class SpaceStructureAnalyzer:
             "Add breadcrumb navigation for deep page trees"
         ])
 
-    def calculate_score(self):
+    def calculate_score(self) -> None:
         """Calculate overall structure health score"""
-        score = 100
+        score: int = 100
 
         # Deduct for issues
         for issue in self.results['issues']:
@@ -175,7 +175,7 @@ class SpaceStructureAnalyzer:
 
         self.results['structure_score'] = max(0, min(100, score))
 
-    def print_report(self):
+    def print_report(self) -> None:
         """Print human-readable report"""
         print("\n" + "="*60)
         print("CONFLUENCE SPACE STRUCTURE ANALYSIS")
@@ -198,8 +198,8 @@ class SpaceStructureAnalyzer:
 
         print("\n" + "="*60)
 
-def main():
-    parser = argparse.ArgumentParser(
+def main() -> None:
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(
         description="Analyze Confluence space documentation structure and best practices",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
@@ -240,13 +240,13 @@ Examples:
         version='%(prog)s 1.0.0'
     )
 
-    args = parser.parse_args()
+    args: argparse.Namespace = parser.parse_args()
 
-    analyzer = SpaceStructureAnalyzer(args.space_path, verbose=args.verbose)
-    results = analyzer.run()
+    analyzer: SpaceStructureAnalyzer = SpaceStructureAnalyzer(args.space_path, verbose=args.verbose)
+    results: Dict[str, Any] = analyzer.run()
 
     if args.json:
-        output = json.dumps(results, indent=2)
+        output: str = json.dumps(results, indent=2)
         if args.output:
             Path(args.output).write_text(output)
             print(f"✅ Results written to {args.output}")

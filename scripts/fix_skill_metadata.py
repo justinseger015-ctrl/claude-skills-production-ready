@@ -13,36 +13,38 @@ import os
 import re
 from pathlib import Path
 from datetime import datetime
+from typing import Dict, List, Optional, Tuple, Any
 
-def find_skill_files(base_dir):
+
+def find_skill_files(base_dir: Path) -> List[Path]:
     """Find all SKILL.md files in the skills directory."""
     skills_dir = Path(base_dir) / "skills"
     return list(skills_dir.glob("*/*/SKILL.md"))
 
-def extract_frontmatter(content):
+def extract_frontmatter(content: str) -> Tuple[Optional[str], str]:
     """Extract YAML frontmatter from markdown content."""
-    pattern = r'^---\n(.*?)\n---\n(.*)$'
-    match = re.match(pattern, content, re.DOTALL)
+    pattern: str = r'^---\n(.*?)\n---\n(.*)$'
+    match: Optional[re.Match[str]] = re.match(pattern, content, re.DOTALL)
     if match:
         return match.group(1), match.group(2)
     return None, content
 
-def parse_yaml_flexible(yaml_text):
+def parse_yaml_flexible(yaml_text: str) -> Dict[str, Any]:
     """
     Parse YAML flexibly, handling both flat and nested structures.
     Returns a normalized dictionary.
     """
-    data = {
+    data: Dict[str, Any] = {
         'name': None,
         'description': None,
         'license': 'MIT',
         'metadata': {}
     }
 
-    lines = yaml_text.split('\n')
-    current_key = None
-    in_list = False
-    current_list = []
+    lines: List[str] = yaml_text.split('\n')
+    current_key: Optional[str] = None
+    in_list: bool = False
+    current_list: List[str] = []
 
     for line in lines:
         stripped = line.strip()
@@ -101,26 +103,28 @@ def parse_yaml_flexible(yaml_text):
 
     return data
 
-def get_python_tools(skill_dir):
+def get_python_tools(skill_dir: Path) -> List[str]:
     """Get list of Python tools in scripts/ directory."""
-    scripts_dir = skill_dir / "scripts"
+    scripts_dir: Path = skill_dir / "scripts"
     if not scripts_dir.exists():
         return []
 
-    py_files = sorted([f.name for f in scripts_dir.glob("*.py")])
+    py_files: List[str] = sorted([f.name for f in scripts_dir.glob("*.py")])
     return py_files
 
-def get_domain_from_path(skill_path):
+
+def get_domain_from_path(skill_path: Path) -> str:
     """Extract domain from skill path."""
     # Path format: skills/domain-team/skill-name/SKILL.md
-    parts = skill_path.parts
-    domain_team = parts[-3]  # e.g., 'marketing-team'
-    domain = domain_team.replace('-team', '')
+    parts: Tuple[str, ...] = skill_path.parts
+    domain_team: str = parts[-3]  # e.g., 'marketing-team'
+    domain: str = domain_team.replace('-team', '')
     return domain
 
-def get_category_from_domain(domain):
+
+def get_category_from_domain(domain: str) -> str:
     """Map domain to category."""
-    category_map = {
+    category_map: Dict[str, str] = {
         'marketing': 'Marketing',
         'product': 'Product Management',
         'engineering': 'Engineering',
@@ -128,45 +132,46 @@ def get_category_from_domain(domain):
     }
     return category_map.get(domain, domain.title())
 
-def get_default_keywords(skill_name, domain, existing_keywords=None):
+
+def get_default_keywords(skill_name: str, domain: str, existing_keywords: Optional[List[str]] = None) -> List[str]:
     """Generate default keywords based on skill name and domain."""
     if existing_keywords:
         # Keep existing if they look reasonable
         if len(existing_keywords) >= 3:
             return existing_keywords[:10]  # Limit to 10
 
-    keywords = [domain]
+    keywords: List[str] = [domain]
 
     # Add skill-specific keywords based on name
-    name_parts = skill_name.replace('-', ' ').split()
+    name_parts: List[str] = skill_name.replace('-', ' ').split()
     keywords.extend([part for part in name_parts if len(part) > 3])
 
     return keywords[:5]  # Limit to 5 keywords
 
-def build_metadata_section(skill_path, existing_data):
+def build_metadata_section(skill_path: Path, existing_data: Dict[str, Any]) -> Dict[str, Any]:
     """Build the standardized metadata section."""
-    skill_dir = skill_path.parent
-    domain = get_domain_from_path(skill_path)
-    category = get_category_from_domain(domain)
-    skill_name = skill_dir.name
-    python_tools = get_python_tools(skill_dir)
+    skill_dir: Path = skill_path.parent
+    domain: str = get_domain_from_path(skill_path)
+    category: str = get_category_from_domain(domain)
+    skill_name: str = skill_dir.name
+    python_tools: List[str] = get_python_tools(skill_dir)
 
     # Use existing metadata or defaults
-    existing_meta = existing_data.get('metadata', {})
+    existing_meta: Dict[str, Any] = existing_data.get('metadata', {})
 
     # Handle keywords - could be list or string
-    existing_keywords = existing_meta.get('keywords', [])
+    existing_keywords: Any = existing_meta.get('keywords', [])
     if isinstance(existing_keywords, str):
         existing_keywords = [k.strip() for k in existing_keywords.strip('[]').split(',')]
 
-    keywords = get_default_keywords(skill_name, domain, existing_keywords)
+    keywords: List[str] = get_default_keywords(skill_name, domain, existing_keywords)
 
     # Handle tech-stack
-    tech_stack = existing_meta.get('tech-stack', ['Python 3.8+', 'Markdown'])
+    tech_stack: Any = existing_meta.get('tech-stack', ['Python 3.8+', 'Markdown'])
     if isinstance(tech_stack, str):
         tech_stack = [tech_stack]
 
-    metadata = {
+    metadata: Dict[str, Any] = {
         'version': existing_meta.get('version', '1.0.0'),
         'author': existing_meta.get('author', 'Claude Skills Team'),
         'category': existing_meta.get('category', category),
@@ -179,17 +184,18 @@ def build_metadata_section(skill_path, existing_data):
 
     return metadata
 
-def format_yaml_list(items, indent=2):
+def format_yaml_list(items: List[str], indent: int = 2) -> str:
     """Format a list for YAML output."""
     if not items:
         return ' []'
 
-    spaces = ' ' * indent
+    spaces: str = ' ' * indent
     return '\n' + '\n'.join(f'{spaces}- {item}' for item in items)
 
-def build_updated_frontmatter(existing_data, metadata):
+
+def build_updated_frontmatter(existing_data: Dict[str, Any], metadata: Dict[str, Any]) -> str:
     """Build updated YAML frontmatter with standardized metadata section."""
-    lines = []
+    lines: List[str] = []
     lines.append('---')
     lines.append(f'name: {existing_data.get("name", "unknown")}')
     lines.append(f'description: {existing_data.get("description", "")}')
@@ -207,15 +213,17 @@ def build_updated_frontmatter(existing_data, metadata):
 
     return '\n'.join(lines)
 
-def update_skill_file(skill_path, force=False):
+def update_skill_file(skill_path: Path, force: bool = False) -> bool:
     """Update a single SKILL.md file with metadata section."""
     print(f"\nProcessing: {skill_path.relative_to(skill_path.parents[3])}")
 
     # Read current content
     with open(skill_path, 'r', encoding='utf-8') as f:
-        content = f.read()
+        content: str = f.read()
 
     # Extract frontmatter
+    frontmatter: Optional[str]
+    body: str
     frontmatter, body = extract_frontmatter(content)
 
     if not frontmatter:
@@ -223,7 +231,7 @@ def update_skill_file(skill_path, force=False):
         return False
 
     # Parse existing frontmatter
-    existing_data = parse_yaml_flexible(frontmatter)
+    existing_data: Dict[str, Any] = parse_yaml_flexible(frontmatter)
 
     # Check if already has python-tools field (standardized format)
     if not force and 'python-tools' in existing_data.get('metadata', {}):
@@ -231,27 +239,27 @@ def update_skill_file(skill_path, force=False):
         return False
 
     # Build metadata section
-    metadata = build_metadata_section(skill_path, existing_data)
+    metadata: Dict[str, Any] = build_metadata_section(skill_path, existing_data)
 
     # Build updated frontmatter
-    new_frontmatter = build_updated_frontmatter(existing_data, metadata)
+    new_frontmatter: str = build_updated_frontmatter(existing_data, metadata)
 
     # Combine with body
-    new_content = new_frontmatter + '\n\n' + body
+    new_content: str = new_frontmatter + '\n\n' + body
 
     # Write updated content
     with open(skill_path, 'w', encoding='utf-8') as f:
         f.write(new_content)
 
-    tools_count = len(metadata['python-tools'])
+    tools_count: int = len(metadata['python-tools'])
     print(f"  ✅ Updated ({tools_count} Python tools)")
     return True
 
-def main():
+def main() -> None:
     """Main execution."""
     # Get base directory (script is in scripts/, need parent)
-    script_dir = Path(__file__).parent
-    base_dir = script_dir.parent
+    script_dir: Path = Path(__file__).parent
+    base_dir: Path = script_dir.parent
 
     print("=" * 60)
     print("SKILL.md Metadata Fixer")
@@ -260,12 +268,12 @@ def main():
     print(f"Today's date: {datetime.now().strftime('%Y-%m-%d')}")
 
     # Find all SKILL.md files
-    skill_files = find_skill_files(base_dir)
+    skill_files: List[Path] = find_skill_files(base_dir)
     print(f"\nFound {len(skill_files)} SKILL.md files")
 
     # Update each file
-    updated_count = 0
-    skipped_count = 0
+    updated_count: int = 0
+    skipped_count: int = 0
 
     for skill_path in sorted(skill_files):
         if update_skill_file(skill_path):

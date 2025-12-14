@@ -33,6 +33,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Output formatting constants
+OUTPUT_WIDTH = 80  # Standard terminal width for separators
+
 
 class AuditCategory(Enum):
     """Security audit categories"""
@@ -649,9 +652,9 @@ class OutputFormatter:
     def format_text(results: Dict, verbose: bool = False) -> str:
         """Format results as human-readable text"""
         output = []
-        output.append("=" * 80)
+        output.append("=" * OUTPUT_WIDTH)
         output.append("SECURITY AUDIT REPORT")
-        output.append("=" * 80)
+        output.append("=" * OUTPUT_WIDTH)
         output.append(f"Timestamp: {results['timestamp']}")
         output.append(f"Target: {results['target']}")
         output.append(f"Files Audited: {results['audit_stats']['files_audited']}")
@@ -660,7 +663,7 @@ class OutputFormatter:
 
         summary = results['summary']
         output.append("SUMMARY")
-        output.append("-" * 80)
+        output.append("-" * OUTPUT_WIDTH)
         output.append(f"Security Score: {summary['audit_score']}/100")
         output.append(f"Total Findings: {summary['total_findings']}")
         output.append(f"  Critical: {summary['critical']}")
@@ -670,7 +673,7 @@ class OutputFormatter:
         output.append("")
 
         output.append("BY CATEGORY")
-        output.append("-" * 80)
+        output.append("-" * OUTPUT_WIDTH)
         for cat, count in results['by_category'].items():
             if count > 0:
                 output.append(f"  {cat}: {count}")
@@ -678,7 +681,7 @@ class OutputFormatter:
 
         if results['findings']:
             output.append("FINDINGS")
-            output.append("-" * 80)
+            output.append("-" * OUTPUT_WIDTH)
             for finding in results['findings'][:50]:
                 output.append(f"[{finding['severity']}] {finding['check_id']}: {finding['name']}")
                 output.append(f"  File: {finding['file']}:{finding['line']}")
@@ -686,11 +689,11 @@ class OutputFormatter:
                 output.append("")
 
         output.append("RECOMMENDATIONS")
-        output.append("-" * 80)
+        output.append("-" * OUTPUT_WIDTH)
         for i, rec in enumerate(results['recommendations'], 1):
             output.append(f"{i}. {rec}")
 
-        output.append("=" * 80)
+        output.append("=" * OUTPUT_WIDTH)
         return "\n".join(output)
 
     @staticmethod

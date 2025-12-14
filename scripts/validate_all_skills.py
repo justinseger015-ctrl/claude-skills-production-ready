@@ -8,15 +8,18 @@ Tests skill_builder.py validation against all existing skills
 import subprocess
 from pathlib import Path
 import sys
+from typing import Dict, List, Set, Any
 
-def main():
-    repo_root = Path(__file__).parent.parent
-    skills_dir = repo_root / "skills"
+
+def main() -> None:
+    """Main entry point for batch skill validation."""
+    repo_root: Path = Path(__file__).parent.parent
+    skills_dir: Path = repo_root / "skills"
 
     # Directories to exclude from validation (not actual skills)
-    EXCLUDED_DIRS = {'packaged-skills'}
+    EXCLUDED_DIRS: Set[str] = {'packaged-skills'}
 
-    all_skills = []
+    all_skills: List[Path] = []
     for team_dir in skills_dir.iterdir():
         if not team_dir.is_dir() or team_dir.name.startswith('.'):
             continue
@@ -29,14 +32,14 @@ def main():
     print("=" * 70)
     print()
 
-    passed = 0
-    failed = 0
-    results = []
+    passed: int = 0
+    failed: int = 0
+    results: List[Dict[str, Any]] = []
 
     for skill_path in sorted(all_skills):
-        skill_name = f"{skill_path.parent.name}/{skill_path.name}"
+        skill_name: str = f"{skill_path.parent.name}/{skill_path.name}"
 
-        result = subprocess.run(
+        result: subprocess.CompletedProcess[str] = subprocess.run(
             ['python3', 'scripts/skill_builder.py', '--validate', str(skill_path)],
             cwd=repo_root,
             capture_output=True,
@@ -45,14 +48,14 @@ def main():
 
         if result.returncode == 0:
             passed += 1
-            status = "✅ PASS"
+            status: str = "✅ PASS"
         else:
             failed += 1
             status = "❌ FAIL"
 
         # Extract checks passed/total
-        checks_line = [line for line in result.stdout.split('\n') if 'checks passed' in line]
-        checks_info = checks_line[0].split(':')[1].strip() if checks_line else "unknown"
+        checks_line: List[str] = [line for line in result.stdout.split('\n') if 'checks passed' in line]
+        checks_info: str = checks_line[0].split(':')[1].strip() if checks_line else "unknown"
 
         results.append({
             'name': skill_name,

@@ -91,6 +91,11 @@ EXIT_FILE_ERROR = 2
 EXIT_CONFIG_ERROR = 3
 EXIT_UNKNOWN_ERROR = 99
 
+# Validation limits
+MAX_DESCRIPTION_LENGTH = 300       # Maximum description length in YAML
+MAX_TITLE_LENGTH = 100             # Maximum title length
+MIN_DOC_LENGTH = 500               # Minimum documentation length
+
 
 # ============================================================================
 # SECTION 2: YAML PARSING UTILITIES
@@ -371,8 +376,137 @@ This directory contains skills for the {team_name.replace('-team', '')} domain.
 class SkillValidator:
     """Validation logic for skill packages"""
 
+    # Valid values for validation
+    VALID_DIFFICULTY = ['beginner', 'intermediate', 'advanced']
+
+    # Cleanup patterns for artifact detection
+    CLEANUP_PATTERNS = {
+        'backup': ['*.backup', '*.bak', '*.old', '*~'],
+        'pycache': ['__pycache__'],
+        'pyc': ['*.pyc'],
+        'summary': ['*_SUMMARY.md', '*_NOTES.md', '*_INTERNAL.md'],
+        'temp': ['*.tmp', '*.temp', '.DS_Store', 'Thumbs.db'],
+    }
+
     def __init__(self, repo_root: Path):
         self.repo_root = repo_root
+
+    # -------------------------------------------------------------------------
+    # Validation Helper Methods (extracted for reduced complexity)
+    # -------------------------------------------------------------------------
+
+    def _validate_string_field(self, metadata: Dict, field: str, max_len: int,
+                                pattern: Optional[str] = None, pattern_desc: str = "") -> Optional[str]:
+        """Validate optional string field. Returns error message or None."""
+        if field not in metadata:
+            return None
+
+        value = metadata[field]
+        if max_len > 0 and len(value) > max_len:
+            return f"{field.title()} too long: {len(value)} chars (max: {max_len})"
+
+        if pattern and not re.match(pattern, value):
+            return f"Invalid {field} format: {value} ({pattern_desc})"
+
+        return None
+
+    def _validate_enum_field(self, metadata: Dict, field: str, valid_values: List[str]) -> Optional[str]:
+        """Validate optional enum field. Returns error message or None."""
+        if field not in metadata:
+            return None
+
+        value = metadata[field]
+        if value not in valid_values:
+            return f"Invalid {field}: {value} (must be: {', '.join(valid_values)})"
+
+        return None
+
+    def _validate_list_field(self, metadata: Dict, field: str) -> Optional[str]:
+        """Validate optional list field. Returns error message or None."""
+        if field not in metadata:
+            return None
+
+        if not isinstance(metadata[field], list):
+            return f"{field} must be a list"
+
+        return None
+
+    def _validate_flat_metadata(self, metadata: Dict) -> Tuple[bool, str]:
+        """Validate flat (website-ready) metadata format. Returns (valid, message)."""
+        # Phase 1: Core Identity + Versioning
+        error = self._validate_string_field(metadata, 'title', 100)
+        if error:
+            return False, error
+
+        error = self._validate_string_field(metadata, 'subdomain', 0,
+                                            r'^[a-z][a-z0-9-]*$', "must be kebab-case")
+        if error:
+            return False, error
+
+        error = self._validate_string_field(metadata, 'version', 0,
+                                            r'^v?\d+\.\d+\.\d+$', "must be vX.Y.Z or X.Y.Z")
+        if error:
+            return False, error
+
+        # Phase 2: Website Display + Discoverability
+        error = self._validate_enum_field(metadata, 'difficulty', self.VALID_DIFFICULTY)
+        if error:
+            return False, error
+
+        for list_field in ['use-cases', 'tags', 'related-agents', 'related-skills', 'related-commands']:
+            error = self._validate_list_field(metadata, list_field)
+            if error:
+                return False, error
+
+        # Phase 3: Dependencies
+        if 'dependencies' in metadata:
+            if isinstance(metadata['dependencies'], dict):
+                if 'scripts' in metadata['dependencies']:
+                    if not isinstance(metadata['dependencies']['scripts'], list):
+                        return False, "dependencies.scripts must be a list"
+
+        # Phase 4: Examples + Analytics
+        if 'examples' in metadata and metadata['examples'] is not None:
+            if not isinstance(metadata['examples'], (list, dict)):
+                return False, "examples must be a list or dict"
+
+        if 'stats' in metadata and metadata['stats'] is not None:
+            if not isinstance(metadata['stats'], dict):
+                return False, "stats must be a dictionary"
+
+        return True, "Valid metadata (flat format)"
+
+    def _validate_nested_metadata(self, metadata: Dict) -> Tuple[bool, str]:
+        """Validate nested (legacy) metadata format. Returns (valid, message)."""
+        meta_required = ['version', 'updated', 'keywords']
+        meta_missing = []
+        for field in meta_required:
+            if field not in metadata['metadata']:
+                meta_missing.append(field)
+
+        if meta_missing:
+            return False, f"Missing metadata fields: {', '.join(meta_missing)}"
+
+        return True, "Valid metadata (nested format)"
+
+    def _find_artifacts(self, skill_path: Path) -> List[str]:
+        """Find cleanup artifacts in skill directory. Returns list of artifact names."""
+        artifacts = []
+
+        for category, patterns in self.CLEANUP_PATTERNS.items():
+            for pattern in patterns:
+                found = list(skill_path.rglob(pattern))
+                if found:
+                    if category == 'pycache':
+                        artifacts.extend(['__pycache__/' for _ in found[:3]])
+                    else:
+                        artifacts.extend([f.name for f in found[:3]])
+
+        return artifacts
+
+    # -------------------------------------------------------------------------
+    # Public Validation Methods
+    # -------------------------------------------------------------------------
 
     def validate_name(self, name: str) -> Tuple[bool, str]:
         """Validate skill name format (kebab-case, no cs- prefix)"""
@@ -529,11 +663,7 @@ class SkillValidator:
 
         # Required fields (core identity)
         required = ['name', 'description']
-        missing = []
-        for field in required:
-            if field not in metadata:
-                missing.append(field)
-
+        missing = [f for f in required if f not in metadata]
         if missing:
             return False, f"Missing YAML fields: {', '.join(missing)}"
 
@@ -547,82 +677,12 @@ class SkillValidator:
         has_nested_metadata = isinstance(metadata.get('metadata'), dict)
 
         if has_flat_versioning:
-            # New flat structure validation (website-ready format)
-            # Phase 1: Core Identity + Versioning
-            if 'title' in metadata:
-                if len(metadata['title']) > 100:
-                    return False, f"Title too long: {len(metadata['title'])} chars (max: 100)"
+            return self._validate_flat_metadata(metadata)
 
-            if 'subdomain' in metadata:
-                if not re.match(r'^[a-z][a-z0-9-]*$', metadata['subdomain']):
-                    return False, f"Invalid subdomain format: {metadata['subdomain']} (must be kebab-case)"
+        if has_nested_metadata:
+            return self._validate_nested_metadata(metadata)
 
-            if 'version' in metadata:
-                if not re.match(r'^v?\d+\.\d+\.\d+$', metadata['version']):
-                    return False, f"Invalid version format: {metadata['version']} (must be vX.Y.Z or X.Y.Z)"
-
-            # Phase 2: Website Display + Discoverability
-            if 'difficulty' in metadata:
-                valid_difficulty = ['beginner', 'intermediate', 'advanced']
-                if metadata['difficulty'] not in valid_difficulty:
-                    return False, f"Invalid difficulty: {metadata['difficulty']} (must be: {', '.join(valid_difficulty)})"
-
-            if 'use-cases' in metadata:
-                if not isinstance(metadata['use-cases'], list):
-                    return False, "use-cases must be a list"
-
-            if 'tags' in metadata:
-                if not isinstance(metadata['tags'], list):
-                    return False, "tags must be a list"
-
-            # Phase 3: Relationships + Technical
-            if 'related-agents' in metadata:
-                if not isinstance(metadata['related-agents'], list):
-                    return False, "related-agents must be a list"
-
-            if 'related-skills' in metadata:
-                if not isinstance(metadata['related-skills'], list):
-                    return False, "related-skills must be a list"
-
-            if 'related-commands' in metadata:
-                if not isinstance(metadata['related-commands'], list):
-                    return False, "related-commands must be a list"
-
-            if 'dependencies' in metadata:
-                if isinstance(metadata['dependencies'], dict):
-                    if 'scripts' in metadata['dependencies']:
-                        if not isinstance(metadata['dependencies']['scripts'], list):
-                            return False, "dependencies.scripts must be a list"
-
-            # Phase 4: Examples + Analytics
-            # Note: examples may be list of dicts (PyYAML) or dict (simple parser fallback)
-            if 'examples' in metadata and metadata['examples'] is not None:
-                # Accept both list (proper YAML parsing) and dict (simple parser fallback)
-                if not isinstance(metadata['examples'], (list, dict)):
-                    return False, "examples must be a list or dict"
-
-            # Note: stats may be dict or None
-            if 'stats' in metadata and metadata['stats'] is not None:
-                if not isinstance(metadata['stats'], dict):
-                    return False, "stats must be a dictionary"
-
-            return True, "Valid metadata (flat format)"
-
-        elif has_nested_metadata:
-            # Legacy nested metadata format (backward compatible)
-            meta_required = ['version', 'updated', 'keywords']
-            meta_missing = []
-            for field in meta_required:
-                if field not in metadata['metadata']:
-                    meta_missing.append(field)
-
-            if meta_missing:
-                return False, f"Missing metadata fields: {', '.join(meta_missing)}"
-
-            return True, "Valid metadata (nested format)"
-
-        else:
-            return False, "Missing versioning fields (version, updated) or nested metadata block"
+        return False, "Missing versioning fields (version, updated) or nested metadata block"
 
     def validate_documentation_quality(self, skill_path: Path) -> Tuple[bool, str]:
         """Validate documentation quality"""
@@ -687,38 +747,7 @@ class SkillValidator:
         if not skill_path.exists():
             return False, f"Skill directory not found: {skill_path}"
 
-        artifacts = []
-
-        # Check for backup files
-        backup_patterns = ['*.backup', '*.bak', '*.old', '*~']
-        for pattern in backup_patterns:
-            found = list(skill_path.rglob(pattern))
-            if found:
-                artifacts.extend([f.name for f in found[:3]])  # Show first 3
-
-        # Check for __pycache__ directories
-        pycache_dirs = list(skill_path.rglob('__pycache__'))
-        if pycache_dirs:
-            artifacts.extend(['__pycache__/' for _ in pycache_dirs[:3]])
-
-        # Check for .pyc files
-        pyc_files = list(skill_path.rglob('*.pyc'))
-        if pyc_files:
-            artifacts.extend([f.name for f in pyc_files[:3]])
-
-        # Check for internal summary/notes documents
-        summary_patterns = ['*_SUMMARY.md', '*_NOTES.md', '*_INTERNAL.md']
-        for pattern in summary_patterns:
-            found = list(skill_path.rglob(pattern))
-            if found:
-                artifacts.extend([f.name for f in found[:3]])
-
-        # Check for temporary files
-        temp_patterns = ['*.tmp', '*.temp', '.DS_Store', 'Thumbs.db']
-        for pattern in temp_patterns:
-            found = list(skill_path.rglob(pattern))
-            if found:
-                artifacts.extend([f.name for f in found[:3]])
+        artifacts = self._find_artifacts(skill_path)
 
         if artifacts:
             return False, f"Found artifacts: {', '.join(artifacts[:5])}"
@@ -1500,7 +1529,7 @@ class SkillBuilder:
         print("-" * 50)
         print("Enter skill description (used in YAML frontmatter):")
         print("This appears in search and skill browsing.")
-        print("Keep under 300 characters.")
+        print(f"Keep under {MAX_DESCRIPTION_LENGTH} characters.")
         print()
 
         while True:
@@ -1511,8 +1540,8 @@ class SkillBuilder:
                 print()
                 continue
 
-            if len(description) > 300:
-                print(f"❌ Description too long ({len(description)} chars, max 300)")
+            if len(description) > MAX_DESCRIPTION_LENGTH:
+                print(f"❌ Description too long ({len(description)} chars, max {MAX_DESCRIPTION_LENGTH})")
                 print()
                 continue
 
@@ -1561,6 +1590,46 @@ class SkillBuilder:
         print()
         return tech_stack
 
+    def _prompt_integer(self, prompt: str, min_val: int = 0) -> int:
+        """Prompt for an integer with validation. Returns validated integer."""
+        while True:
+            try:
+                value = int(input(prompt).strip())
+                if value < min_val:
+                    print(f"❌ Must be at least {min_val}")
+                    print()
+                    continue
+                return value
+            except ValueError:
+                print("❌ Please enter a number")
+                print()
+
+    def _prompt_file_list(self, count: int, item_label: str, extension: str,
+                          pattern: str, error_msg: str, example: str) -> List[str]:
+        """Prompt for a list of file names with validation. Returns list of validated names."""
+        print()
+        print(f"Enter {item_label} names (one per line):")
+        print(f"Example: {example}")
+
+        items = []
+        for i in range(count):
+            while True:
+                item = input(f"{item_label.title()} {i+1}: ").strip()
+
+                # Auto-add extension if missing
+                if not item.endswith(extension):
+                    item = f"{item}{extension}"
+
+                # Validate format
+                if not re.match(pattern, item):
+                    print(f"❌ {error_msg}")
+                    continue
+
+                items.append(item)
+                break
+
+        return items
+
     def _prompt_python_tools(self) -> List[str]:
         """Prompt for Python tools"""
         print("Step 6/8: Python Tools")
@@ -1583,37 +1652,16 @@ class SkillBuilder:
         print("Minimum: 1, Recommended: 2-4")
         print()
 
-        while True:
-            try:
-                count = int(input("Count: ").strip())
-                if count < 1:
-                    print("❌ Must have at least 1 tool")
-                    print()
-                    continue
-                break
-            except ValueError:
-                print("❌ Please enter a number")
-                print()
+        count = self._prompt_integer("Count: ", min_val=1)
 
-        print()
-        print("Enter tool names (one per line):")
-        print("Example: data_analyzer.py")
-        tools = []
-        for i in range(count):
-            while True:
-                tool = input(f"Tool {i+1}: ").strip()
-
-                # Auto-add .py extension if missing
-                if not tool.endswith('.py'):
-                    tool = f"{tool}.py"
-
-                # Validate format
-                if not re.match(r'^[a-z][a-z0-9_]+\.py$', tool):
-                    print("❌ Tool name must be lowercase snake_case.py")
-                    continue
-
-                tools.append(tool)
-                break
+        tools = self._prompt_file_list(
+            count=count,
+            item_label="tool",
+            extension=".py",
+            pattern=r'^[a-z][a-z0-9_]+\.py$',
+            error_msg="Tool name must be lowercase snake_case.py",
+            example="data_analyzer.py"
+        )
 
         print()
         print(f"✓ {len(tools)} tools configured")
@@ -1628,42 +1676,21 @@ class SkillBuilder:
         print("Minimum: 0, Recommended: 2-3")
         print()
 
-        while True:
-            try:
-                count = int(input("Count: ").strip())
-                if count < 0:
-                    print("❌ Cannot be negative")
-                    print()
-                    continue
-                break
-            except ValueError:
-                print("❌ Please enter a number")
-                print()
+        count = self._prompt_integer("Count: ", min_val=0)
 
         if count == 0:
             print("✓ No reference guides")
             print()
             return []
 
-        print()
-        print("Enter guide names (one per line):")
-        print("Example: analysis_frameworks.md")
-        guides = []
-        for i in range(count):
-            while True:
-                guide = input(f"Guide {i+1}: ").strip()
-
-                # Auto-add .md extension if missing
-                if not guide.endswith('.md'):
-                    guide = f"{guide}.md"
-
-                # Validate format
-                if not re.match(r'^[a-z][a-z0-9_-]+\.md$', guide):
-                    print("❌ Guide name must be lowercase with underscores/hyphens.md")
-                    continue
-
-                guides.append(guide)
-                break
+        guides = self._prompt_file_list(
+            count=count,
+            item_label="guide",
+            extension=".md",
+            pattern=r'^[a-z][a-z0-9_-]+\.md$',
+            error_msg="Guide name must be lowercase with underscores/hyphens.md",
+            example="analysis_frameworks.md"
+        )
 
         print()
         print(f"✓ {len(guides)} reference guides configured")

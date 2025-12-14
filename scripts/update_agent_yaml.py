@@ -22,6 +22,9 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import argparse
 
+# Output formatting constants
+OUTPUT_WIDTH = 80  # Standard terminal width for separators
+
 
 class AgentYAMLUpdater:
     """Intelligent YAML updater for Claude Skills agents"""
@@ -368,7 +371,7 @@ class AgentYAMLUpdater:
 
         if single_agent:
             print(f"\n🎯 Updating single agent: {single_agent.name}\n")
-            print("=" * 80)
+            print("=" * OUTPUT_WIDTH)
             self.stats['total'] = 1
             print(f"\n📄 {single_agent.name}")
             self.update_agent_file(single_agent)
@@ -383,7 +386,7 @@ class AgentYAMLUpdater:
             self.stats['total'] = len(agent_files)
 
             print(f"\n🚀 Agent YAML Updater")
-            print("=" * 80)
+            print("=" * OUTPUT_WIDTH)
             print(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE UPDATE'}")
             print(f"Found {len(agent_files)} agent files\n")
 
@@ -397,9 +400,9 @@ class AgentYAMLUpdater:
 
     def print_summary(self):
         """Print update summary"""
-        print("\n" + "=" * 80)
+        print("\n" + "=" * OUTPUT_WIDTH)
         print("📊 Update Summary")
-        print("=" * 80)
+        print("=" * OUTPUT_WIDTH)
 
         print(f"\nTotal agents: {self.stats['total']}")
         print(f"  ✅ Updated: {self.stats['updated']}")

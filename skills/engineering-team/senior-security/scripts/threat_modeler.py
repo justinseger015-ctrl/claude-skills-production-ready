@@ -32,6 +32,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Output formatting constants
+OUTPUT_WIDTH = 80  # Standard terminal width for separators
+
 
 class ThreatCategory(Enum):
     """STRIDE threat categories"""
@@ -629,9 +632,9 @@ class OutputFormatter:
     def format_text(results: Dict, verbose: bool = False) -> str:
         """Format results as human-readable text"""
         output = []
-        output.append("=" * 80)
+        output.append("=" * OUTPUT_WIDTH)
         output.append("THREAT MODEL REPORT")
-        output.append("=" * 80)
+        output.append("=" * OUTPUT_WIDTH)
         output.append(f"Timestamp: {results['timestamp']}")
         output.append(f"Target: {results['target']}")
         output.append(f"Files Analyzed: {results['analysis_stats']['files_analyzed']}")
@@ -640,7 +643,7 @@ class OutputFormatter:
 
         summary = results['summary']
         output.append("RISK SUMMARY")
-        output.append("-" * 80)
+        output.append("-" * OUTPUT_WIDTH)
         output.append(f"Overall Risk: {summary['overall_risk']}")
         output.append(f"Total Threats: {results['analysis_stats']['threats_identified']}")
         output.append(f"  Critical: {summary['critical']}")
@@ -650,14 +653,14 @@ class OutputFormatter:
         output.append("")
 
         output.append("STRIDE ANALYSIS")
-        output.append("-" * 80)
+        output.append("-" * OUTPUT_WIDTH)
         for category, count in results['stride_analysis'].items():
             if count > 0:
                 output.append(f"  {category}: {count}")
         output.append("")
 
         output.append("ATTACK SURFACE")
-        output.append("-" * 80)
+        output.append("-" * OUTPUT_WIDTH)
         attack_surface = results['attack_surface']
         output.append(f"  Entry Points: {attack_surface['entry_points_count']}")
         output.append(f"  Data Stores: {len(attack_surface['data_stores'])}")
@@ -666,7 +669,7 @@ class OutputFormatter:
 
         if results['threats']:
             output.append("IDENTIFIED THREATS")
-            output.append("-" * 80)
+            output.append("-" * OUTPUT_WIDTH)
             for threat in results['threats'][:20]:
                 output.append(f"[{threat['severity']}] {threat['id']}: {threat['name']}")
                 output.append(f"  Category: {threat['category']}")
@@ -678,11 +681,11 @@ class OutputFormatter:
                 output.append("")
 
         output.append("RECOMMENDATIONS")
-        output.append("-" * 80)
+        output.append("-" * OUTPUT_WIDTH)
         for i, rec in enumerate(results['recommendations'], 1):
             output.append(f"{i}. {rec}")
 
-        output.append("=" * 80)
+        output.append("=" * OUTPUT_WIDTH)
         return "\n".join(output)
 
     @staticmethod

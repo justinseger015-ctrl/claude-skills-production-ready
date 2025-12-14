@@ -1047,6 +1047,20 @@ MIT
 class FullstackScaffolder:
     """Fullstack application scaffolder"""
 
+    # Framework dispatch maps for cleaner routing
+    FRONTEND_CREATORS = {
+        FrontendFramework.NEXTJS: '_create_nextjs_frontend',
+        FrontendFramework.VITE_REACT: '_create_vite_frontend',
+        FrontendFramework.NUXT: '_create_vite_frontend',  # fallback
+        FrontendFramework.SVELTEKIT: '_create_vite_frontend',  # fallback
+    }
+
+    BACKEND_CREATORS = {
+        BackendFramework.FASTAPI: '_create_fastapi_backend',
+        BackendFramework.FASTIFY: '_create_node_backend',
+        BackendFramework.EXPRESS: '_create_node_backend',
+    }
+
     def __init__(self, config: ProjectConfig, verbose: bool = False):
         if verbose:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -1118,49 +1132,50 @@ class FullstackScaffolder:
         if self.verbose:
             print("Created directory structure", file=sys.stderr)
 
-    def _create_frontend(self):
-        """Create frontend files"""
-        logger.debug(f"Creating frontend ({self.config.frontend.value})")
-        frontend = self.config.output_path / 'frontend'
+    # -------------------------------------------------------------------------
+    # Frontend Helper Methods (extracted for reduced complexity)
+    # -------------------------------------------------------------------------
 
-        if self.config.frontend == FrontendFramework.NEXTJS:
-            self._write_json(
-                frontend / 'package.json',
-                FrontendTemplates.nextjs_package_json(self.config.name)
-            )
-            self._write_json(
-                frontend / 'tsconfig.json',
-                FrontendTemplates.nextjs_tsconfig()
-            )
-            self._write_file(
-                frontend / 'src' / 'app' / 'layout.tsx',
-                FrontendTemplates.nextjs_layout(self.config.name)
-            )
-            self._write_file(
-                frontend / 'src' / 'app' / 'page.tsx',
-                FrontendTemplates.nextjs_page()
-            )
-            self._write_file(
-                frontend / 'src' / 'app' / 'globals.css',
-                FrontendTemplates.nextjs_globals_css()
-            )
-        else:
-            self._write_json(
-                frontend / 'package.json',
-                FrontendTemplates.vite_react_package_json(self.config.name)
-            )
-            self._write_file(
-                frontend / 'vite.config.ts',
-                FrontendTemplates.vite_config()
-            )
-            self._write_file(
-                frontend / 'src' / 'App.tsx',
-                FrontendTemplates.vite_app_tsx()
-            )
-            # Index.html for Vite
-            self._write_file(
-                frontend / 'index.html',
-                '''<!DOCTYPE html>
+    def _create_nextjs_frontend(self, frontend: Path):
+        """Create Next.js frontend files"""
+        self._write_json(
+            frontend / 'package.json',
+            FrontendTemplates.nextjs_package_json(self.config.name)
+        )
+        self._write_json(
+            frontend / 'tsconfig.json',
+            FrontendTemplates.nextjs_tsconfig()
+        )
+        self._write_file(
+            frontend / 'src' / 'app' / 'layout.tsx',
+            FrontendTemplates.nextjs_layout(self.config.name)
+        )
+        self._write_file(
+            frontend / 'src' / 'app' / 'page.tsx',
+            FrontendTemplates.nextjs_page()
+        )
+        self._write_file(
+            frontend / 'src' / 'app' / 'globals.css',
+            FrontendTemplates.nextjs_globals_css()
+        )
+
+    def _create_vite_frontend(self, frontend: Path):
+        """Create Vite React frontend files"""
+        self._write_json(
+            frontend / 'package.json',
+            FrontendTemplates.vite_react_package_json(self.config.name)
+        )
+        self._write_file(
+            frontend / 'vite.config.ts',
+            FrontendTemplates.vite_config()
+        )
+        self._write_file(
+            frontend / 'src' / 'App.tsx',
+            FrontendTemplates.vite_app_tsx()
+        )
+        self._write_file(
+            frontend / 'index.html',
+            '''<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1173,10 +1188,10 @@ class FullstackScaffolder:
   </body>
 </html>
 '''
-            )
-            self._write_file(
-                frontend / 'src' / 'main.tsx',
-                '''import React from 'react';
+        )
+        self._write_file(
+            frontend / 'src' / 'main.tsx',
+            '''import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
@@ -1186,51 +1201,79 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>
 );
 '''
-            )
+        )
+
+    def _create_frontend(self):
+        """Create frontend files using dispatch pattern"""
+        logger.debug(f"Creating frontend ({self.config.frontend.value})")
+        frontend = self.config.output_path / 'frontend'
+
+        # Dispatch to appropriate creator method
+        creator_name = self.FRONTEND_CREATORS.get(self.config.frontend, '_create_vite_frontend')
+        creator = getattr(self, creator_name)
+        creator(frontend)
 
         if self.verbose:
             print(f"Created frontend ({self.config.frontend.value})", file=sys.stderr)
 
-    def _create_backend(self):
-        """Create backend files"""
-        logger.debug(f"Creating backend ({self.config.backend.value})")
-        backend = self.config.output_path / 'backend'
+    # -------------------------------------------------------------------------
+    # Backend Helper Methods (extracted for reduced complexity)
+    # -------------------------------------------------------------------------
 
-        if self.config.backend == BackendFramework.FASTAPI:
-            self._write_file(
-                backend / 'main.py',
-                BackendTemplates.fastapi_main_py(self.config.database)
-            )
-            self._write_file(
-                backend / 'requirements.txt',
-                BackendTemplates.fastapi_requirements(self.config.database)
-            )
-        elif self.config.backend == BackendFramework.FASTIFY:
+    def _create_fastapi_backend(self, backend: Path):
+        """Create FastAPI backend files"""
+        self._write_file(
+            backend / 'main.py',
+            BackendTemplates.fastapi_main_py(self.config.database)
+        )
+        self._write_file(
+            backend / 'requirements.txt',
+            BackendTemplates.fastapi_requirements(self.config.database)
+        )
+
+    def _create_node_backend(self, backend: Path):
+        """Create Node.js backend files (Express or Fastify)"""
+        is_fastify = self.config.backend == BackendFramework.FASTIFY
+
+        # Package.json
+        if is_fastify:
             self._write_json(
                 backend / 'package.json',
                 BackendTemplates.fastify_package_json(self.config.name, self.config.database)
             )
-            self._write_file(
-                backend / 'src' / 'index.ts',
-                BackendTemplates.fastify_index_ts()
-            )
-            self._write_json(
-                backend / 'tsconfig.json',
-                BackendTemplates.express_tsconfig()
-            )
-        else:  # Express
+        else:
             self._write_json(
                 backend / 'package.json',
                 BackendTemplates.express_package_json(self.config.name, self.config.database)
             )
+
+        # Index.ts - framework-specific
+        if is_fastify:
+            self._write_file(
+                backend / 'src' / 'index.ts',
+                BackendTemplates.fastify_index_ts()
+            )
+        else:
             self._write_file(
                 backend / 'src' / 'index.ts',
                 BackendTemplates.express_index_ts(self.config.database)
             )
-            self._write_json(
-                backend / 'tsconfig.json',
-                BackendTemplates.express_tsconfig()
-            )
+
+        # Shared tsconfig
+        self._write_json(
+            backend / 'tsconfig.json',
+            BackendTemplates.express_tsconfig()
+        )
+
+    def _create_backend(self):
+        """Create backend files using dispatch pattern"""
+        logger.debug(f"Creating backend ({self.config.backend.value})")
+        backend = self.config.output_path / 'backend'
+
+        # Dispatch to appropriate creator method
+        creator_name = self.BACKEND_CREATORS.get(self.config.backend, '_create_node_backend')
+        creator = getattr(self, creator_name)
+        creator(backend)
 
         if self.verbose:
             print(f"Created backend ({self.config.backend.value})", file=sys.stderr)

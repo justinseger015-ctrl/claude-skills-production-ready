@@ -32,6 +32,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Output formatting constants
+OUTPUT_WIDTH_FULL = 80      # Full-width separator for major sections
+OUTPUT_WIDTH_SECTION = 40   # Section separator width
+
 
 class CloudProvider(Enum):
     """Supported cloud providers"""
@@ -104,6 +108,26 @@ class TerraformScaffolder:
     """
     Terraform infrastructure scaffolder supporting multiple cloud providers.
     """
+
+    # AWS resource generator dispatch map
+    AWS_RESOURCE_GENERATORS = {
+        'vpc': '_generate_aws_vpc',
+        'eks': '_generate_aws_eks',
+        'rds': '_generate_aws_rds',
+        's3': '_generate_aws_s3',
+    }
+
+    # GCP resource generator dispatch map
+    GCP_RESOURCE_GENERATORS = {
+        'vpc': '_generate_gcp_vpc',
+        'gke': '_generate_gcp_gke',
+    }
+
+    # Azure resource generator dispatch map
+    AZURE_RESOURCE_GENERATORS = {
+        'vnet': '_generate_azure_vnet',
+        'aks': '_generate_azure_aks',
+    }
 
     # Module definitions per provider
     AWS_MODULES = {
@@ -800,487 +824,520 @@ class TerraformScaffolder:
 
         return "\n".join(content)
 
+    # -------------------------------------------------------------------------
+    # AWS Resource Helper Methods (extracted for reduced complexity)
+    # -------------------------------------------------------------------------
+
+    def _generate_aws_vpc(self) -> List[str]:
+        """Generate AWS VPC resources"""
+        return [
+            'resource "aws_vpc" "main" {',
+            '  cidr_block           = var.vpc_cidr',
+            '  enable_dns_hostnames = true',
+            '  enable_dns_support   = true',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-vpc"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_internet_gateway" "main" {',
+            '  vpc_id = aws_vpc.main.id',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-igw"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_subnet" "public" {',
+            '  count = length(var.public_subnets)',
+            '',
+            '  vpc_id                  = aws_vpc.main.id',
+            '  cidr_block              = var.public_subnets[count.index]',
+            '  availability_zone       = var.availability_zones[count.index]',
+            '  map_public_ip_on_launch = true',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-public-${count.index + 1}"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_subnet" "private" {',
+            '  count = length(var.private_subnets)',
+            '',
+            '  vpc_id            = aws_vpc.main.id',
+            '  cidr_block        = var.private_subnets[count.index]',
+            '  availability_zone = var.availability_zones[count.index]',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-private-${count.index + 1}"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_eip" "nat" {',
+            '  count  = length(var.public_subnets)',
+            '  domain = "vpc"',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-nat-eip-${count.index + 1}"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_nat_gateway" "main" {',
+            '  count = length(var.public_subnets)',
+            '',
+            '  allocation_id = aws_eip.nat[count.index].id',
+            '  subnet_id     = aws_subnet.public[count.index].id',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-nat-${count.index + 1}"',
+            '  }',
+            '',
+            '  depends_on = [aws_internet_gateway.main]',
+            '}',
+            '',
+            'resource "aws_route_table" "public" {',
+            '  vpc_id = aws_vpc.main.id',
+            '',
+            '  route {',
+            '    cidr_block = "0.0.0.0/0"',
+            '    gateway_id = aws_internet_gateway.main.id',
+            '  }',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-public-rt"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_route_table" "private" {',
+            '  count  = length(var.private_subnets)',
+            '  vpc_id = aws_vpc.main.id',
+            '',
+            '  route {',
+            '    cidr_block     = "0.0.0.0/0"',
+            '    nat_gateway_id = aws_nat_gateway.main[count.index].id',
+            '  }',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_route_table_association" "public" {',
+            '  count = length(var.public_subnets)',
+            '',
+            '  subnet_id      = aws_subnet.public[count.index].id',
+            '  route_table_id = aws_route_table.public.id',
+            '}',
+            '',
+            'resource "aws_route_table_association" "private" {',
+            '  count = length(var.private_subnets)',
+            '',
+            '  subnet_id      = aws_subnet.private[count.index].id',
+            '  route_table_id = aws_route_table.private[count.index].id',
+            '}',
+            ''
+        ]
+
+    def _generate_aws_eks(self) -> List[str]:
+        """Generate AWS EKS resources"""
+        return [
+            '# EKS Cluster IAM Role',
+            'resource "aws_iam_role" "cluster" {',
+            '  name = "${var.project_name}-${var.environment}-eks-cluster-role"',
+            '',
+            '  assume_role_policy = jsonencode({',
+            '    Version = "2012-10-17"',
+            '    Statement = [{',
+            '      Action = "sts:AssumeRole"',
+            '      Effect = "Allow"',
+            '      Principal = {',
+            '        Service = "eks.amazonaws.com"',
+            '      }',
+            '    }]',
+            '  })',
+            '}',
+            '',
+            'resource "aws_iam_role_policy_attachment" "cluster_policy" {',
+            '  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"',
+            '  role       = aws_iam_role.cluster.name',
+            '}',
+            '',
+            '# EKS Cluster',
+            'resource "aws_eks_cluster" "main" {',
+            '  name     = var.cluster_name',
+            '  version  = var.cluster_version',
+            '  role_arn = aws_iam_role.cluster.arn',
+            '',
+            '  vpc_config {',
+            '    subnet_ids              = var.subnet_ids',
+            '    endpoint_private_access = true',
+            '    endpoint_public_access  = true',
+            '  }',
+            '',
+            '  depends_on = [aws_iam_role_policy_attachment.cluster_policy]',
+            '}',
+            '',
+            '# Node Group IAM Role',
+            'resource "aws_iam_role" "node" {',
+            '  name = "${var.project_name}-${var.environment}-eks-node-role"',
+            '',
+            '  assume_role_policy = jsonencode({',
+            '    Version = "2012-10-17"',
+            '    Statement = [{',
+            '      Action = "sts:AssumeRole"',
+            '      Effect = "Allow"',
+            '      Principal = {',
+            '        Service = "ec2.amazonaws.com"',
+            '      }',
+            '    }]',
+            '  })',
+            '}',
+            '',
+            'resource "aws_iam_role_policy_attachment" "node_policy" {',
+            '  for_each = toset([',
+            '    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",',
+            '    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",',
+            '    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"',
+            '  ])',
+            '',
+            '  policy_arn = each.value',
+            '  role       = aws_iam_role.node.name',
+            '}',
+            '',
+            '# EKS Node Group',
+            'resource "aws_eks_node_group" "main" {',
+            '  cluster_name    = aws_eks_cluster.main.name',
+            '  node_group_name = "${var.project_name}-${var.environment}-nodes"',
+            '  node_role_arn   = aws_iam_role.node.arn',
+            '  subnet_ids      = var.subnet_ids',
+            '',
+            '  instance_types = var.node_instance_types',
+            '',
+            '  scaling_config {',
+            '    desired_size = var.node_desired_size',
+            '    min_size     = var.node_min_size',
+            '    max_size     = var.node_max_size',
+            '  }',
+            '',
+            '  depends_on = [aws_iam_role_policy_attachment.node_policy]',
+            '}',
+            ''
+        ]
+
+    def _generate_aws_rds(self) -> List[str]:
+        """Generate AWS RDS resources"""
+        return [
+            'resource "aws_db_subnet_group" "main" {',
+            '  name       = "${var.project_name}-${var.environment}-db-subnet"',
+            '  subnet_ids = var.subnet_ids',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-db-subnet"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_security_group" "db" {',
+            '  name        = "${var.project_name}-${var.environment}-db-sg"',
+            '  description = "Security group for RDS"',
+            '  vpc_id      = var.vpc_id',
+            '',
+            '  ingress {',
+            '    from_port   = 5432',
+            '    to_port     = 5432',
+            '    protocol    = "tcp"',
+            '    cidr_blocks = ["10.0.0.0/16"]',
+            '  }',
+            '',
+            '  egress {',
+            '    from_port   = 0',
+            '    to_port     = 0',
+            '    protocol    = "-1"',
+            '    cidr_blocks = ["0.0.0.0/0"]',
+            '  }',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-db-sg"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_db_instance" "main" {',
+            '  identifier = "${var.project_name}-${var.environment}-db"',
+            '',
+            '  engine               = var.db_engine',
+            '  engine_version       = var.db_engine_version',
+            '  instance_class       = var.db_instance_class',
+            '  allocated_storage    = var.db_allocated_storage',
+            '  storage_encrypted    = true',
+            '',
+            '  db_name  = var.db_name',
+            '  username = var.db_username',
+            '  password = var.db_password',
+            '',
+            '  db_subnet_group_name   = aws_db_subnet_group.main.name',
+            '  vpc_security_group_ids = [aws_security_group.db.id]',
+            '',
+            '  skip_final_snapshot = true',
+            '  multi_az            = var.environment == "prod" ? true : false',
+            '',
+            '  tags = {',
+            '    Name = "${var.project_name}-${var.environment}-db"',
+            '  }',
+            '}',
+            ''
+        ]
+
+    def _generate_aws_s3(self) -> List[str]:
+        """Generate AWS S3 resources"""
+        return [
+            'resource "aws_s3_bucket" "main" {',
+            '  bucket = var.bucket_name',
+            '',
+            '  tags = {',
+            '    Name = var.bucket_name',
+            '  }',
+            '}',
+            '',
+            'resource "aws_s3_bucket_versioning" "main" {',
+            '  bucket = aws_s3_bucket.main.id',
+            '',
+            '  versioning_configuration {',
+            '    status = var.enable_versioning ? "Enabled" : "Suspended"',
+            '  }',
+            '}',
+            '',
+            'resource "aws_s3_bucket_server_side_encryption_configuration" "main" {',
+            '  count  = var.enable_encryption ? 1 : 0',
+            '  bucket = aws_s3_bucket.main.id',
+            '',
+            '  rule {',
+            '    apply_server_side_encryption_by_default {',
+            '      sse_algorithm = "AES256"',
+            '    }',
+            '  }',
+            '}',
+            '',
+            'resource "aws_s3_bucket_public_access_block" "main" {',
+            '  bucket = aws_s3_bucket.main.id',
+            '',
+            '  block_public_acls       = true',
+            '  block_public_policy     = true',
+            '  ignore_public_acls      = true',
+            '  restrict_public_buckets = true',
+            '}',
+            ''
+        ]
+
     def _generate_aws_resources(self, module: ModuleConfig) -> List[str]:
-        """Generate AWS resource blocks"""
-        content = []
+        """Generate AWS resource blocks using dispatch pattern"""
+        generator_name = self.AWS_RESOURCE_GENERATORS.get(module.name)
 
-        if module.name == "vpc":
-            content.extend([
-                'resource "aws_vpc" "main" {',
-                '  cidr_block           = var.vpc_cidr',
-                '  enable_dns_hostnames = true',
-                '  enable_dns_support   = true',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-vpc"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_internet_gateway" "main" {',
-                '  vpc_id = aws_vpc.main.id',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-igw"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_subnet" "public" {',
-                '  count = length(var.public_subnets)',
-                '',
-                '  vpc_id                  = aws_vpc.main.id',
-                '  cidr_block              = var.public_subnets[count.index]',
-                '  availability_zone       = var.availability_zones[count.index]',
-                '  map_public_ip_on_launch = true',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-public-${count.index + 1}"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_subnet" "private" {',
-                '  count = length(var.private_subnets)',
-                '',
-                '  vpc_id            = aws_vpc.main.id',
-                '  cidr_block        = var.private_subnets[count.index]',
-                '  availability_zone = var.availability_zones[count.index]',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-private-${count.index + 1}"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_eip" "nat" {',
-                '  count  = length(var.public_subnets)',
-                '  domain = "vpc"',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-nat-eip-${count.index + 1}"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_nat_gateway" "main" {',
-                '  count = length(var.public_subnets)',
-                '',
-                '  allocation_id = aws_eip.nat[count.index].id',
-                '  subnet_id     = aws_subnet.public[count.index].id',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-nat-${count.index + 1}"',
-                '  }',
-                '',
-                '  depends_on = [aws_internet_gateway.main]',
-                '}',
-                '',
-                'resource "aws_route_table" "public" {',
-                '  vpc_id = aws_vpc.main.id',
-                '',
-                '  route {',
-                '    cidr_block = "0.0.0.0/0"',
-                '    gateway_id = aws_internet_gateway.main.id',
-                '  }',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-public-rt"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_route_table" "private" {',
-                '  count  = length(var.private_subnets)',
-                '  vpc_id = aws_vpc.main.id',
-                '',
-                '  route {',
-                '    cidr_block     = "0.0.0.0/0"',
-                '    nat_gateway_id = aws_nat_gateway.main[count.index].id',
-                '  }',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_route_table_association" "public" {',
-                '  count = length(var.public_subnets)',
-                '',
-                '  subnet_id      = aws_subnet.public[count.index].id',
-                '  route_table_id = aws_route_table.public.id',
-                '}',
-                '',
-                'resource "aws_route_table_association" "private" {',
-                '  count = length(var.private_subnets)',
-                '',
-                '  subnet_id      = aws_subnet.private[count.index].id',
-                '  route_table_id = aws_route_table.private[count.index].id',
-                '}',
-                ''
-            ])
-        elif module.name == "eks":
-            content.extend([
-                '# EKS Cluster IAM Role',
-                'resource "aws_iam_role" "cluster" {',
-                '  name = "${var.project_name}-${var.environment}-eks-cluster-role"',
-                '',
-                '  assume_role_policy = jsonencode({',
-                '    Version = "2012-10-17"',
-                '    Statement = [{',
-                '      Action = "sts:AssumeRole"',
-                '      Effect = "Allow"',
-                '      Principal = {',
-                '        Service = "eks.amazonaws.com"',
-                '      }',
-                '    }]',
-                '  })',
-                '}',
-                '',
-                'resource "aws_iam_role_policy_attachment" "cluster_policy" {',
-                '  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"',
-                '  role       = aws_iam_role.cluster.name',
-                '}',
-                '',
-                '# EKS Cluster',
-                'resource "aws_eks_cluster" "main" {',
-                '  name     = var.cluster_name',
-                '  version  = var.cluster_version',
-                '  role_arn = aws_iam_role.cluster.arn',
-                '',
-                '  vpc_config {',
-                '    subnet_ids              = var.subnet_ids',
-                '    endpoint_private_access = true',
-                '    endpoint_public_access  = true',
-                '  }',
-                '',
-                '  depends_on = [aws_iam_role_policy_attachment.cluster_policy]',
-                '}',
-                '',
-                '# Node Group IAM Role',
-                'resource "aws_iam_role" "node" {',
-                '  name = "${var.project_name}-${var.environment}-eks-node-role"',
-                '',
-                '  assume_role_policy = jsonencode({',
-                '    Version = "2012-10-17"',
-                '    Statement = [{',
-                '      Action = "sts:AssumeRole"',
-                '      Effect = "Allow"',
-                '      Principal = {',
-                '        Service = "ec2.amazonaws.com"',
-                '      }',
-                '    }]',
-                '  })',
-                '}',
-                '',
-                'resource "aws_iam_role_policy_attachment" "node_policy" {',
-                '  for_each = toset([',
-                '    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",',
-                '    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",',
-                '    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"',
-                '  ])',
-                '',
-                '  policy_arn = each.value',
-                '  role       = aws_iam_role.node.name',
-                '}',
-                '',
-                '# EKS Node Group',
-                'resource "aws_eks_node_group" "main" {',
-                '  cluster_name    = aws_eks_cluster.main.name',
-                '  node_group_name = "${var.project_name}-${var.environment}-nodes"',
-                '  node_role_arn   = aws_iam_role.node.arn',
-                '  subnet_ids      = var.subnet_ids',
-                '',
-                '  instance_types = var.node_instance_types',
-                '',
-                '  scaling_config {',
-                '    desired_size = var.node_desired_size',
-                '    min_size     = var.node_min_size',
-                '    max_size     = var.node_max_size',
-                '  }',
-                '',
-                '  depends_on = [aws_iam_role_policy_attachment.node_policy]',
-                '}',
-                ''
-            ])
-        elif module.name == "rds":
-            content.extend([
-                'resource "aws_db_subnet_group" "main" {',
-                '  name       = "${var.project_name}-${var.environment}-db-subnet"',
-                '  subnet_ids = var.subnet_ids',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-db-subnet"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_security_group" "db" {',
-                '  name        = "${var.project_name}-${var.environment}-db-sg"',
-                '  description = "Security group for RDS"',
-                '  vpc_id      = var.vpc_id',
-                '',
-                '  ingress {',
-                '    from_port   = 5432',
-                '    to_port     = 5432',
-                '    protocol    = "tcp"',
-                '    cidr_blocks = ["10.0.0.0/16"]',
-                '  }',
-                '',
-                '  egress {',
-                '    from_port   = 0',
-                '    to_port     = 0',
-                '    protocol    = "-1"',
-                '    cidr_blocks = ["0.0.0.0/0"]',
-                '  }',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-db-sg"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_db_instance" "main" {',
-                '  identifier = "${var.project_name}-${var.environment}-db"',
-                '',
-                '  engine               = var.db_engine',
-                '  engine_version       = var.db_engine_version',
-                '  instance_class       = var.db_instance_class',
-                '  allocated_storage    = var.db_allocated_storage',
-                '  storage_encrypted    = true',
-                '',
-                '  db_name  = var.db_name',
-                '  username = var.db_username',
-                '  password = var.db_password',
-                '',
-                '  db_subnet_group_name   = aws_db_subnet_group.main.name',
-                '  vpc_security_group_ids = [aws_security_group.db.id]',
-                '',
-                '  skip_final_snapshot = true',
-                '  multi_az            = var.environment == "prod" ? true : false',
-                '',
-                '  tags = {',
-                '    Name = "${var.project_name}-${var.environment}-db"',
-                '  }',
-                '}',
-                ''
-            ])
-        elif module.name == "s3":
-            content.extend([
-                'resource "aws_s3_bucket" "main" {',
-                '  bucket = var.bucket_name',
-                '',
-                '  tags = {',
-                '    Name = var.bucket_name',
-                '  }',
-                '}',
-                '',
-                'resource "aws_s3_bucket_versioning" "main" {',
-                '  bucket = aws_s3_bucket.main.id',
-                '',
-                '  versioning_configuration {',
-                '    status = var.enable_versioning ? "Enabled" : "Suspended"',
-                '  }',
-                '}',
-                '',
-                'resource "aws_s3_bucket_server_side_encryption_configuration" "main" {',
-                '  count  = var.enable_encryption ? 1 : 0',
-                '  bucket = aws_s3_bucket.main.id',
-                '',
-                '  rule {',
-                '    apply_server_side_encryption_by_default {',
-                '      sse_algorithm = "AES256"',
-                '    }',
-                '  }',
-                '}',
-                '',
-                'resource "aws_s3_bucket_public_access_block" "main" {',
-                '  bucket = aws_s3_bucket.main.id',
-                '',
-                '  block_public_acls       = true',
-                '  block_public_policy     = true',
-                '  ignore_public_acls      = true',
-                '  restrict_public_buckets = true',
-                '}',
-                ''
-            ])
-        else:
-            # Generic placeholder for other modules
-            content.extend([
-                f'# TODO: Implement {module.name} resources',
-                '# Resources: ' + ', '.join(module.resources),
-                ''
-            ])
+        if generator_name:
+            generator = getattr(self, generator_name)
+            return generator()
 
-        return content
+        # Generic placeholder for other modules
+        return [
+            f'# TODO: Implement {module.name} resources',
+            '# Resources: ' + ', '.join(module.resources),
+            ''
+        ]
+
+    # -------------------------------------------------------------------------
+    # GCP Resource Helper Methods (extracted for reduced complexity)
+    # -------------------------------------------------------------------------
+
+    def _generate_gcp_vpc(self) -> List[str]:
+        """Generate GCP VPC resources"""
+        return [
+            'resource "google_compute_network" "main" {',
+            '  name                    = "${var.project_name}-${var.environment}-vpc"',
+            '  auto_create_subnetworks = false',
+            '}',
+            '',
+            'resource "google_compute_subnetwork" "main" {',
+            '  name          = "${var.project_name}-${var.environment}-subnet"',
+            '  ip_cidr_range = var.subnet_cidr',
+            '  region        = var.region',
+            '  network       = google_compute_network.main.id',
+            '',
+            '  secondary_ip_range {',
+            '    range_name    = "pods"',
+            '    ip_cidr_range = "10.1.0.0/16"',
+            '  }',
+            '',
+            '  secondary_ip_range {',
+            '    range_name    = "services"',
+            '    ip_cidr_range = "10.2.0.0/20"',
+            '  }',
+            '}',
+            '',
+            'resource "google_compute_router" "main" {',
+            '  name    = "${var.project_name}-${var.environment}-router"',
+            '  region  = var.region',
+            '  network = google_compute_network.main.id',
+            '}',
+            '',
+            'resource "google_compute_router_nat" "main" {',
+            '  name                               = "${var.project_name}-${var.environment}-nat"',
+            '  router                             = google_compute_router.main.name',
+            '  region                             = var.region',
+            '  nat_ip_allocate_option             = "AUTO_ONLY"',
+            '  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"',
+            '}',
+            ''
+        ]
+
+    def _generate_gcp_gke(self) -> List[str]:
+        """Generate GCP GKE resources"""
+        return [
+            'resource "google_container_cluster" "main" {',
+            '  name     = var.cluster_name',
+            '  location = var.region',
+            '',
+            '  network    = var.network_id',
+            '  subnetwork = var.subnet_id',
+            '',
+            '  remove_default_node_pool = true',
+            '  initial_node_count       = 1',
+            '',
+            '  ip_allocation_policy {',
+            '    cluster_secondary_range_name  = "pods"',
+            '    services_secondary_range_name = "services"',
+            '  }',
+            '',
+            '  workload_identity_config {',
+            '    workload_pool = "${var.project_id}.svc.id.goog"',
+            '  }',
+            '}',
+            '',
+            'resource "google_container_node_pool" "main" {',
+            '  name       = "${var.cluster_name}-node-pool"',
+            '  location   = var.region',
+            '  cluster    = google_container_cluster.main.name',
+            '  node_count = var.node_count',
+            '',
+            '  autoscaling {',
+            '    min_node_count = var.min_node_count',
+            '    max_node_count = var.max_node_count',
+            '  }',
+            '',
+            '  node_config {',
+            '    machine_type = var.machine_type',
+            '',
+            '    oauth_scopes = [',
+            '      "https://www.googleapis.com/auth/cloud-platform"',
+            '    ]',
+            '',
+            '    workload_metadata_config {',
+            '      mode = "GKE_METADATA"',
+            '    }',
+            '  }',
+            '}',
+            ''
+        ]
 
     def _generate_gcp_resources(self, module: ModuleConfig) -> List[str]:
-        """Generate GCP resource blocks"""
-        content = []
+        """Generate GCP resource blocks using dispatch pattern"""
+        generator_name = self.GCP_RESOURCE_GENERATORS.get(module.name)
 
-        if module.name == "vpc":
-            content.extend([
-                'resource "google_compute_network" "main" {',
-                '  name                    = "${var.project_name}-${var.environment}-vpc"',
-                '  auto_create_subnetworks = false',
-                '}',
-                '',
-                'resource "google_compute_subnetwork" "main" {',
-                '  name          = "${var.project_name}-${var.environment}-subnet"',
-                '  ip_cidr_range = var.subnet_cidr',
-                '  region        = var.region',
-                '  network       = google_compute_network.main.id',
-                '',
-                '  secondary_ip_range {',
-                '    range_name    = "pods"',
-                '    ip_cidr_range = "10.1.0.0/16"',
-                '  }',
-                '',
-                '  secondary_ip_range {',
-                '    range_name    = "services"',
-                '    ip_cidr_range = "10.2.0.0/20"',
-                '  }',
-                '}',
-                '',
-                'resource "google_compute_router" "main" {',
-                '  name    = "${var.project_name}-${var.environment}-router"',
-                '  region  = var.region',
-                '  network = google_compute_network.main.id',
-                '}',
-                '',
-                'resource "google_compute_router_nat" "main" {',
-                '  name                               = "${var.project_name}-${var.environment}-nat"',
-                '  router                             = google_compute_router.main.name',
-                '  region                             = var.region',
-                '  nat_ip_allocate_option             = "AUTO_ONLY"',
-                '  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"',
-                '}',
-                ''
-            ])
-        elif module.name == "gke":
-            content.extend([
-                'resource "google_container_cluster" "main" {',
-                '  name     = var.cluster_name',
-                '  location = var.region',
-                '',
-                '  network    = var.network_id',
-                '  subnetwork = var.subnet_id',
-                '',
-                '  remove_default_node_pool = true',
-                '  initial_node_count       = 1',
-                '',
-                '  ip_allocation_policy {',
-                '    cluster_secondary_range_name  = "pods"',
-                '    services_secondary_range_name = "services"',
-                '  }',
-                '',
-                '  workload_identity_config {',
-                '    workload_pool = "${var.project_id}.svc.id.goog"',
-                '  }',
-                '}',
-                '',
-                'resource "google_container_node_pool" "main" {',
-                '  name       = "${var.cluster_name}-node-pool"',
-                '  location   = var.region',
-                '  cluster    = google_container_cluster.main.name',
-                '  node_count = var.node_count',
-                '',
-                '  autoscaling {',
-                '    min_node_count = var.min_node_count',
-                '    max_node_count = var.max_node_count',
-                '  }',
-                '',
-                '  node_config {',
-                '    machine_type = var.machine_type',
-                '',
-                '    oauth_scopes = [',
-                '      "https://www.googleapis.com/auth/cloud-platform"',
-                '    ]',
-                '',
-                '    workload_metadata_config {',
-                '      mode = "GKE_METADATA"',
-                '    }',
-                '  }',
-                '}',
-                ''
-            ])
-        else:
-            content.extend([
-                f'# TODO: Implement {module.name} resources for GCP',
-                '# Resources: ' + ', '.join(module.resources),
-                ''
-            ])
+        if generator_name:
+            generator = getattr(self, generator_name)
+            return generator()
 
-        return content
+        # Generic placeholder for other modules
+        return [
+            f'# TODO: Implement {module.name} resources for GCP',
+            '# Resources: ' + ', '.join(module.resources),
+            ''
+        ]
+
+    # -------------------------------------------------------------------------
+    # Azure Resource Helper Methods (extracted for reduced complexity)
+    # -------------------------------------------------------------------------
+
+    def _generate_azure_vnet(self) -> List[str]:
+        """Generate Azure VNET resources"""
+        return [
+            'resource "azurerm_virtual_network" "main" {',
+            '  name                = "${var.project_name}-${var.environment}-vnet"',
+            '  location            = var.location',
+            '  resource_group_name = var.resource_group_name',
+            '  address_space       = var.address_space',
+            '',
+            '  tags = {',
+            '    Environment = var.environment',
+            '  }',
+            '}',
+            '',
+            'resource "azurerm_subnet" "main" {',
+            '  count = length(var.subnet_prefixes)',
+            '',
+            '  name                 = "${var.project_name}-${var.environment}-subnet-${count.index + 1}"',
+            '  resource_group_name  = var.resource_group_name',
+            '  virtual_network_name = azurerm_virtual_network.main.name',
+            '  address_prefixes     = [var.subnet_prefixes[count.index]]',
+            '}',
+            '',
+            'resource "azurerm_network_security_group" "main" {',
+            '  name                = "${var.project_name}-${var.environment}-nsg"',
+            '  location            = var.location',
+            '  resource_group_name = var.resource_group_name',
+            '',
+            '  tags = {',
+            '    Environment = var.environment',
+            '  }',
+            '}',
+            ''
+        ]
+
+    def _generate_azure_aks(self) -> List[str]:
+        """Generate Azure AKS resources"""
+        return [
+            'resource "azurerm_kubernetes_cluster" "main" {',
+            '  name                = var.cluster_name',
+            '  location            = var.location',
+            '  resource_group_name = var.resource_group_name',
+            '  dns_prefix          = var.dns_prefix',
+            '  kubernetes_version  = var.kubernetes_version',
+            '',
+            '  default_node_pool {',
+            '    name       = "default"',
+            '    node_count = var.node_count',
+            '    vm_size    = var.vm_size',
+            '    vnet_subnet_id = var.subnet_ids[0]',
+            '  }',
+            '',
+            '  identity {',
+            '    type = "SystemAssigned"',
+            '  }',
+            '',
+            '  network_profile {',
+            '    network_plugin = "azure"',
+            '    network_policy = "calico"',
+            '  }',
+            '',
+            '  tags = {',
+            '    Environment = var.environment',
+            '  }',
+            '}',
+            ''
+        ]
 
     def _generate_azure_resources(self, module: ModuleConfig) -> List[str]:
-        """Generate Azure resource blocks"""
-        content = []
+        """Generate Azure resource blocks using dispatch pattern"""
+        generator_name = self.AZURE_RESOURCE_GENERATORS.get(module.name)
 
-        if module.name == "vnet":
-            content.extend([
-                'resource "azurerm_virtual_network" "main" {',
-                '  name                = "${var.project_name}-${var.environment}-vnet"',
-                '  location            = var.location',
-                '  resource_group_name = var.resource_group_name',
-                '  address_space       = var.address_space',
-                '',
-                '  tags = {',
-                '    Environment = var.environment',
-                '  }',
-                '}',
-                '',
-                'resource "azurerm_subnet" "main" {',
-                '  count = length(var.subnet_prefixes)',
-                '',
-                '  name                 = "${var.project_name}-${var.environment}-subnet-${count.index + 1}"',
-                '  resource_group_name  = var.resource_group_name',
-                '  virtual_network_name = azurerm_virtual_network.main.name',
-                '  address_prefixes     = [var.subnet_prefixes[count.index]]',
-                '}',
-                '',
-                'resource "azurerm_network_security_group" "main" {',
-                '  name                = "${var.project_name}-${var.environment}-nsg"',
-                '  location            = var.location',
-                '  resource_group_name = var.resource_group_name',
-                '',
-                '  tags = {',
-                '    Environment = var.environment',
-                '  }',
-                '}',
-                ''
-            ])
-        elif module.name == "aks":
-            content.extend([
-                'resource "azurerm_kubernetes_cluster" "main" {',
-                '  name                = var.cluster_name',
-                '  location            = var.location',
-                '  resource_group_name = var.resource_group_name',
-                '  dns_prefix          = var.dns_prefix',
-                '  kubernetes_version  = var.kubernetes_version',
-                '',
-                '  default_node_pool {',
-                '    name       = "default"',
-                '    node_count = var.node_count',
-                '    vm_size    = var.vm_size',
-                '    vnet_subnet_id = var.subnet_ids[0]',
-                '  }',
-                '',
-                '  identity {',
-                '    type = "SystemAssigned"',
-                '  }',
-                '',
-                '  network_profile {',
-                '    network_plugin = "azure"',
-                '    network_policy = "calico"',
-                '  }',
-                '',
-                '  tags = {',
-                '    Environment = var.environment',
-                '  }',
-                '}',
-                ''
-            ])
-        else:
-            content.extend([
-                f'# TODO: Implement {module.name} resources for Azure',
-                '# Resources: ' + ', '.join(module.resources),
-                ''
-            ])
+        if generator_name:
+            generator = getattr(self, generator_name)
+            return generator()
 
-        return content
+        # Generic placeholder for other modules
+        return [
+            f'# TODO: Implement {module.name} resources for Azure',
+            '# Resources: ' + ', '.join(module.resources),
+            ''
+        ]
 
     def _generate_module_variables(self, module: ModuleConfig) -> str:
         """Generate variables.tf for a module"""
@@ -1595,15 +1652,15 @@ class OutputFormatter:
     def format_text(results: Dict, verbose: bool = False) -> str:
         """Format results as human-readable text"""
         lines = []
-        lines.append("=" * 80)
+        lines.append("=" * OUTPUT_WIDTH_FULL)
         lines.append("TERRAFORM SCAFFOLDER REPORT")
-        lines.append("=" * 80)
+        lines.append("=" * OUTPUT_WIDTH_FULL)
         lines.append("")
 
         # Project info
         project = results.get("project", {})
         lines.append("PROJECT CONFIGURATION")
-        lines.append("-" * 40)
+        lines.append("-" * OUTPUT_WIDTH_SECTION)
         lines.append(f"Name:         {project.get('name', 'N/A')}")
         lines.append(f"Provider:     {project.get('provider', 'N/A').upper()}")
         lines.append(f"Region:       {project.get('region', 'N/A')}")
@@ -1613,7 +1670,7 @@ class OutputFormatter:
         # Configuration
         config = results.get("configuration", {})
         lines.append("TERRAFORM CONFIGURATION")
-        lines.append("-" * 40)
+        lines.append("-" * OUTPUT_WIDTH_SECTION)
         lines.append(f"Modules:      {', '.join(config.get('modules', []))}")
         lines.append(f"Environments: {', '.join(config.get('environments', []))}")
         lines.append(f"TF Version:   {config.get('terraform_version', 'N/A')}")
@@ -1621,7 +1678,7 @@ class OutputFormatter:
 
         # Files created
         lines.append("FILES CREATED")
-        lines.append("-" * 40)
+        lines.append("-" * OUTPUT_WIDTH_SECTION)
         lines.append(f"Output Dir:   {results.get('output_directory', 'N/A')}")
         lines.append(f"Total Files:  {results.get('files_created', 0)}")
         lines.append("")
@@ -1630,7 +1687,7 @@ class OutputFormatter:
             lines.append(f"  - {f}")
 
         lines.append("")
-        lines.append("=" * 80)
+        lines.append("=" * OUTPUT_WIDTH_FULL)
 
         return "\n".join(lines)
 

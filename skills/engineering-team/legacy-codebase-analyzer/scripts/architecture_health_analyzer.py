@@ -31,6 +31,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Output formatting constants
+OUTPUT_WIDTH = 80  # Standard terminal width for separators
+
+
 class LayerType(Enum):
     """Application layer types"""
     PRESENTATION = "presentation"
@@ -696,14 +700,14 @@ def format_text_output(analysis: ArchitectureAnalysis) -> str:
     """Format analysis results as human-readable text"""
     lines = []
 
-    lines.append("=" * 80)
+    lines.append("=" * OUTPUT_WIDTH)
     lines.append("ARCHITECTURE HEALTH ANALYSIS REPORT")
-    lines.append("=" * 80)
+    lines.append("=" * OUTPUT_WIDTH)
     lines.append("")
 
     # Summary
     lines.append("SUMMARY")
-    lines.append("-" * 80)
+    lines.append("-" * OUTPUT_WIDTH)
     lines.append(f"Total Modules:              {analysis.summary['total_modules']}")
     lines.append(f"Total Dependencies:         {analysis.summary['total_dependencies']}")
     lines.append(f"Circular Dependencies:      {analysis.summary['circular_dependencies_count']}")
@@ -730,7 +734,7 @@ def format_text_output(analysis: ArchitectureAnalysis) -> str:
     # Circular Dependencies
     if analysis.circular_dependencies:
         lines.append("CIRCULAR DEPENDENCIES")
-        lines.append("-" * 80)
+        lines.append("-" * OUTPUT_WIDTH)
         for i, cd in enumerate(analysis.circular_dependencies[:10], 1):
             lines.append(f"{i}. Severity: {cd.severity.upper()}")
             lines.append(f"   Cycle: {' -> '.join(cd.cycle)}")
@@ -742,7 +746,7 @@ def format_text_output(analysis: ArchitectureAnalysis) -> str:
     # Anti-Patterns (top 10)
     if analysis.anti_patterns:
         lines.append("ANTI-PATTERNS (Top 10)")
-        lines.append("-" * 80)
+        lines.append("-" * OUTPUT_WIDTH)
         sorted_ap = sorted(analysis.anti_patterns, key=lambda x: x.severity, reverse=True)
         for i, ap in enumerate(sorted_ap[:10], 1):
             lines.append(f"{i}. {ap.type.upper()} - Severity: {ap.severity.upper()}")
@@ -755,7 +759,7 @@ def format_text_output(analysis: ArchitectureAnalysis) -> str:
 
     # Coupling Metrics (top 10 most coupled)
     lines.append("COUPLING METRICS (Top 10 Most Coupled)")
-    lines.append("-" * 80)
+    lines.append("-" * OUTPUT_WIDTH)
     sorted_coupling = sorted(analysis.coupling_metrics,
                             key=lambda x: x.afferent_coupling + x.efferent_coupling,
                             reverse=True)
@@ -768,7 +772,7 @@ def format_text_output(analysis: ArchitectureAnalysis) -> str:
 
     # Layer Analysis
     lines.append("LAYER ANALYSIS")
-    lines.append("-" * 80)
+    lines.append("-" * OUTPUT_WIDTH)
     lines.append("Layer Distribution:")
     for layer, count in analysis.layer_analysis['layer_distribution'].items():
         percentage = (count / analysis.layer_analysis['total_modules']) * 100
@@ -778,7 +782,7 @@ def format_text_output(analysis: ArchitectureAnalysis) -> str:
     # Layer Violations
     if analysis.layer_violations:
         lines.append("LAYER VIOLATIONS (Top 10)")
-        lines.append("-" * 80)
+        lines.append("-" * OUTPUT_WIDTH)
         for i, lv in enumerate(analysis.layer_violations[:10], 1):
             lines.append(f"{i}. {lv.violation_type.upper()}")
             lines.append(f"   From: {lv.from_module} ({lv.from_layer})")
@@ -791,13 +795,13 @@ def format_text_output(analysis: ArchitectureAnalysis) -> str:
     # Mermaid Diagram
     if analysis.mermaid_diagram:
         lines.append("DEPENDENCY DIAGRAM (Mermaid)")
-        lines.append("-" * 80)
+        lines.append("-" * OUTPUT_WIDTH)
         lines.append(analysis.mermaid_diagram)
         lines.append("")
 
-    lines.append("=" * 80)
+    lines.append("=" * OUTPUT_WIDTH)
     lines.append("END OF REPORT")
-    lines.append("=" * 80)
+    lines.append("=" * OUTPUT_WIDTH)
 
     return "\n".join(lines)
 

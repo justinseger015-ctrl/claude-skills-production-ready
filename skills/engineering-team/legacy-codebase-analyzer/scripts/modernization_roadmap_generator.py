@@ -30,6 +30,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Output formatting constants
+OUTPUT_WIDTH = 80  # Standard terminal width for separators
+
+
 class Priority(Enum):
     """Work item priority levels"""
     CRITICAL = "critical"
@@ -752,16 +756,16 @@ class OutputFormatter:
     def format_text(roadmap: ModernizationRoadmap) -> str:
         """Format as plain text"""
         lines = [
-            "=" * 80,
+            "=" * OUTPUT_WIDTH,
             f"MODERNIZATION ROADMAP: {roadmap.project_name}",
-            "=" * 80,
+            "=" * OUTPUT_WIDTH,
             "",
             f"Generated: {roadmap.generated_at}",
             f"Timeline: {roadmap.timeline_months} months ({roadmap.summary['timeline_weeks']} weeks)",
             f"Team Size: {roadmap.team_size} developers",
             "",
             "EXECUTIVE SUMMARY",
-            "-" * 80,
+            "-" * OUTPUT_WIDTH,
             f"Total Phases: {roadmap.summary['total_phases']}",
             f"Total Work Items: {roadmap.summary['total_work_items']}",
             f"Total Effort: {roadmap.summary['total_effort_points']} story points "
@@ -777,7 +781,7 @@ class OutputFormatter:
             lines.extend([
                 "",
                 f"PHASE {phase.phase_number}: {phase.name}",
-                "-" * 80,
+                "-" * OUTPUT_WIDTH,
                 f"Duration: {phase.duration_weeks} weeks (Week {phase.start_week + 1} - "
                 f"Week {phase.start_week + phase.duration_weeks})",
                 f"Effort: {phase.effort_points} story points ({phase.person_months:.1f} person-months)",
@@ -812,7 +816,7 @@ class OutputFormatter:
             "",
             "",
             "KEY MILESTONES",
-            "-" * 80,
+            "-" * OUTPUT_WIDTH,
         ])
 
         for milestone in roadmap.milestones:
@@ -830,7 +834,7 @@ class OutputFormatter:
             "",
             "",
             "ROI ESTIMATE",
-            "-" * 80,
+            "-" * OUTPUT_WIDTH,
             f"Investment: ${roi.investment_cost:,.2f} ({roi.investment_person_months} person-months)",
             f"Expected Annual Savings: ${roi.expected_savings_annual:,.2f}",
             f"Productivity Gain: {roi.productivity_gain_percent}%",
@@ -845,7 +849,7 @@ class OutputFormatter:
 
         lines.extend([
             "",
-            "=" * 80,
+            "=" * OUTPUT_WIDTH,
         ])
 
         return "\n".join(lines)
