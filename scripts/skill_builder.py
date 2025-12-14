@@ -701,7 +701,8 @@ class SkillValidator:
             return False, "Missing Quick Start section"
 
         # Check for at least one workflow
-        workflow_pattern = r'###\s+\d+\.\s+[A-Z]'
+        # Matches: "### 1. Title", "### Workflow 1: Title", "### Step 1 - Title"
+        workflow_pattern = r'###\s+(?:Workflow\s+)?\d+[.:\s-]+\s*[A-Z]'
         workflows = re.findall(workflow_pattern, content)
 
         if len(workflows) < 1:
