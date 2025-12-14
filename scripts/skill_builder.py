@@ -3,7 +3,7 @@
 Skill Builder - Interactive CLI for creating skill packages
 
 This tool automates skill creation with comprehensive validation,
-directory scaffolding, and template population.
+directory scaffolding, template population, and zip file generation.
 
 Usage:
     python skill_builder.py                        # Interactive mode
@@ -11,41 +11,52 @@ Usage:
     python skill_builder.py --validate path/       # Validation mode
     python skill_builder.py --help                 # Show help
 
+Features:
+    - Interactive guided skill creation workflow
+    - Automatic directory scaffolding (SKILL.md, scripts/, references/, assets/)
+    - Python tool placeholder generation with argparse support
+    - Reference guide placeholder generation
+    - HOW_TO_USE.md generation for user onboarding
+    - Zip file creation for Claude web distribution
+    - Comprehensive validation (12 checks)
+    - Config file mode for automated creation
+
 ARCHITECTURE NOTE - Single-File Design:
-    This script is intentionally monolithic (1,621 lines) for portability.
+    This script is intentionally monolithic for portability.
     Users can extract this single file and run it anywhere with Python 3.8+.
     This aligns with the repository's zero-dependency, portable-skills philosophy.
 
     Code is organized into logical sections for maintainability:
 
-    SECTION 1: Configuration & Constants (Lines 15-38)
+    SECTION 1: Configuration & Constants
         - Exit codes, imports, global configuration
 
-    SECTION 2: YAML Parsing Utilities (Lines 40-139)
+    SECTION 2: YAML Parsing Utilities
         - simple_yaml_parse() - Standard library YAML parser
         - Handles basic YAML without external dependencies
 
-    SECTION 3: Team & Domain Management (Lines 140-237)
+    SECTION 3: Team & Domain Management
         - SkillTeamManager class
         - Dynamic team discovery, validation, domain handling
 
-    SECTION 4: Validation Logic (Lines 238-638)
+    SECTION 4: Validation Logic
         - SkillValidator class
         - 12 validation checks for skill structure
 
-    SECTION 5: Template Management (Lines 639-792)
+    SECTION 5: Template Management
         - SkillTemplateLoader class
         - Template file loading and generation
 
-    SECTION 6: Directory Scaffolding (Lines 919-1075)
+    SECTION 6: Directory Scaffolding
         - DirectoryScaffolder class
         - Creates skill directory structure
+        - Creates zip file for Claude web distribution
 
-    SECTION 7: Core Skill Builder (Lines 1076-1545)
+    SECTION 7: Core Skill Builder
         - SkillBuilder class
         - Main orchestration logic
 
-    SECTION 8: CLI Entry Point (Lines 1546-1621)
+    SECTION 8: CLI Entry Point
         - main() function
         - Argument parsing and mode selection
 """
@@ -59,6 +70,7 @@ import os
 import sys
 import re
 import argparse
+import zipfile
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 from datetime import datetime
@@ -1190,6 +1202,56 @@ class DirectoryScaffolder:
         except Exception as e:
             print(f"⚠️  HOW_TO_USE.md creation failed: {e}")
 
+        # Create zip file for Claude web distribution
+        try:
+            self.create_skill_zip(base_path)
+        except Exception as e:
+            print(f"⚠️  Zip file creation failed: {e}")
+
+    def create_skill_zip(self, skill_path: Path) -> Path:
+        """
+        Create zip file for Claude web distribution
+
+        Args:
+            skill_path: Path to the skill directory
+
+        Returns:
+            Path to the created zip file
+        """
+        skill_name = skill_path.name
+        team_dir = skill_path.parent
+        zip_path = team_dir / f"{skill_name}.zip"
+
+        # Excluded patterns
+        exclude_patterns = {
+            '__pycache__',
+            '.pyc',
+            '.DS_Store',
+            '.git',
+            'Thumbs.db',
+            '.tmp',
+            '.temp',
+            '.backup',
+            '.bak',
+        }
+
+        def should_exclude(path: Path) -> bool:
+            """Check if path should be excluded from zip"""
+            for pattern in exclude_patterns:
+                if pattern in str(path):
+                    return True
+            return False
+
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for file_path in skill_path.rglob('*'):
+                if file_path.is_file() and not should_exclude(file_path):
+                    # Store with relative path from team directory (includes skill folder name)
+                    arcname = file_path.relative_to(team_dir)
+                    zf.write(file_path, arcname)
+
+        print(f"✓ Created {skill_name}.zip (for Claude web distribution)")
+        return zip_path
+
     def _generate_how_to_use(self, config: Dict) -> str:
         """Generate HOW_TO_USE.md content"""
         skill_name_title = config['name'].replace('-', ' ').title()
@@ -1634,6 +1696,9 @@ class SkillBuilder:
             print(f"│   ├── {guide}")
         print("└── assets/")
         print("    └── (empty - add templates as needed)")
+        print()
+        print(f"Also creates: skills/{config['domain']}/{config['name']}.zip")
+        print("  └── For Claude web distribution (users can upload directly)")
         print()
 
         confirm = input("Proceed? (y/n): ").strip().lower()

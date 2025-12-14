@@ -1,11 +1,11 @@
 # Agent Catalog
 
-**Complete catalog of 31 production agents for Pandora's SDLC (v2.0)**
+**Complete catalog of 34 production agents for Pandora's SDLC (v2.0)**
 
 Agents are workflow orchestrators that intelligently invoke skills, coordinate Python tools, and guide you through complex multi-step processes. While skills provide the tools and knowledge, agents provide the intelligence to use them effectively.
 
-**Validation Status**: 31/31 passing (100%)
-**Last Validated**: December 13, 2025
+**Validation Status**: 34/34 passing (100%)
+**Last Validated**: December 14, 2025
 
 ## Validation
 
@@ -30,7 +30,7 @@ See [Builder Standards](standards/builder-standards.md) for complete validation 
 - [Agents vs Skills](#agents-vs-skills)
 - [Marketing Agents](#marketing-agents) - 3 agents
 - [Product Agents](#product-agents) - 6 agents
-- [Engineering Agents](#engineering-agents) - 18 agents
+- [Engineering Agents](#engineering-agents) - 21 agents
 - [Delivery Agents](#delivery-agents) - 4 agents
 
 ---
@@ -237,7 +237,7 @@ Business process analysis, workflow mapping, gap identification, and improvement
 
 ## Engineering Agents
 
-**18 engineering agents** covering code review, architecture, backend, frontend, fullstack, DevOps, security, QA, TDD, AI/ML, data, technical writing, legacy modernization, and CTO advisory.
+**21 engineering agents** covering code review, architecture, backend, frontend, fullstack, DevOps, security, QA, TDD, AI/ML, data, technical writing, legacy modernization, mobile development (React Native, Flutter, iOS), and CTO advisory.
 
 ### 🔍 cs-code-reviewer
 **Domain:** Engineering | **Skills Used:** code-reviewer
@@ -589,6 +589,59 @@ Comprehensive legacy codebase analysis for technical debt quantification, securi
 
 ---
 
+### 📱 cs-mobile-engineer
+**Domain:** Engineering | **Skills Used:** senior-mobile
+
+Cross-platform mobile development specialist for React Native, Flutter, and Expo. Handles framework selection, project scaffolding, platform detection, and app store validation.
+
+**Key Workflows:**
+- Framework selection (React Native vs Flutter vs Expo)
+- Project scaffolding with best practices
+- Platform capability detection and configuration
+- App Store/Play Store submission validation
+- CI/CD pipeline setup for mobile releases
+
+**Python Tools Used:**
+- `mobile_scaffolder.py` - Generate cross-platform project structure
+- `platform_detector.py` - Detect platform capabilities and issues
+- `app_store_validator.py` - Validate apps before store submission
+
+[View Agent →](../agents/engineering/cs-mobile-engineer.md)
+
+---
+
+### 🍎 cs-ios-engineer
+**Domain:** Engineering | **Skills Used:** senior-ios
+
+Native iOS development specialist for Swift 5.9+, SwiftUI, UIKit, and Apple ecosystem. Handles SwiftUI development, UIKit migration, performance profiling, and App Store submission.
+
+**Key Workflows:**
+- SwiftUI app development with modern patterns
+- UIKit to SwiftUI migration
+- Swift concurrency implementation
+- Performance profiling with Instruments
+- App Store submission preparation
+
+[View Agent →](../agents/engineering/cs-ios-engineer.md)
+
+---
+
+### 🐦 cs-flutter-engineer
+**Domain:** Engineering | **Skills Used:** senior-flutter
+
+Flutter and Dart development specialist for cross-platform applications. Handles clean architecture, state management (Riverpod, Bloc), platform channels, and widget optimization.
+
+**Key Workflows:**
+- Clean architecture project setup
+- State management (Riverpod, Bloc, Provider)
+- Platform channel integration for native code
+- Widget performance optimization
+- Cross-platform UI development
+
+[View Agent →](../agents/engineering/cs-flutter-engineer.md)
+
+---
+
 ## Delivery Agents
 
 **4 delivery agents** covering Atlassian tools (Jira, Confluence) and agile delivery practices.
@@ -676,6 +729,6 @@ Project management, resource planning, stakeholder management, and delivery exce
 
 ---
 
-**Last Updated:** December 13, 2025
-**Total Agents:** 31 production agents (v2.0)
+**Last Updated:** December 14, 2025
+**Total Agents:** 34 production agents (v2.0)
 **Agent Naming:** cs-* prefix (claude-skills)
