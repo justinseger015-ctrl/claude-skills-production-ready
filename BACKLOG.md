@@ -10,7 +10,7 @@ Product backlog for claude-skills repository. This is a temporary location until
 
 *(Empty - items moved to Completed)*
 
----
+---e 
 
 ## Medium Priority
 
@@ -39,7 +39,7 @@ Product backlog for claude-skills repository. This is a temporary location until
 
 | # | Gap | Effort | Status |
 |---|-----|--------|--------|
-| 2 | **GraphQL Specialist** (cs-graphql-architect) | 8-13 SP | Not Started |
+| 2 | **GraphQL Specialist** (cs-graphql-architect) | 8-13 SP | ✅ **COMPLETED** (2025-12-16) |
 | 3 | **Legacy Modernization** (cs-legacy-codebase-analyzer) | 8-13 SP | ✅ **COMPLETED** (2025-12-13) |
 | 4 | **Observability Engineering** (cs-observability-engineer) | 13-21 SP | Not Started |
 | 5 | **Incident Response** (cs-incident-responder) | 8-13 SP | Not Started |
@@ -55,8 +55,8 @@ Product backlog for claude-skills repository. This is a temporary location until
 | 10 | **Network Engineering** (cs-network-engineer) | 8-13 SP | Not Started |
 | 11 | **iOS Engineer** (cs-ios-engineer) | 8 SP | ✅ **COMPLETED** (2025-12-13) |
 | 12 | **Flutter Engineer** (cs-flutter-engineer) | 8 SP | ✅ **COMPLETED** (2025-12-13) |
-| 13 | **Mermaid Diagrams** (enhance cs-technical-writer) | 5 SP | Not Started |
-| 14 | **SEO Strategist** (cs-seo-strategist) | 5 SP | Not Started |
+| 13 | **Mermaid Diagrams** (enhance cs-technical-writer) | 5 SP | ✅ **COMPLETED** (2025-12-16) |
+| 14 | **SEO Strategist** (cs-seo-strategist) | 5 SP | ✅ **COMPLETED** (2025-12-16) |
 
 ### Explicitly Out of Scope (Irrelevant Domains)
 
@@ -293,6 +293,95 @@ skills/engineering-team/senior-security/scripts/threat_modeler.py
 ---
 
 ## Completed
+
+### SEO Strategist Skill & Agent
+**Type:** Feature
+**Effort:** 5 SP
+**Completed:** 2025-12-16
+**Description:** Strategic SEO planning skill and agent for site-wide optimization, keyword research, technical SEO audits, and competitive positioning. Complements content-creator's on-page SEO with strategic planning, topic cluster architecture, and SEO roadmap generation.
+
+**Deliverables:**
+- **Skill:** `skills/marketing-team/seo-strategist/`
+- **Agent:** `agents/marketing/cs-seo-strategist.md`
+- **3 Python Tools:**
+  - `keyword_researcher.py` - Keyword research, clustering, content mapping with priority scoring (~550 lines)
+  - `technical_seo_auditor.py` - Site-wide technical SEO audit with crawlability, indexation, structure checks (~700 lines)
+  - `seo_roadmap_generator.py` - Prioritized SEO action plans with quarterly planning and KPIs (~650 lines)
+- **3 Reference Docs:** seo_strategy_framework.md, technical_seo_guide.md, competitive_seo_analysis.md
+- **3 Asset Templates:** keyword_research_template.md, seo_audit_checklist.md, seo_roadmap_template.md
+
+**Complementary Design with content-creator:**
+- `content-creator/seo_optimizer.py` - On-page SEO (single article optimization)
+- `seo-strategist/` - Strategic SEO (site-wide strategy, keyword research, technical audits)
+
+**Acceptance Criteria:**
+- [x] Create skill package with all Python tools (standard library only)
+- [x] All 3 Python tools support `--help` and `--version` flags
+- [x] Create comprehensive SKILL.md with 4 key workflows
+- [x] Create agent with proper YAML frontmatter
+- [x] Document 4 key workflows in agent with Integration Examples
+- [x] Validate with `python3 scripts/skill_builder.py --validate` (9/9 checks passing)
+- [x] Validate with `python3 scripts/agent_builder.py --validate` (9/9 checks passing)
+
+---
+
+### Mermaid Diagram Enhancement (cs-technical-writer)
+**Type:** Enhancement
+**Effort:** 5 SP
+**Completed:** 2025-12-16
+**Description:** Comprehensive Mermaid diagram generation capability for technical documentation including technical diagrams (flowchart, sequence, class, ERD, state, architecture) and business analysis diagrams (swimlane, journey, gantt, quadrant, timeline, mindmap).
+
+**Deliverables:**
+- **New Python Tool:** `skills/engineering-team/technical-writer/scripts/mermaid_diagram_generator.py` (~1,900 lines)
+- **12 Diagram Types:** flowchart, sequence, class, erd, state, architecture, swimlane, journey, gantt, quadrant, timeline, mindmap
+- **Code Scanning:** Automatic class diagram generation from Python/TypeScript source files
+- **Updated SKILL.md:** Added Workflow 6 (Technical Diagram Generation) and Workflow 7 (Business Process Documentation)
+- **Updated cs-technical-writer.md:** New examples and tool documentation
+- **Updated cs-architect.md:** Added collaboration pattern with cs-technical-writer for diagram generation
+
+**Complementary Design:**
+- `business-analyst-toolkit/stakeholder_mapper.py` - People/organizational relationship diagrams
+- `technical-writer/mermaid_diagram_generator.py` - All other diagram types (technical + business process)
+
+**Acceptance Criteria:**
+- [x] Create comprehensive mermaid_diagram_generator.py (~1,900 lines)
+- [x] Support 12 diagram types across technical and business domains
+- [x] Support JSON, YAML, and spec file inputs
+- [x] Include code scanning for automatic class diagrams
+- [x] Update technical-writer SKILL.md with new workflows
+- [x] Update cs-technical-writer agent with examples
+- [x] Add collaboration pattern to cs-architect
+- [x] Validate skill (9/9 checks passing)
+- [x] Validate agent (9/9 checks passing)
+- [x] Fix agent_builder.py simple_yaml_parse for nested dict support
+
+---
+
+### GraphQL Specialist Skill & Agent
+**Type:** Feature
+**Effort:** Medium (8-13 SP)
+**Completed:** 2025-12-16
+**Description:** Comprehensive GraphQL API design skill and agent for schema architecture, resolver patterns, Apollo Federation, and performance optimization.
+
+**Deliverables:**
+- **Skill:** `skills/engineering-team/senior-graphql/`
+- **Agent:** `agents/engineering/cs-graphql-architect.md`
+- **3 Python Tools:**
+  - `schema_analyzer.py` - GraphQL schema analysis for quality, complexity, and best practices (500+ lines)
+  - `resolver_generator.py` - TypeScript resolver generation with DataLoader integration (700+ lines)
+  - `federation_scaffolder.py` - Apollo Federation subgraph and gateway scaffolding (900+ lines)
+- **3 Reference Docs:** schema-patterns.md, federation-guide.md, performance-optimization.md
+
+**Acceptance Criteria:**
+- [x] Create skill package with all Python tools (standard library only)
+- [x] All 3 Python tools support `--help` and `--version` flags
+- [x] Create comprehensive SKILL.md with 4 key workflows
+- [x] Create agent with proper YAML frontmatter (35+ fields)
+- [x] Document 4 key workflows in agent
+- [x] Validate with `python3 scripts/skill_builder.py --validate` (9/9 checks passing)
+- [x] Validate with `python3 scripts/agent_builder.py --validate` (9/9 checks passing)
+
+---
 
 ### Mobile Development Suite (3 Skills + 3 Agents)
 **Type:** Feature

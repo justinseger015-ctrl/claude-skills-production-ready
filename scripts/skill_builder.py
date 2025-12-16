@@ -1747,6 +1747,10 @@ class SkillBuilder:
         try:
             self.scaffolder.create_skill_structure(skill_path, config)
 
+            # Zip is created inside create_skill_structure
+            skill_name = skill_path.name
+            zip_path = skill_path.parent / f"{skill_name}.zip"
+
             print()
             print("✅ Skill created successfully!")
             print()
@@ -1758,6 +1762,7 @@ class SkillBuilder:
             print(f"5. Test with: python scripts/skill_builder.py --validate {skill_path.relative_to(self.repo_root)}")
             print()
             print(f"Skill location: {skill_path.relative_to(self.repo_root)}/")
+            print(f"Zip file: {zip_path.relative_to(self.repo_root)}")
 
         except Exception as e:
             print(f"❌ Skill creation failed: {e}")
