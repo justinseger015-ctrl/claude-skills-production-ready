@@ -5,6 +5,268 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.0] - 2025-12-17 - Installation System Overhaul
+
+### Fixed
+
+**Critical Agent Discovery Issue:**
+- Agents installed to `~/.claude-skills/agents/` were NOT being discovered by Claude Code
+- Claude Code only discovers agents from `~/.claude/agents/` at startup
+- This was causing newly installed agents (like cs-seo-strategist) to be invisible
+
+### Changed
+
+**install.sh - Complete Overhaul:**
+- Now installs agents to BOTH locations:
+  - `~/.claude/agents/` - Claude Code discovery (REQUIRED)
+  - `~/.claude-skills/agents/` - Reference copy
+- Added `install_commands()` function for slash command installation
+- Updated all agent/skill counts: 41 agents, 40 skills, 132 Python tools, 16 commands
+- Added clear messaging about VSCode restart requirement
+- Updated quick start guide with critical directory information
+
+**install_agents.py:**
+- Already correctly installs to `~/.claude/agents/` (no changes needed)
+
+**docs/guides/installation.md - Major Updates:**
+- Added prominent troubleshooting section: "Agents Not Appearing in Claude Code"
+- Added CRITICAL callout explaining `~/.claude/agents/` requirement
+- Added Installation Directories table showing where things go
+- Updated all counts throughout
+- Version bumped to 2.0.0
+
+### Statistics
+- **Agents**: 41 (unchanged)
+- **Skills**: 41 (unchanged)
+- **Commands**: 16 (unchanged)
+- **Python Tools**: 132 (unchanged)
+
+---
+
+## [3.11.0] - 2025-12-16 - Network Infrastructure Engineering
+
+### Added
+
+**New Skill: `senior-network-infrastructure`**
+- Complete network infrastructure toolkit for VPC design, VPN configuration, and firewall policies
+- Multi-cloud support for AWS, Azure, and GCP networking
+- 4 Key Workflows: VPC Design, VPN Configuration, Firewall Policy Implementation, Network Security Audit
+
+**Python Tools (4 new):**
+- `vpn_configurator.py` - Generate VPN configurations for site-to-site, point-to-site, HA VPN (~400 lines)
+  - AWS Site-to-Site VPN, Client VPN
+  - Azure VPN Gateway
+  - GCP Cloud VPN, HA VPN
+  - Output: Terraform, JSON, text
+- `firewall_policy_generator.py` - Create security groups, NACLs, NSGs (~450 lines)
+  - 3-tier application templates
+  - Microservices security patterns
+  - Compliance presets (PCI-DSS, HIPAA, SOC2)
+- `network_topology_analyzer.py` - Analyze network configurations (~450 lines)
+  - Redundancy validation
+  - Security posture assessment
+  - Compliance gap identification
+  - Risk scoring with remediation recommendations
+- `subnet_planner.py` - CIDR allocation and subnet planning (~400 lines)
+  - Multi-AZ support
+  - Tier-based allocation (public, private, database)
+  - IP inventory generation
+  - Output: Terraform, JSON, CSV, text
+
+**Reference Documentation (3 new):**
+- `vpc_design_patterns.md` - VPC architecture patterns, hub-spoke, multi-region, landing zones
+- `network_security_guide.md` - Security groups, NACLs, zero-trust, DDoS, compliance frameworks
+- `cloud_networking.md` - Direct Connect, ExpressRoute, Cloud Interconnect, BGP, VPN architectures
+
+**New Agent: `cs-network-engineer`**
+- Network infrastructure specialist orchestrating senior-network-infrastructure skill
+- 4 workflows: Multi-Region VPC Design, Site-to-Site VPN, Security Group Automation, Compliance Audit
+- Collaborates with: cs-devops-engineer, cs-architect, cs-secops-engineer, cs-security-engineer
+
+### Statistics
+- **Agents**: 40 (was 39) - added cs-network-engineer
+- **Skills**: 40 (was 39) - added senior-network-infrastructure
+- **Commands**: 16 (unchanged)
+- **Python Tools**: 122 (was 118) - added 4 network infrastructure tools
+
+---
+
+## [3.10.0] - 2025-12-16 - ServiceNow ITSM Integration
+
+### Added
+
+**ServiceNow Integration for Incident Response & DevOps:**
+Full ITSM integration for enterprise incident management and deployment change control, enabling Pandora-style ServiceNow workflows for observability and DevOps agents.
+
+**Python Tools (3 new):**
+- `servicenow_incident_manager.py` - Generate incident payloads from alerts with severity mapping (~450 lines)
+  - Alert format auto-detection (Prometheus, NewRelic, DataDog, PagerDuty)
+  - P0-P3 severity to ServiceNow impact/urgency/priority mapping
+  - CMDB Configuration Item linking
+  - curl command generation for testing
+- `servicenow_status_sync.py` - Bi-directional status synchronization (~350 lines)
+  - State mapping (alert → ServiceNow incident states)
+  - Actions: acknowledge, update, hold, resolve, close, reopen
+  - Resolution code handling
+- `servicenow_change_manager.py` - Change request automation for deployments (~500 lines)
+  - Change types: Standard, Normal, Emergency
+  - Risk assessment and backout plan generation
+  - CAB approval workflow support
+  - CI/CD pipeline integration examples
+
+**Reference Documentation (2 new):**
+- `servicenow-patterns.md` - ServiceNow REST API patterns, incident/change workflows
+- `servicenow_change_mgmt.md` - Change management guide with GitHub Actions/Jenkins examples
+
+**Asset Templates & Configuration (4 new):**
+- `servicenow-config.yaml` - Configurable settings (instance URL, assignment groups, Event Management)
+- `servicenow-incident-template.json` - Incident creation payload template
+- `servicenow-severity-mapping.yaml` - P0-P4 severity mapping with SLA definitions
+- `servicenow-change-template.json` - Change request payload template with risk assessment
+
+**Agent Updates:**
+- `cs-incident-responder` - Added ServiceNow Incident Escalation workflow (Workflow 5)
+  - New scripts: servicenow_incident_manager.py, servicenow_status_sync.py
+  - New tags: servicenow, itsm
+- `cs-devops-engineer` - Added ServiceNow Change Management workflow (Workflow 5)
+  - New script: servicenow_change_manager.py
+  - New tags: servicenow, change-management, itsm
+- `cs-observability-engineer` - Added collaboration with cs-incident-responder for ServiceNow
+  - New tags: servicenow, itsm
+
+**Skill Updates:**
+- `incident-response` - Added ServiceNow tools, references, and configuration
+- `senior-devops` - Added change management tool and documentation
+
+### Statistics
+- **Agents**: 39 (unchanged, updated 3)
+- **Skills**: 39 (unchanged, updated 2)
+- **Commands**: 16 (unchanged)
+- **Python Tools**: 118 (was 115) - added 3 ServiceNow tools
+
+---
+
+## [3.9.0] - 2025-12-16 - Observability Engineering
+
+### Added
+
+**New Skill: `senior-observability`**
+- Comprehensive observability engineering for monitoring, logging, tracing, and alerting
+- Four Golden Signals, RED/USE methods, SLI/SLO framework expertise
+- OpenTelemetry distributed tracing patterns
+- Multi-platform support: Prometheus, Grafana, DataDog, CloudWatch
+
+**Python Tools (4 new):**
+- `dashboard_generator.py` - Generate Grafana/DataDog dashboards from service definitions (~800 lines)
+- `alert_rule_generator.py` - Generate Prometheus/DataDog/CloudWatch alerting rules (~700 lines)
+- `slo_calculator.py` - Calculate SLI/SLO targets, error budgets, burn rates (~600 lines)
+- `metrics_analyzer.py` - Analyze metrics patterns for anomalies and trends (~700 lines)
+
+**Reference Documentation (4 new):**
+- `monitoring_patterns.md` - Four Golden Signals, RED/USE methods
+- `logging_architecture.md` - Structured logging, ELK Stack, Loki
+- `distributed_tracing.md` - OpenTelemetry, Jaeger, trace correlation
+- `alerting_runbooks.md` - Alert design, SLO framework, multi-burn-rate alerting
+
+**Asset Templates:**
+- Grafana dashboard templates (service_overview.json, slo_dashboard.json)
+- Prometheus alert templates (slo_alerts.yaml, infrastructure_alerts.yaml)
+- Incident response runbook template
+
+**New Agent: `cs-observability-engineer`**
+- Orchestrates observability stack implementation
+- 4 workflows: Full Stack Implementation, SLI/SLO Framework, Alert Design, Dashboard Design
+- Collaborates with: cs-devops-engineer, cs-architect, cs-backend-engineer, cs-secops-engineer
+
+**Agent Collaboration Updates:**
+- Added `collaborates-with` entries for cs-observability-engineer to:
+  - cs-devops-engineer (monitoring infrastructure deployment)
+  - cs-architect (observability architecture alignment)
+  - cs-backend-engineer (metrics instrumentation)
+  - cs-secops-engineer (security monitoring integration)
+
+### Statistics
+- **Agents**: 39 (was 38) - added cs-observability-engineer
+- **Skills**: 39 (was 38) - added senior-observability
+- **Commands**: 16 (unchanged)
+- **Python Tools**: 115 (was 111) - added 4 observability tools
+
+---
+
+## [3.8.0] - 2025-12-14 - Logging & Documentation Enhancement
+
+### Added
+
+**Python Logging Implementation (92 scripts):**
+- Added standardized logging configuration to all 92 Python scripts
+- 77 scripts received new logging (previously missing)
+- 15 scripts already had logging (AI/ML/Data skills)
+- Consistent logging format: `'%(asctime)s - %(levelname)s - %(message)s'`
+
+**Logging Features:**
+- `logger.debug()` - Method entry points and initialization
+- `logger.warning()` - Edge cases (empty inputs, missing files, defaults)
+- `logger.error()` - Exception handlers with context
+- Verbose flag (`-v`/`--verbose`) connects to `logging.DEBUG` level
+
+**Documentation Updates:**
+- README.md statistics updated (92 Python tools, 34 agents, 34 skills)
+- Fixed inconsistent tool counts in attribution section
+
+### Changed
+
+- All Python scripts now support `-v`/`--verbose` for debug output
+- 100% logging coverage across all skill scripts
+
+### Statistics
+- **Agents**: 34 (unchanged)
+- **Skills**: 34 (unchanged)
+- **Commands**: 16 (unchanged)
+- **Python Tools**: 92 (all now with logging)
+
+---
+
+## [3.7.0] - 2025-12-13 - Mobile Development Suite
+
+### Added
+
+**New Skills (3):**
+- **senior-mobile** - Cross-platform mobile development with React Native, Flutter, Expo
+  - Project scaffolding, framework selection, platform detection, app store validation
+  - 3 Python tools: `mobile_scaffolder.py`, `platform_detector.py`, `app_store_validator.py`
+- **senior-ios** - Native iOS development with Swift 5.9+, SwiftUI, UIKit
+  - SwiftUI patterns, UIKit migration, performance profiling, App Store submission
+  - Reference guides: swift-patterns.md, swiftui-guide.md, xcode-workflows.md
+- **senior-flutter** - Flutter/Dart development for cross-platform applications
+  - Clean architecture, state management (Riverpod, Bloc), platform channels, widget optimization
+  - Reference guides: dart-patterns.md, widget-architecture.md, state-management.md
+
+**New Agents (3):**
+- **cs-mobile-engineer** - Cross-platform mobile orchestrator
+  - 4 workflows: Project Scaffolding, Framework Selection, Platform Assessment, Pre-Release Validation
+- **cs-ios-engineer** - Native iOS specialist
+  - 4 workflows: SwiftUI App Development, UIKit Migration, App Store Submission, Performance Profiling
+- **cs-flutter-engineer** - Flutter/Dart specialist
+  - 4 workflows: Clean Architecture Setup, State Management, Platform Channels, Widget Optimization
+
+**Python Tools (3 new in senior-mobile skill):**
+- `mobile_scaffolder.py` - Generate React Native/Flutter/Expo projects with navigation, state, CI/CD
+- `platform_detector.py` - Analyze mobile project configuration and health
+- `app_store_validator.py` - Pre-submission validation for Apple/Google stores
+
+**Reference Documents (9 new):**
+- senior-mobile: frameworks.md, templates.md, tools.md
+- senior-ios: swift-patterns.md, swiftui-guide.md, xcode-workflows.md
+- senior-flutter: dart-patterns.md, widget-architecture.md, state-management.md
+
+### Statistics
+- **Agents**: 34 (was 31) - added 3 mobile agents
+- **Skills**: 34 (was 31) - added 3 mobile skills
+- **Commands**: 16 (unchanged)
+- **Python Tools**: 92 (was 89) - added 3 mobile tools
+
+---
+
 ## [3.6.0] - 2025-11-28 - TDD Engineering Agent & Tools
 
 ### Added

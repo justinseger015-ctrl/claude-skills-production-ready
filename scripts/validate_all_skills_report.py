@@ -7,8 +7,10 @@ import subprocess
 import re
 from pathlib import Path
 from datetime import datetime
+from typing import Dict, List, Optional, Any
 
-def run_validation(skill_path, include_cleanup=False):
+
+def run_validation(skill_path: Path, include_cleanup: bool = False) -> Optional[Dict[str, Any]]:
     """Run validation and parse results"""
     cmd = ['python3', 'scripts/skill_builder.py', '--validate', str(skill_path)]
     if include_cleanup:
@@ -43,16 +45,17 @@ def run_validation(skill_path, include_cleanup=False):
         print(f"Error validating {skill_path}: {e}")
         return None
 
-def main():
-    repo_root = Path(__file__).parent.parent
-    skills_dir = repo_root / 'skills'
+def main() -> None:
+    """Main entry point for skill validation report generation."""
+    repo_root: Path = Path(__file__).parent.parent
+    skills_dir: Path = repo_root / 'skills'
 
     print("# Skill Validation Report - Enhanced Standards v1.1.0")
     print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
 
     # Find all skills
-    skill_paths = []
+    skill_paths: List[Path] = []
     for team_dir in skills_dir.iterdir():
         if team_dir.is_dir() and not team_dir.name.startswith('.'):
             for skill_dir in team_dir.iterdir():
@@ -63,7 +66,7 @@ def main():
     print()
 
     # Validate all skills
-    results = []
+    results: List[Dict[str, Any]] = []
     for skill_path in sorted(skill_paths):
         team_name = skill_path.parent.name
         skill_name = skill_path.name
@@ -126,7 +129,7 @@ def main():
     # Group by issue type
     print("## Common Issues")
     print()
-    issue_counts = {}
+    issue_counts: Dict[str, int] = {}
     for r in results:
         for check in r['cleanup']['failed_checks']:
             issue_counts[check] = issue_counts.get(check, 0) + 1
@@ -138,7 +141,7 @@ def main():
     print("## Skills Requiring Attention")
     print()
 
-    needs_work = [r for r in results if r['cleanup']['passed'] < r['cleanup']['total']]
+    needs_work: List[Dict[str, Any]] = [r for r in results if r['cleanup']['passed'] < r['cleanup']['total']]
     for r in sorted(needs_work, key=lambda x: x['cleanup']['percent']):
         score = f"{r['cleanup']['passed']}/{r['cleanup']['total']}"
         issues = ', '.join(r['cleanup']['failed_checks'])

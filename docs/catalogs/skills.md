@@ -1,11 +1,11 @@
 # Skills Catalog
 
-**Complete catalog of 31 production-ready skills for Pandora's SDLC**
+**Complete catalog of 34 production-ready skills for Pandora's SDLC**
 
 This document provides detailed descriptions of all available skills in the Claude Skills Library. Each skill is a self-contained package with Python CLI tools, expert knowledge bases, and ready-to-use templates.
 
-**Validation Status**: 31/31 passing (100%)
-**Last Validated**: November 28, 2025
+**Validation Status**: 34/34 passing (100%)
+**Last Validated**: December 14, 2025
 
 ## Validation
 
@@ -25,8 +25,8 @@ See [Builder Standards](standards/builder-standards.md) for complete validation 
 ## Table of Contents
 
 - [Marketing Skills](#marketing-skills) - 3 skills
-- [Product Team Skills](#product-team-skills) - 6 skills
-- [Engineering Team Skills](#engineering-team-skills) - 16 skills
+- [Product Team Skills](#product-team-skills) - 7 skills
+- [Engineering Team Skills](#engineering-team-skills) - 20 skills
 - [Delivery Team Skills](#delivery-team-skills) - 4 skills
 
 ---
@@ -89,7 +89,7 @@ Product marketing, positioning, GTM strategy, and competitive intelligence.
 
 ## Product Team Skills
 
-**6 comprehensive product skills** covering product management, agile practices, strategy, UX research, UI design, and business analysis.
+**7 comprehensive product skills** covering product management, agile practices, strategy, UX research, UI design, business analysis, and competitive analysis.
 
 ### 📊 Product Manager Toolkit
 **Status:** ✅ Production Ready | **Version:** 1.0
@@ -203,9 +203,25 @@ Business process analysis, workflow mapping, gap identification, and improvement
 
 ---
 
+### 🎯 Competitive Analysis & Intelligence
+**Status:** ✅ Production Ready | **Version:** 1.0
+
+Strategic competitive analysis framework for evaluating products, features, and capabilities against competitors.
+
+**What's Included:**
+- **Competitive Scorecard Generation** - Weighted dimension scoring and comparison
+- **Feature Gap Analysis** - Identify opportunities and competitive advantages
+- **Market Positioning** - Strategic positioning assessment and recommendations
+- **Adoption Prioritization** - Impact/effort frameworks for feature adoption
+- **SWOT Analysis** - Comprehensive strengths, weaknesses, opportunities, threats
+
+**Learn More:** [skills/product-team/competitive-analysis/SKILL.md](../skills/product-team/competitive-analysis/SKILL.md)
+
+---
+
 ## Engineering Team Skills
 
-**16 comprehensive engineering skills** covering code review, architecture, backend, frontend, fullstack, DevOps, security, QA, AI/ML, data, technical writing, and CTO advisory.
+**20 comprehensive engineering skills** covering code review, architecture, backend, frontend, fullstack, DevOps, security, QA, AI/ML, data, technical writing, legacy modernization, mobile development (React Native, Flutter, iOS), and CTO advisory.
 
 ### 🔍 Code Reviewer
 **Status:** ✅ Production Ready | **Version:** 1.0
@@ -348,6 +364,29 @@ Security operations, incident response, threat hunting, and compliance automatio
 - **Security Metrics** - MTTD, MTTR, security posture dashboards
 
 **Learn More:** [skills/engineering-team/senior-secops/SKILL.md](../skills/engineering-team/senior-secops/SKILL.md)
+
+---
+
+### 🏚️ Legacy Codebase Analyzer
+**Status:** ✅ Production Ready | **Version:** 1.0
+
+Comprehensive legacy codebase analysis for technical debt quantification, security vulnerability scanning, and modernization roadmap generation.
+
+**What's Included:**
+- **Codebase Inventory** - Multi-language detection, dependency extraction, LOC metrics (Python CLI)
+- **Security Vulnerability Scanner** - Secret detection, OWASP patterns, compliance gaps (Python CLI)
+- **Performance Bottleneck Detector** - N+1 queries, O(n²) patterns, memory issues (Python CLI)
+- **Code Quality Analyzer** - Cyclomatic complexity, duplication detection, code smells (Python CLI)
+- **Architecture Health Analyzer** - Dependency graphs, circular dependencies, coupling metrics (Python CLI)
+- **Technical Debt Scorer** - Five-category weighted scoring with business impact (Python CLI)
+- **Modernization Roadmap Generator** - 4-phase roadmaps with ROI estimates (Python CLI)
+- **Analysis Framework** - Assessment methodology, severity classification, benchmarks
+- **Modernization Patterns** - Migration strategies, strangler fig, database patterns
+- **Executive Summary Template** - Board-ready one-page format
+- **Technical Debt Report Template** - Detailed findings by category
+- **Roadmap Template** - Phased implementation with milestones
+
+**Learn More:** [skills/engineering-team/legacy-codebase-analyzer/SKILL.md](../skills/engineering-team/legacy-codebase-analyzer/SKILL.md)
 
 ---
 
@@ -502,6 +541,60 @@ Documentation quality analysis, README generation, CHANGELOG maintenance, and AP
 
 ---
 
+### 📱 Senior Mobile Engineer
+**Status:** ✅ Production Ready | **Version:** 1.0
+
+Cross-platform mobile development for React Native, Flutter, and Expo applications.
+
+**What's Included:**
+- **Mobile Scaffolder** - Generate React Native or Flutter project structure (Python CLI)
+- **Platform Detector** - Detect platform capabilities and configuration issues (Python CLI)
+- **App Store Validator** - Validate apps before App Store/Play Store submission (Python CLI)
+- **Framework Selection** - React Native vs Flutter vs Expo decision framework
+- **State Management** - Redux Toolkit, Zustand, Riverpod, Bloc patterns
+- **Native Modules** - Platform-specific code integration (Turbo Modules, Platform Channels)
+- **Performance Optimization** - Bundle size, startup time, memory optimization
+
+**Learn More:** [skills/engineering-team/senior-mobile/SKILL.md](../skills/engineering-team/senior-mobile/SKILL.md)
+
+---
+
+### 🍎 Senior iOS Engineer
+**Status:** ✅ Production Ready | **Version:** 1.0
+
+Native iOS development with Swift 5.9+, SwiftUI, UIKit, and Apple ecosystem integration.
+
+**What's Included:**
+- **SwiftUI Patterns** - MVVM, TCA, @Observable, modern state management
+- **UIKit Migration** - Incremental UIKit to SwiftUI migration strategies
+- **Swift Concurrency** - async/await, actors, structured concurrency patterns
+- **Instruments Profiling** - Performance, memory, and energy diagnostics
+- **App Store Preparation** - Screenshots, metadata, review guidelines
+- **Core Frameworks** - Core Data, CloudKit, HealthKit, StoreKit 2 integration
+- **Xcode Workflows** - Build configurations, schemes, CI/CD integration
+
+**Learn More:** [skills/engineering-team/senior-ios/SKILL.md](../skills/engineering-team/senior-ios/SKILL.md)
+
+---
+
+### 🐦 Senior Flutter Engineer
+**Status:** ✅ Production Ready | **Version:** 1.0
+
+Flutter and Dart development for cross-platform applications with clean architecture.
+
+**What's Included:**
+- **Clean Architecture** - Domain/Data/Presentation layer separation
+- **State Management** - Riverpod, Bloc, Provider patterns and best practices
+- **Platform Channels** - Native iOS/Android code integration (Method/Event Channels)
+- **Widget Optimization** - const constructors, RepaintBoundary, ListView.builder
+- **Testing Strategy** - Widget tests, golden tests, integration tests
+- **Freezed/Riverpod** - Code generation, immutable models, dependency injection
+- **Firebase Integration** - Authentication, Firestore, Cloud Functions
+
+**Learn More:** [skills/engineering-team/senior-flutter/SKILL.md](../skills/engineering-team/senior-flutter/SKILL.md)
+
+---
+
 ## Delivery Team Skills
 
 **4 comprehensive delivery skills** covering Atlassian tools (Jira, Confluence) and agile delivery practices.
@@ -587,6 +680,6 @@ Project management, resource planning, stakeholder management, and delivery exce
 
 ---
 
-**Last Updated:** November 28, 2025
-**Total Skills:** 31 production-ready skills
-**Total CLI Tools:** 74 Python automation tools
+**Last Updated:** December 14, 2025
+**Total Skills:** 34 production-ready skills
+**Total CLI Tools:** 92 Python automation tools

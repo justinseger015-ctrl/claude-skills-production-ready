@@ -79,6 +79,11 @@ EXIT_FILE_ERROR = 2
 EXIT_CONFIG_ERROR = 3
 EXIT_UNKNOWN_ERROR = 99
 
+# Validation limits
+MAX_DESCRIPTION_LENGTH = 300       # Maximum description length in YAML
+MAX_DESCRIPTION_INPUT = 150        # Maximum for interactive input (user-friendly)
+MAX_TITLE_LENGTH = 100             # Maximum title length
+
 
 # ============================================================================
 # SECTION 2: YAML PARSING UTILITIES
@@ -89,52 +94,134 @@ def simple_yaml_parse(yaml_str: str) -> Dict:
     """
     Simple YAML parser for agent frontmatter (standard library only)
 
-    Handles basic key-value pairs and lists.
-    Does NOT support nested objects or complex YAML features.
+    Handles:
+    - Basic key-value pairs
+    - Lists (both inline [...] and multi-line with -)
+    - Single-level nested objects (like stats, classification, dependencies)
+
+    Does NOT support deeply nested structures (3+ levels).
     """
-    result = {}
-    current_key = None
-    list_items = []
+    result: Dict = {}
+    current_key: Optional[str] = None
+    current_dict: Optional[Dict] = None
+    list_items: List = []
+    lines = yaml_str.strip().split('\n')
 
-    for line in yaml_str.strip().split('\n'):
-        line = line.strip()
+    i = 0
+    while i < len(lines):
+        raw_line = lines[i]
+        stripped = raw_line.strip()
 
-        if not line or line.startswith('#'):
+        # Skip empty lines and comments
+        if not stripped or stripped.startswith('#'):
+            i += 1
             continue
 
-        # List item
-        if line.startswith('- '):
-            item = line[2:].strip()
-            list_items.append(item)
+        # Calculate indentation (2 spaces = 1 level)
+        indent = len(raw_line) - len(raw_line.lstrip())
+        is_indented = indent >= 2
+
+        # List item (either top-level or nested)
+        if stripped.startswith('- '):
+            item = stripped[2:].strip()
+            # Handle list item with nested dict (- title: "...", etc.)
+            if ':' in item and not item.startswith('"') and not item.startswith("'"):
+                # This is a dict item in a list (like examples)
+                dict_item = {}
+                key, value = item.split(':', 1)
+                dict_item[key.strip()] = value.strip().strip('"\'')
+                # Look ahead for more keys in this dict item
+                j = i + 1
+                while j < len(lines):
+                    next_raw = lines[j]
+                    next_stripped = next_raw.strip()
+                    next_indent = len(next_raw) - len(next_raw.lstrip())
+                    # Same or deeper indent and has key-value
+                    if next_indent >= indent + 2 and ':' in next_stripped and not next_stripped.startswith('-'):
+                        k, v = next_stripped.split(':', 1)
+                        dict_item[k.strip()] = v.strip().strip('"\'')
+                        j += 1
+                    else:
+                        break
+                list_items.append(dict_item)
+                i = j
+                continue
+            else:
+                list_items.append(item)
+            i += 1
             continue
 
         # Key-value pair
-        if ':' in line:
-            # Save previous list if any
+        if ':' in stripped:
+            # Save previous collection if any
             if current_key and list_items:
                 result[current_key] = list_items
                 list_items = []
+            if current_key and current_dict:
+                result[current_key] = current_dict
+                current_dict = None
 
-            key, value = line.split(':', 1)
+            key, value = stripped.split(':', 1)
             key = key.strip()
             value = value.strip()
+
+            # Handle indented key (part of nested dict)
+            if is_indented and current_key and current_dict is not None:
+                # Convert value types
+                if value.lower() == 'true':
+                    current_dict[key] = True
+                elif value.lower() == 'false':
+                    current_dict[key] = False
+                elif value.replace('.', '', 1).replace('-', '', 1).isdigit():
+                    current_dict[key] = float(value) if '.' in value else int(value)
+                elif value.startswith('[') and value.endswith(']'):
+                    items = value[1:-1].split(',')
+                    current_dict[key] = [item.strip() for item in items if item.strip()]
+                else:
+                    current_dict[key] = value.strip('"\'')
+                i += 1
+                continue
 
             # Handle inline lists [item1, item2]
             if value.startswith('[') and value.endswith(']'):
                 items = value[1:-1].split(',')
-                result[key] = [item.strip() for item in items]
+                result[key] = [item.strip() for item in items if item.strip()]
                 current_key = None
-            # Empty value - expect list on next lines
+                current_dict = None
+            # Empty value - could be list or nested dict
             elif not value:
                 current_key = key
+                # Check next line to determine if list or dict
+                if i + 1 < len(lines):
+                    next_stripped = lines[i + 1].strip()
+                    if next_stripped.startswith('- '):
+                        current_dict = None  # It's a list
+                    else:
+                        current_dict = {}  # It's a nested dict
+                else:
+                    current_dict = None
             # Simple value
             else:
-                result[key] = value
+                # Convert value types
+                if value.lower() == 'true':
+                    result[key] = True
+                elif value.lower() == 'false':
+                    result[key] = False
+                elif value.replace('.', '', 1).replace('-', '', 1).isdigit():
+                    result[key] = float(value) if '.' in value else int(value)
+                else:
+                    result[key] = value.strip('"\'')
                 current_key = None
+                current_dict = None
 
-    # Save final list if any
-    if current_key and list_items:
-        result[current_key] = list_items
+        i += 1
+
+    # Save final collection if any
+    if current_key:
+        if list_items:
+            result[current_key] = list_items
+        elif current_dict is not None:
+            result[current_key] = current_dict
 
     return result
 
@@ -301,8 +388,222 @@ This directory contains agents for the {domain} domain.
 class AgentValidator:
     """Validation logic for agent files"""
 
+    # Valid values for validation
+    VALID_MODELS = ['sonnet', 'opus', 'haiku']
+    VALID_TOOLS = ['Read', 'Write', 'Bash', 'Grep', 'Glob', 'Edit', 'NotebookEdit', 'WebFetch', 'WebSearch']
+    VALID_COLORS = ['blue', 'green', 'red', 'purple', 'orange']
+    VALID_FIELDS = ['quality', 'frontend', 'backend', 'fullstack', 'product', 'architecture',
+                    'testing', 'devops', 'data', 'ai', 'security', 'performance', 'design',
+                    'research', 'content', 'finance', 'agile', 'tools', 'coordination']
+    VALID_DIFFICULTY = ['beginner', 'intermediate', 'advanced']
+    VALID_EXPERTISE = ['beginner', 'intermediate', 'expert']
+    VALID_EXECUTION = ['parallel', 'coordinated', 'sequential']
+    VALID_CLASSIFICATION_TYPES = ['strategic', 'implementation', 'quality', 'coordination', 'domain-specific']
+
     def __init__(self, repo_root: Path):
         self.repo_root = repo_root
+
+    # -------------------------------------------------------------------------
+    # Validation Helper Methods (extracted for reduced complexity)
+    # -------------------------------------------------------------------------
+
+    def _validate_required_fields(self, frontmatter: Dict) -> Optional[str]:
+        """Validate required YAML fields are present. Returns error message or None."""
+        required = ['name', 'description', 'domain', 'model', 'tools']
+        for field in required:
+            if field not in frontmatter:
+                return f"Missing required YAML field: {field}"
+        return None
+
+    def _validate_core_fields(self, frontmatter: Dict) -> Optional[str]:
+        """Validate core field values (description, model, tools). Returns error message or None."""
+        if len(frontmatter['description']) > MAX_DESCRIPTION_LENGTH:
+            return f"Description too long: {len(frontmatter['description'])} chars (max: {MAX_DESCRIPTION_LENGTH})"
+
+        if frontmatter['model'] not in self.VALID_MODELS:
+            return f"Invalid model: {frontmatter['model']} (must be: {', '.join(self.VALID_MODELS)})"
+
+        if not isinstance(frontmatter['tools'], list):
+            return "Tools must be a list"
+
+        for tool in frontmatter['tools']:
+            if tool not in self.VALID_TOOLS:
+                return f"Invalid tool: {tool}"
+
+        return None
+
+    def _validate_string_field(self, frontmatter: Dict, field: str, max_len: int,
+                                pattern: Optional[str] = None, pattern_desc: str = "") -> Optional[str]:
+        """Validate optional string field. Returns error message or None."""
+        if field not in frontmatter:
+            return None
+
+        value = frontmatter[field]
+        if max_len > 0 and len(value) > max_len:
+            return f"{field.title()} too long: {len(value)} chars (max: {max_len})"
+
+        if pattern and not re.match(pattern, value):
+            return f"Invalid {field} format: {value} ({pattern_desc})"
+
+        return None
+
+    def _validate_enum_field(self, frontmatter: Dict, field: str, valid_values: List[str]) -> Optional[str]:
+        """Validate optional enum field. Returns error message or None."""
+        if field not in frontmatter:
+            return None
+
+        value = frontmatter[field]
+        if value not in valid_values:
+            return f"Invalid {field}: {value} (must be: {', '.join(valid_values)})"
+
+        return None
+
+    def _validate_list_field(self, frontmatter: Dict, field: str) -> Optional[str]:
+        """Validate optional list field. Returns error message or None."""
+        if field not in frontmatter:
+            return None
+
+        if not isinstance(frontmatter[field], list):
+            return f"{field} must be a list"
+
+        return None
+
+    def _validate_website_ready_fields(self, frontmatter: Dict) -> Optional[str]:
+        """Validate Phase 1-4 website-ready fields. Returns error message or None."""
+        # Phase 1: Core Identity + Versioning
+        error = self._validate_string_field(frontmatter, 'title', 100)
+        if error:
+            return error
+
+        error = self._validate_string_field(frontmatter, 'subdomain', 0,
+                                            r'^[a-z][a-z0-9-]*$', "must be kebab-case")
+        if error:
+            return error
+
+        error = self._validate_string_field(frontmatter, 'version', 0,
+                                            r'^v?\d+\.\d+\.\d+$', "must be vX.Y.Z or X.Y.Z")
+        if error:
+            return error
+
+        # Phase 2: Website Display + Discoverability
+        error = self._validate_enum_field(frontmatter, 'difficulty', self.VALID_DIFFICULTY)
+        if error:
+            return error
+
+        for list_field in ['use-cases', 'tags', 'related-agents', 'related-skills', 'related-commands']:
+            error = self._validate_list_field(frontmatter, list_field)
+            if error:
+                return error
+
+        # Phase 3: Classification
+        if 'classification' in frontmatter:
+            if isinstance(frontmatter['classification'], dict):
+                if 'type' in frontmatter['classification']:
+                    if frontmatter['classification']['type'] not in self.VALID_CLASSIFICATION_TYPES:
+                        return f"Invalid classification type: {frontmatter['classification']['type']}"
+
+        # Dependencies validation
+        if 'dependencies' in frontmatter:
+            deps = frontmatter['dependencies']
+            if isinstance(deps, dict):
+                if 'tools' in deps and not isinstance(deps['tools'], list):
+                    return "dependencies.tools must be a list"
+                if 'mcp-tools' in deps and not isinstance(deps['mcp-tools'], list):
+                    return "dependencies.mcp-tools must be a list"
+
+        # Phase 4: Examples + Analytics
+        error = self._validate_list_field(frontmatter, 'examples')
+        if error:
+            return error
+
+        if 'stats' in frontmatter and not isinstance(frontmatter['stats'], dict):
+            return "stats must be a dictionary"
+
+        return None
+
+    def _validate_legacy_fields(self, frontmatter: Dict) -> Optional[str]:
+        """Validate legacy fields for backward compatibility. Returns error message or None."""
+        error = self._validate_enum_field(frontmatter, 'color', self.VALID_COLORS)
+        if error:
+            return error
+
+        error = self._validate_enum_field(frontmatter, 'field', self.VALID_FIELDS)
+        if error:
+            return error
+
+        error = self._validate_enum_field(frontmatter, 'expertise', self.VALID_EXPERTISE)
+        if error:
+            return error
+
+        error = self._validate_enum_field(frontmatter, 'execution', self.VALID_EXECUTION)
+        if error:
+            return error
+
+        return None
+
+    def _validate_collaborates_with(self, frontmatter: Dict) -> Optional[str]:
+        """
+        Validate collaborates-with structure for agent dependencies.
+
+        Expected format:
+        collaborates-with:
+          - agent: cs-technical-writer
+            purpose: Description of collaboration
+            required: optional|recommended|required
+            features-enabled:
+              - feature-1
+              - feature-2
+            without-collaborator: "What doesn't work without this"
+
+        Returns error message or None.
+        """
+        if 'collaborates-with' not in frontmatter:
+            return None
+
+        collaborations = frontmatter['collaborates-with']
+
+        if not isinstance(collaborations, list):
+            return "collaborates-with must be a list"
+
+        valid_required_values = ['optional', 'recommended', 'required']
+
+        for idx, collab in enumerate(collaborations):
+            if not isinstance(collab, dict):
+                return f"collaborates-with[{idx}] must be a dictionary"
+
+            # Required fields
+            if 'agent' not in collab:
+                return f"collaborates-with[{idx}] missing required 'agent' field"
+
+            if 'purpose' not in collab:
+                return f"collaborates-with[{idx}] missing required 'purpose' field"
+
+            # Validate agent name format
+            agent_name = collab.get('agent', '')
+            if not agent_name.startswith('cs-'):
+                return f"collaborates-with[{idx}].agent must start with 'cs-': {agent_name}"
+
+            # Validate required field if present
+            if 'required' in collab:
+                if collab['required'] not in valid_required_values:
+                    return f"collaborates-with[{idx}].required must be one of: {', '.join(valid_required_values)}"
+
+            # Validate features-enabled if present (accept list or string for parser compatibility)
+            if 'features-enabled' in collab:
+                features = collab['features-enabled']
+                if not isinstance(features, (list, str)):
+                    return f"collaborates-with[{idx}].features-enabled must be a list or string"
+
+            # Validate without-collaborator if present
+            if 'without-collaborator' in collab:
+                if not isinstance(collab['without-collaborator'], str):
+                    return f"collaborates-with[{idx}].without-collaborator must be a string"
+
+        return None
+
+    # -------------------------------------------------------------------------
+    # Public Validation Methods
+    # -------------------------------------------------------------------------
 
     def validate_name(self, name: str) -> Tuple[bool, str]:
         """Validate agent name format (cs-[a-z0-9-]+)"""
@@ -358,118 +659,30 @@ class AgentValidator:
         if not frontmatter:
             return False, "Missing YAML frontmatter"
 
-        # Required fields (core identity + technical)
-        required = ['name', 'description', 'domain', 'model', 'tools']
-        for field in required:
-            if field not in frontmatter:
-                return False, f"Missing required YAML field: {field}"
+        # Required fields validation
+        error = self._validate_required_fields(frontmatter)
+        if error:
+            return False, error
 
-        # Field validation
-        if len(frontmatter['description']) > 300:
-            return False, f"Description too long: {len(frontmatter['description'])} chars (max: 300)"
+        # Core field values validation
+        error = self._validate_core_fields(frontmatter)
+        if error:
+            return False, error
 
-        if frontmatter['model'] not in ['sonnet', 'opus', 'haiku']:
-            return False, f"Invalid model: {frontmatter['model']} (must be: sonnet, opus, haiku)"
+        # Website-ready fields validation (Phase 1-4)
+        error = self._validate_website_ready_fields(frontmatter)
+        if error:
+            return False, error
 
-        if not isinstance(frontmatter['tools'], list):
-            return False, "Tools must be a list"
+        # Legacy fields validation (backward compatibility)
+        error = self._validate_legacy_fields(frontmatter)
+        if error:
+            return False, error
 
-        valid_tools = ['Read', 'Write', 'Bash', 'Grep', 'Glob', 'Edit', 'NotebookEdit', 'WebFetch', 'WebSearch']
-        for tool in frontmatter['tools']:
-            if tool not in valid_tools:
-                return False, f"Invalid tool: {tool}"
-
-        # Website-ready fields validation (Phase 1: Core Identity + Versioning)
-        if 'title' in frontmatter:
-            if len(frontmatter['title']) > 100:
-                return False, f"Title too long: {len(frontmatter['title'])} chars (max: 100)"
-
-        if 'subdomain' in frontmatter:
-            if not re.match(r'^[a-z][a-z0-9-]*$', frontmatter['subdomain']):
-                return False, f"Invalid subdomain format: {frontmatter['subdomain']} (must be kebab-case)"
-
-        if 'version' in frontmatter:
-            if not re.match(r'^v?\d+\.\d+\.\d+$', frontmatter['version']):
-                return False, f"Invalid version format: {frontmatter['version']} (must be vX.Y.Z or X.Y.Z)"
-
-        # Phase 2: Website Display + Discoverability
-        if 'difficulty' in frontmatter:
-            valid_difficulty = ['beginner', 'intermediate', 'advanced']
-            if frontmatter['difficulty'] not in valid_difficulty:
-                return False, f"Invalid difficulty: {frontmatter['difficulty']} (must be: {', '.join(valid_difficulty)})"
-
-        if 'use-cases' in frontmatter:
-            if not isinstance(frontmatter['use-cases'], list):
-                return False, "use-cases must be a list"
-
-        if 'tags' in frontmatter:
-            if not isinstance(frontmatter['tags'], list):
-                return False, "tags must be a list"
-
-        # Phase 3: Relationships + Technical
-        if 'related-agents' in frontmatter:
-            if not isinstance(frontmatter['related-agents'], list):
-                return False, "related-agents must be a list"
-
-        if 'related-skills' in frontmatter:
-            if not isinstance(frontmatter['related-skills'], list):
-                return False, "related-skills must be a list"
-
-        if 'related-commands' in frontmatter:
-            if not isinstance(frontmatter['related-commands'], list):
-                return False, "related-commands must be a list"
-
-        if 'classification' in frontmatter:
-            if isinstance(frontmatter['classification'], dict):
-                valid_types = ['strategic', 'implementation', 'quality', 'coordination', 'domain-specific']
-                if 'type' in frontmatter['classification']:
-                    if frontmatter['classification']['type'] not in valid_types:
-                        return False, f"Invalid classification type: {frontmatter['classification']['type']}"
-
-        if 'dependencies' in frontmatter:
-            if isinstance(frontmatter['dependencies'], dict):
-                if 'tools' in frontmatter['dependencies']:
-                    if not isinstance(frontmatter['dependencies']['tools'], list):
-                        return False, "dependencies.tools must be a list"
-
-        # Phase 4: Examples + Analytics
-        if 'examples' in frontmatter:
-            if not isinstance(frontmatter['examples'], list):
-                return False, "examples must be a list"
-
-        if 'stats' in frontmatter:
-            if not isinstance(frontmatter['stats'], dict):
-                return False, "stats must be a dictionary"
-
-        # Legacy fields validation (for backward compatibility)
-        if 'color' in frontmatter:
-            valid_colors = ['blue', 'green', 'red', 'purple', 'orange']
-            if frontmatter['color'] not in valid_colors:
-                return False, f"Invalid color: {frontmatter['color']} (must be: {', '.join(valid_colors)})"
-
-        if 'field' in frontmatter:
-            valid_fields = ['quality', 'frontend', 'backend', 'fullstack', 'product', 'architecture',
-                          'testing', 'devops', 'data', 'ai', 'security', 'performance', 'design',
-                          'research', 'content', 'finance', 'agile', 'tools', 'coordination']
-            if frontmatter['field'] not in valid_fields:
-                return False, f"Invalid field: {frontmatter['field']} (must be one of: {', '.join(valid_fields)})"
-
-        if 'expertise' in frontmatter:
-            valid_expertise = ['beginner', 'intermediate', 'expert']
-            if frontmatter['expertise'] not in valid_expertise:
-                return False, f"Invalid expertise: {frontmatter['expertise']} (must be: {', '.join(valid_expertise)})"
-
-        if 'execution' in frontmatter:
-            valid_execution = ['parallel', 'coordinated', 'sequential']
-            if frontmatter['execution'] not in valid_execution:
-                return False, f"Invalid execution: {frontmatter['execution']} (must be: {', '.join(valid_execution)})"
-
-        # Validate nested dependencies.mcp-tools if present
-        if 'dependencies' in frontmatter:
-            deps = frontmatter['dependencies']
-            if isinstance(deps, dict) and 'mcp-tools' in deps:
-                if not isinstance(deps['mcp-tools'], list):
-                    return False, "dependencies.mcp-tools must be a list"
+        # Collaborates-with validation (agent dependencies)
+        error = self._validate_collaborates_with(frontmatter)
+        if error:
+            return False, error
 
         return True, "Valid"
 
@@ -870,6 +1083,15 @@ class CatalogUpdater:
 class AgentBuilder:
     """Main orchestrator for agent creation"""
 
+    # Domain to field mapping for intelligent defaults
+    DOMAIN_TO_FIELD = {
+        'engineering': 'backend',
+        'product': 'product',
+        'marketing': 'content',
+        'c-level': 'architecture',
+        'delivery': 'coordination'
+    }
+
     def __init__(self, repo_root: Path):
         self.repo_root = repo_root
         self.validator = AgentValidator(repo_root)
@@ -877,13 +1099,12 @@ class AgentBuilder:
         self.catalog_updater = CatalogUpdater(repo_root)
         self.domain_manager = DomainManager(repo_root)
 
-    def interactive_mode(self) -> None:
-        """Run interactive agent creation workflow"""
-        print("🤖 Agent Builder")
-        print("=" * 50)
-        print()
+    # -------------------------------------------------------------------------
+    # Interactive Mode Helper Methods (extracted for reduced complexity)
+    # -------------------------------------------------------------------------
 
-        # Step 1: Agent Name
+    def _prompt_agent_name(self) -> str:
+        """Prompt for and validate agent name (Step 1)"""
         print("Step 1/8: Agent Name")
         print("-" * 50)
         print("Enter agent name (kebab-case with cs- prefix):")
@@ -895,21 +1116,19 @@ class AgentBuilder:
             valid, msg = self.validator.validate_name(name)
             if valid:
                 print(f"✓ Valid name format")
-                break
-            else:
-                print(f"❌ {msg}")
-                print("Try again:")
+                print()
+                return name
+            print(f"❌ {msg}")
+            print("Try again:")
 
-        print()
-
-        # Step 2: Domain Selection
+    def _prompt_domain_selection(self) -> str:
+        """Prompt for domain selection (Step 2)"""
         print("Step 2/8: Domain")
         print("-" * 50)
 
         existing_domains = self.domain_manager.get_existing_domains()
         print("Select domain:")
         for idx, domain in enumerate(existing_domains, 1):
-            # Count agents in domain
             agent_count = len(list((self.repo_root / "agents" / domain).glob("cs-*.md")))
             print(f"{idx}. {domain} ({agent_count} agents)")
         print(f"{len(existing_domains) + 1}. Create new domain")
@@ -921,33 +1140,34 @@ class AgentBuilder:
             if choice.isdigit() and 1 <= int(choice) <= len(existing_domains):
                 domain = existing_domains[int(choice) - 1]
                 print(f"✓ Domain: {domain}")
-                break
-            elif choice.isdigit() and int(choice) == len(existing_domains) + 1:
+                print()
+                return domain
+
+            if choice.isdigit() and int(choice) == len(existing_domains) + 1:
                 domain = self.create_new_domain_interactive()
-                break
-            else:
-                print("❌ Invalid selection")
+                print()
+                return domain
 
-        print()
+            print("❌ Invalid selection")
 
-        # Step 3: Description
+    def _prompt_description(self) -> str:
+        """Prompt for agent description (Step 3)"""
         print("Step 3/8: Description")
         print("-" * 50)
-        print("Enter one-line description (under 150 chars):")
+        print(f"Enter one-line description (under {MAX_DESCRIPTION_INPUT} chars):")
         print('Example: "Data analysis and reporting for product decisions"')
         print()
 
         while True:
             description = input("Description: ").strip()
-            if len(description) <= 150:
+            if len(description) <= MAX_DESCRIPTION_INPUT:
                 print(f"✓ Length: {len(description)} chars")
-                break
-            else:
-                print(f"❌ Description too long: {len(description)} chars (max: 150)")
+                print()
+                return description
+            print(f"❌ Description too long: {len(description)} chars (max: {MAX_DESCRIPTION_INPUT})")
 
-        print()
-
-        # Step 4: Skills Integration
+    def _prompt_skills_integration(self, domain: str) -> str:
+        """Prompt for skills integration (Step 4)"""
         print("Step 4/8: Skills Integration")
         print("-" * 50)
 
@@ -957,7 +1177,6 @@ class AgentBuilder:
         if skills_path.exists():
             available_skills = [d.name for d in skills_path.iterdir()
                               if d.is_dir() and not d.name.startswith('.')]
-
             if available_skills:
                 print(f"Available skills in {skill_team}:")
                 for skill in available_skills:
@@ -972,26 +1191,27 @@ class AgentBuilder:
             skills = input("Skills: ").strip()
             skill_path = self.repo_root / "skills" / skill_team / skills
 
-            if skill_path.exists():
-                # Count Python tools
-                scripts_dir = skill_path / "scripts"
-                if scripts_dir.exists():
-                    tool_count = len(list(scripts_dir.glob("*.py")))
-                    print(f"✓ Skill exists: skills/{skill_team}/{skills}/")
-                    print(f"✓ Found {tool_count} Python tools")
-                    break
-                else:
-                    print(f"⚠️  Skill exists but has no scripts/ directory")
-                    confirm = input("Continue anyway? (y/n): ").strip().lower()
-                    if confirm == 'y':
-                        break
-            else:
+            if not skill_path.exists():
                 print(f"❌ Skill not found: skills/{skill_team}/{skills}/")
                 print("Try again:")
+                continue
 
-        print()
+            scripts_dir = skill_path / "scripts"
+            if scripts_dir.exists():
+                tool_count = len(list(scripts_dir.glob("*.py")))
+                print(f"✓ Skill exists: skills/{skill_team}/{skills}/")
+                print(f"✓ Found {tool_count} Python tools")
+                print()
+                return skills
 
-        # Step 5: Model Selection
+            print(f"⚠️  Skill exists but has no scripts/ directory")
+            confirm = input("Continue anyway? (y/n): ").strip().lower()
+            if confirm == 'y':
+                print()
+                return skills
+
+    def _prompt_model_selection(self) -> str:
+        """Prompt for model selection (Step 5)"""
         print("Step 5/8: Model Selection")
         print("-" * 50)
         print("Select model:")
@@ -1006,13 +1226,12 @@ class AgentBuilder:
             if choice.isdigit() and 1 <= int(choice) <= 3:
                 model = models[int(choice) - 1]
                 print(f"✓ Model: {model}")
-                break
-            else:
-                print("❌ Invalid selection")
+                print()
+                return model
+            print("❌ Invalid selection")
 
-        print()
-
-        # Step 6: Tools Selection
+    def _prompt_tools_selection(self) -> List[str]:
+        """Prompt for tools selection (Step 6)"""
         print("Step 6/8: Tools Selection")
         print("-" * 50)
         print("Select tools (comma-separated):")
@@ -1029,71 +1248,78 @@ class AgentBuilder:
 
         print(f"✓ Tools: {tools}")
         print()
+        return tools
 
-        # Step 7: Agent Type Classification
+    def _compute_classification_defaults(self, domain: str, tools: List[str]) -> Dict:
+        """Compute intelligent defaults for agent classification based on domain and tools"""
+        defaults = {
+            'color': 'blue',
+            'field': self.DOMAIN_TO_FIELD.get(domain),
+            'expertise': 'intermediate',
+            'execution': 'coordinated'
+        }
+
+        # Adjust based on tools
+        if 'Bash' in tools and len(tools) >= 5:
+            defaults['color'] = 'green'  # Implementation agent
+            defaults['execution'] = 'coordinated'
+        elif 'Bash' in tools and 'Edit' in tools:
+            defaults['color'] = 'red'  # Quality agent
+            defaults['execution'] = 'sequential'
+        elif len(tools) <= 3:
+            defaults['color'] = 'blue'  # Strategic agent
+            defaults['execution'] = 'parallel'
+
+        return defaults
+
+    def _prompt_agent_classification(self, domain: str, tools: List[str]) -> Dict:
+        """Prompt for agent classification (Step 7)"""
         print("Step 7/8: Agent Type Classification (Optional)")
         print("-" * 50)
         print("Configure agent type metadata for resource management and execution patterns.")
         print()
 
-        # Determine intelligent defaults based on domain and tools
-        default_color = 'blue'  # Strategic by default
-        default_field = None
-        default_expertise = 'intermediate'
-        default_execution = 'coordinated'
+        defaults = self._compute_classification_defaults(domain, tools)
 
-        # Suggest field based on domain
-        domain_to_field = {
-            'engineering': 'backend',
-            'product': 'product',
-            'marketing': 'content',
-            'c-level': 'architecture',
-            'delivery': 'coordination'
-        }
-        if domain in domain_to_field:
-            default_field = domain_to_field[domain]
-
-        # Adjust defaults based on tools
-        if 'Bash' in tools and len(tools) >= 5:
-            default_color = 'green'  # Implementation agent
-            default_execution = 'coordinated'
-        elif 'Bash' in tools and 'Edit' in tools:
-            default_color = 'red'  # Quality agent (heavy Bash usage)
-            default_execution = 'sequential'
-        elif len(tools) <= 3:
-            default_color = 'blue'  # Strategic agent (minimal tools)
-            default_execution = 'parallel'
-
+        # Color
         print(f"1. Color (agent type): blue=Strategic, green=Implementation, red=Quality, purple=Coordination")
-        print(f"   Default: {default_color}")
+        print(f"   Default: {defaults['color']}")
         color_input = input(f"   Color (Enter for default): ").strip().lower()
-        color = color_input if color_input in ['blue', 'green', 'red', 'purple', 'orange'] else default_color
+        color = color_input if color_input in ['blue', 'green', 'red', 'purple', 'orange'] else defaults['color']
 
         print()
+
+        # Field
         print(f"2. Field (specialization): quality, frontend, backend, fullstack, product, architecture,")
         print(f"                          testing, devops, data, ai, security, performance, design,")
         print(f"                          research, content, finance, agile, tools")
-        if default_field:
-            print(f"   Default: {default_field}")
+        if defaults['field']:
+            print(f"   Default: {defaults['field']}")
             field_input = input(f"   Field (Enter for default): ").strip().lower()
-            field = field_input if field_input else default_field
+            field = field_input if field_input else defaults['field']
         else:
             field_input = input(f"   Field (Enter to skip): ").strip().lower()
             field = field_input if field_input else None
 
         print()
+
+        # Expertise
         print(f"3. Expertise level: beginner, intermediate, expert")
-        print(f"   Default: {default_expertise}")
+        print(f"   Default: {defaults['expertise']}")
         expertise_input = input(f"   Expertise (Enter for default): ").strip().lower()
-        expertise = expertise_input if expertise_input in ['beginner', 'intermediate', 'expert'] else default_expertise
+        expertise = expertise_input if expertise_input in ['beginner', 'intermediate', 'expert'] else defaults['expertise']
 
         print()
+
+        # Execution
         print(f"4. Execution pattern: parallel (4-5 agents), coordinated (2-3 agents), sequential (1 agent)")
-        print(f"   Default: {default_execution}")
+        print(f"   Default: {defaults['execution']}")
         execution_input = input(f"   Execution (Enter for default): ").strip().lower()
-        execution = execution_input if execution_input in ['parallel', 'coordinated', 'sequential'] else default_execution
+        execution = execution_input if execution_input in ['parallel', 'coordinated', 'sequential'] else defaults['execution']
 
         print()
+
+        # MCP Tools
         print(f"5. MCP Tools (comma-separated, e.g., github, playwright, atlassian)")
         mcp_input = input(f"   MCP Tools (Enter to skip): ").strip()
         mcp_tools = [t.strip() for t in mcp_input.split(',')] if mcp_input else []
@@ -1109,39 +1335,64 @@ class AgentBuilder:
             print(f"  MCP Tools: {mcp_tools}")
         print()
 
-        # Step 8: Preview and Confirm
+        return {
+            'color': color,
+            'field': field,
+            'expertise': expertise,
+            'execution': execution,
+            'mcp_tools': mcp_tools
+        }
+
+    def _preview_and_confirm(self, config: Dict) -> bool:
+        """Preview configuration and confirm (Step 8)"""
         print("Step 8/8: Preview")
         print("-" * 50)
         print("Review your agent configuration:")
         print()
-        print(f"Name:        {name}")
-        print(f"Domain:      {domain}")
-        print(f"Description: {description}")
-        print(f"Skills:      {skills}")
-        print(f"Model:       {model}")
-        print(f"Tools:       {tools}")
-        print(f"Color:       {color}")
-        if field:
-            print(f"Field:       {field}")
-        print(f"Expertise:   {expertise}")
-        print(f"Execution:   {execution}")
-        if mcp_tools:
-            print(f"MCP Tools:   {mcp_tools}")
+        print(f"Name:        {config['name']}")
+        print(f"Domain:      {config['domain']}")
+        print(f"Description: {config['description']}")
+        print(f"Skills:      {config['skills']}")
+        print(f"Model:       {config['model']}")
+        print(f"Tools:       {config['tools']}")
+        print(f"Color:       {config['color']}")
+        if config.get('field'):
+            print(f"Field:       {config['field']}")
+        print(f"Expertise:   {config['expertise']}")
+        print(f"Execution:   {config['execution']}")
+        if config.get('mcp_tools'):
+            print(f"MCP Tools:   {config['mcp_tools']}")
         print()
         print("Files to create:")
-        print(f"- agents/{domain}/{name}.md")
+        print(f"- agents/{config['domain']}/{config['name']}.md")
         print()
         print("Catalog updates:")
-        print(f"- agents/{domain}/CATALOG.md (append)")
+        print(f"- agents/{config['domain']}/CATALOG.md (append)")
         print()
 
         confirm = input("Proceed? (y/n): ").strip().lower()
+        return confirm == 'y'
 
-        if confirm != 'y':
-            print("❌ Agent creation cancelled")
-            sys.exit(0)
+    # -------------------------------------------------------------------------
+    # Public Methods
+    # -------------------------------------------------------------------------
 
-        # Generate agent
+    def interactive_mode(self) -> None:
+        """Run interactive agent creation workflow"""
+        print("🤖 Agent Builder")
+        print("=" * 50)
+        print()
+
+        # Collect configuration through step prompts
+        name = self._prompt_agent_name()
+        domain = self._prompt_domain_selection()
+        description = self._prompt_description()
+        skills = self._prompt_skills_integration(domain)
+        model = self._prompt_model_selection()
+        tools = self._prompt_tools_selection()
+        classification = self._prompt_agent_classification(domain, tools)
+
+        # Build configuration
         config = {
             'name': name,
             'domain': domain,
@@ -1149,18 +1400,21 @@ class AgentBuilder:
             'skills': skills,
             'model': model,
             'tools': tools,
-            'color': color,
-            'expertise': expertise,
-            'execution': execution
+            'color': classification['color'],
+            'expertise': classification['expertise'],
+            'execution': classification['execution']
         }
 
-        # Add optional field if provided
-        if field:
-            config['field'] = field
+        # Add optional fields if provided
+        if classification['field']:
+            config['field'] = classification['field']
+        if classification['mcp_tools']:
+            config['mcp_tools'] = classification['mcp_tools']
 
-        # Add MCP tools if provided
-        if mcp_tools:
-            config['mcp_tools'] = mcp_tools
+        # Preview and confirm
+        if not self._preview_and_confirm(config):
+            print("❌ Agent creation cancelled")
+            sys.exit(0)
 
         self.generate_agent(config)
 

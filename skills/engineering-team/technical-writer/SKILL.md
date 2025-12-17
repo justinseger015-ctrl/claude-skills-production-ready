@@ -3,7 +3,7 @@
 # === CORE IDENTITY ===
 name: technical-writer
 title: Technical Writer Skill Package
-description: Comprehensive documentation automation with quality analysis, README generation, CHANGELOG management, and API documentation formatting. Integrates with /update.docs command. Use for documentation audits, technical writing, API docs, README creation, and maintaining project documentation.
+description: Comprehensive documentation automation with quality analysis, README generation, CHANGELOG management, API documentation formatting, and Mermaid diagram generation. Integrates with /update.docs command. Use for documentation audits, technical writing, API docs, README creation, diagram generation, and maintaining project documentation.
 domain: engineering
 subdomain: documentation
 
@@ -16,6 +16,7 @@ use-cases:
   - Automated README generation and updates
   - CHANGELOG maintenance and synchronization
   - API documentation creation and formatting
+  - Mermaid diagram generation (architecture, flowcharts, sequence, class, ERD, state)
   - Pre-release documentation reviews
   - Technical writing workflows
 
@@ -40,6 +41,8 @@ dependencies:
     - readme_generator.py
     - changelog_generator.py
     - api_doc_formatter.py
+    - mermaid_diagram_generator.py
+    - interactive_doc_wizard.py
   references:
     - technical_writing_standards.md
     - api_documentation_patterns.md
@@ -77,17 +80,17 @@ stats:
   reviews: 0
 
 # === VERSIONING ===
-version: v1.0.0
+version: v1.1.0
 author: Claude Skills Team
 contributors:
   - Documentation Team
   - Engineering Team
 created: 2025-11-28
-updated: 2025-11-28
+updated: 2025-12-16
 license: MIT
 
 # === DISCOVERABILITY ===
-tags: [documentation, technical-writing, readme, changelog, api-docs, markdown, quality-analysis]
+tags: [documentation, technical-writing, readme, changelog, api-docs, markdown, quality-analysis, mermaid, diagrams, architecture]
 featured: false
 verified: true
 ---
@@ -477,6 +480,221 @@ git commit -m "docs(api): create comprehensive API documentation"
 - Consistent formatting throughout
 - Quality score ≥ 80/100
 
+### Workflow 6: Technical Diagram Generation (30-60 min)
+
+**Scenario:** Creating architecture, process flow, or data model diagrams for documentation
+
+```bash
+# 1. Architecture diagram for system documentation
+python scripts/mermaid_diagram_generator.py --type architecture \
+    --input system-design.json --output markdown \
+    --title "Microservices Architecture"
+
+# Tool generates:
+# - Component diagram with layered structure
+# - Connection flows between services
+# - External system integrations
+# - Color-coded component types
+
+# 2. Sequence diagram for API interaction documentation
+python scripts/mermaid_diagram_generator.py --type sequence \
+    --input auth-flow.json --output markdown
+
+# Tool generates:
+# - Participant definitions with roles
+# - Message flows with labels
+# - Synchronous/async calls
+# - Activation indicators
+
+# 3. Class diagram from source code (auto-discovery)
+python scripts/mermaid_diagram_generator.py --type class \
+    --scan src/models/ --output markdown \
+    --title "Domain Model"
+
+# Tool scans and generates:
+# - Class definitions with attributes
+# - Method signatures
+# - Inheritance relationships
+# - Associations between classes
+
+# 4. ERD for database documentation
+python scripts/mermaid_diagram_generator.py --type erd \
+    --input schema.json --output markdown
+
+# 5. State diagram for workflow documentation
+python scripts/mermaid_diagram_generator.py --type state \
+    --input order-lifecycle.json --output markdown
+
+# 6. Embed in documentation
+# Copy generated Mermaid blocks into documentation
+# Verify rendering in GitHub/GitLab/docs site
+```
+
+**Time Estimate:** 30-60 minutes (vs 2-3 hours manual diagram creation)
+
+**Success Criteria:**
+- Diagrams accurately represent system/data/process
+- Mermaid syntax valid and renders correctly
+- Consistent styling across diagrams
+- Diagrams embedded in documentation
+- All relationships clearly shown
+
+### Workflow 7: Business Process Documentation (1-2 hours)
+
+**Scenario:** Creating process diagrams for business analysts or stakeholder presentations
+
+```bash
+# 1. Swimlane diagram for cross-functional process
+python scripts/mermaid_diagram_generator.py --type swimlane \
+    --input order-fulfillment.json --output markdown \
+    --title "Order Fulfillment Process"
+
+# Tool generates:
+# - Department/role lanes
+# - Process steps within lanes
+# - Cross-lane handoffs
+# - Color-coded lanes
+
+# 2. Customer journey map
+python scripts/mermaid_diagram_generator.py --type journey \
+    --input onboarding-journey.json --output markdown
+
+# Tool generates:
+# - Journey sections/phases
+# - Touchpoints with satisfaction scores
+# - Actor annotations
+# - Experience visualization
+
+# 3. Project timeline (Gantt chart)
+python scripts/mermaid_diagram_generator.py --type gantt \
+    --input project-plan.json --output markdown
+
+# Tool generates:
+# - Phased task sections
+# - Dependencies between tasks
+# - Milestones
+# - Critical path highlighting
+
+# 4. Prioritization matrix (Quadrant chart)
+python scripts/mermaid_diagram_generator.py --type quadrant \
+    --input features.json --output markdown \
+    --title "Feature Prioritization"
+
+# Tool generates:
+# - Labeled axes (effort/value, risk/impact)
+# - Quadrant labels
+# - Positioned feature points
+# - Visual prioritization
+
+# 5. Mindmap for brainstorming documentation
+python scripts/mermaid_diagram_generator.py --type mindmap \
+    --input improvement-ideas.json --output markdown
+
+# 6. Timeline for roadmap communication
+python scripts/mermaid_diagram_generator.py --type timeline \
+    --input roadmap-2025.json --output markdown
+```
+
+**Time Estimate:** 1-2 hours (vs 3-4 hours manual creation)
+
+**Success Criteria:**
+- Diagrams clear and readable for business audience
+- Cross-functional flows accurately represented
+- Handoffs and dependencies visible
+- Consistent visual style
+- Embedded in stakeholder documentation
+
+### Workflow 8: Interactive Documentation Creation (10-30 min)
+
+**Scenario:** Using guided wizards to create documentation through step-by-step interactive workflows
+
+```bash
+# 1. Start interactive README wizard
+python scripts/interactive_doc_wizard.py --workflow readme
+
+# Wizard guides through 8 steps:
+# Step 1: Project name and description
+# Step 2: Technology stack detection (auto-detected)
+# Step 3: Installation instructions
+# Step 4: Usage examples
+# Step 5: API overview (if applicable)
+# Step 6: Contributing guidelines
+# Step 7: License selection
+# Step 8: Preview and confirmation
+
+# 2. Run CHANGELOG workflow for release preparation
+python scripts/interactive_doc_wizard.py --workflow changelog
+
+# Wizard guides through 6 steps:
+# - Version number and release type
+# - Commit range selection
+# - Change categorization review
+# - Breaking changes documentation
+# - Release notes enhancement
+# - Output format selection
+
+# 3. Documentation audit workflow
+python scripts/interactive_doc_wizard.py --workflow audit --output audit-report.md
+
+# Wizard guides through 7 steps:
+# - Select documentation scope (README, API, guides)
+# - Configure quality thresholds
+# - Run automated analysis
+# - Review findings by severity
+# - Generate improvement recommendations
+# - Create action items
+# - Export audit report
+
+# 4. API documentation workflow
+python scripts/interactive_doc_wizard.py --workflow api-docs
+
+# Wizard guides through 10 steps:
+# - Source selection (OpenAPI, code annotations, manual)
+# - Endpoint discovery
+# - Authentication documentation
+# - Request/response examples
+# - Error handling documentation
+# - Rate limiting configuration
+# - Output format selection
+
+# 5. User guide workflow
+python scripts/interactive_doc_wizard.py --workflow user-guide
+
+# Wizard guides through 12 steps:
+# - Target audience definition
+# - Guide structure selection
+# - Getting started content
+# - Feature documentation
+# - Troubleshooting section
+# - FAQ generation
+# - Review and finalization
+
+# 6. Non-interactive mode with config file
+python scripts/interactive_doc_wizard.py --config readme_config.yaml --output README.md
+
+# 7. Dry-run mode (preview without writing)
+python scripts/interactive_doc_wizard.py --workflow readme --dry-run
+```
+
+**Available Workflows:**
+
+| Workflow | Steps | Time | Description |
+|----------|-------|------|-------------|
+| `readme` | 8 | 10-15 min | Interactive README creation with project analysis |
+| `api-docs` | 10 | 15-20 min | Generate API reference from code or specs |
+| `changelog` | 6 | 5-10 min | Create changelog from git history |
+| `audit` | 7 | 10-15 min | Quality assessment of existing documentation |
+| `user-guide` | 12 | 20-30 min | Interactive user guide generation |
+
+**Time Estimate:** 10-30 minutes per workflow (vs 1-3 hours manual creation)
+
+**Success Criteria:**
+- All wizard steps complete successfully
+- Generated documentation passes quality analyzer (score >= 80)
+- Output matches project context and requirements
+- Config file mode available for automation
+- Dry-run mode works for preview
+
 ## Python Tools
 
 ### 1. Documentation Quality Analyzer
@@ -755,6 +973,206 @@ Required: Bearer token
 | 401 | UNAUTHORIZED | Invalid or missing authentication token |
 ```
 
+### 5. Mermaid Diagram Generator
+
+Comprehensive diagram generation for technical and business documentation.
+
+**Key Features:**
+- Technical diagrams: flowcharts, sequence, class, ERD, state, architecture
+- Business analysis diagrams: swimlanes, journey maps, Gantt charts, quadrants, timelines, mindmaps
+- Multiple input formats (JSON, YAML)
+- Multiple output formats (Mermaid, Markdown, HTML)
+- Code scanning for class diagram generation
+- Complementary to business-analyst stakeholder diagrams
+
+**Common Usage:**
+```bash
+# Generate flowchart from JSON definition
+python scripts/mermaid_diagram_generator.py --type flowchart --input process.json
+
+# Generate sequence diagram for API flows
+python scripts/mermaid_diagram_generator.py --type sequence --input api-flow.yaml
+
+# Generate class diagram by scanning source code
+python scripts/mermaid_diagram_generator.py --type class --scan src/models/
+
+# Generate swimlane for cross-functional processes (BA use case)
+python scripts/mermaid_diagram_generator.py --type swimlane --input order-fulfillment.json
+
+# Generate customer journey map (BA use case)
+python scripts/mermaid_diagram_generator.py --type journey --input onboarding.json
+
+# Generate Gantt chart for project timeline
+python scripts/mermaid_diagram_generator.py --type gantt --input project.json
+
+# Generate priority quadrant matrix
+python scripts/mermaid_diagram_generator.py --type quadrant --input features.json
+
+# Output as Markdown with title
+python scripts/mermaid_diagram_generator.py --type architecture --input system.json \
+    --output markdown --title "System Architecture"
+```
+
+**Diagram Types:**
+
+| Type | Category | Description |
+|------|----------|-------------|
+| flowchart | Technical | Process flows, decision trees, workflows |
+| sequence | Technical | API calls, service interactions, message flows |
+| class | Technical | Object models, inheritance hierarchies |
+| erd | Technical | Database schemas, entity relationships |
+| state | Technical | State machines, workflow states, lifecycles |
+| architecture | Technical | System architecture, component diagrams |
+| swimlane | Business | Cross-functional process flows with role/dept lanes |
+| journey | Business | Customer/user journey maps with touchpoints |
+| gantt | Business | Project timelines, milestones, dependencies |
+| quadrant | Business | Priority matrices, effort/impact analysis |
+| timeline | Business | Event timelines, roadmaps, milestones |
+| mindmap | Business | Brainstorming, idea organization |
+
+**Use Cases:**
+- Architecture documentation for technical specs
+- API interaction documentation (sequence diagrams)
+- Database schema documentation (ERDs)
+- Process documentation for business analysts
+- Cross-functional workflow documentation (swimlanes)
+- Customer experience mapping (journey maps)
+- Project planning visualization (Gantt)
+- Feature prioritization (quadrant charts)
+- Roadmap communication (timelines)
+
+**Output Example (Swimlane):**
+```mermaid
+%% Order Fulfillment Process
+%% Swimlane Process Diagram
+flowchart LR
+    subgraph customer[Customer]
+        order(["Place Order"])
+        receive(["Receive Package"])
+    end
+
+    subgraph sales[Sales Team]
+        verify["Verify Order"]
+        confirm["Send Confirmation"]
+    end
+
+    subgraph warehouse[Warehouse]
+        pick["Pick Items"]
+        pack["Pack Order"]
+        ship["Ship"]
+    end
+
+    order --> verify
+    verify --> confirm
+    confirm --> pick
+    pick --> pack
+    pack --> ship
+    ship -.->|Tracking info| receive
+
+    style customer fill:#e3f2fd,stroke:#666
+    style sales fill:#fff3e0,stroke:#666
+    style warehouse fill:#e8f5e9,stroke:#666
+```
+
+**Complementary Design:**
+- `business-analyst-toolkit/stakeholder_mapper.py`: Stakeholder relationship diagrams (people/orgs)
+- `technical-writer/mermaid_diagram_generator.py`: All other diagram types (technical + business)
+
+### 6. Interactive Documentation Wizard
+
+Step-by-step guided documentation creation through interactive CLI workflows.
+
+**Key Features:**
+- 5 interactive workflows (readme, api-docs, changelog, audit, user-guide)
+- Project auto-detection (language, framework, tests, CI)
+- Decision tree navigation (adaptive questions based on context)
+- Multiple output formats (markdown, html, json)
+- Config file mode for non-interactive/automated usage
+- Dry-run mode for preview without writing
+- Integration with existing tools (doc_quality_analyzer, readme_generator, changelog_generator)
+
+**Common Usage:**
+```bash
+# Start README wizard interactively
+python scripts/interactive_doc_wizard.py --workflow readme
+
+# Run audit workflow with output file
+python scripts/interactive_doc_wizard.py --workflow audit --output audit_report.md
+
+# Non-interactive mode with config file
+python scripts/interactive_doc_wizard.py --config readme_config.yaml --output README.md
+
+# Dry-run mode (preview without writing)
+python scripts/interactive_doc_wizard.py --workflow readme --dry-run
+
+# Show available workflows
+python scripts/interactive_doc_wizard.py --help
+```
+
+**Available Workflows:**
+
+| Workflow | Steps | Time Est. | Description |
+|----------|-------|-----------|-------------|
+| `readme` | 8 | 10-15 min | Interactive README creation with project analysis |
+| `api-docs` | 10 | 15-20 min | Generate API reference from code or specs |
+| `changelog` | 6 | 5-10 min | Create changelog from git history |
+| `audit` | 7 | 10-15 min | Quality assessment of existing documentation |
+| `user-guide` | 12 | 20-30 min | Interactive user guide generation |
+
+**Use Cases:**
+- First-time README creation for new projects
+- Release preparation with changelog and migration docs
+- Documentation quality audits before releases
+- API documentation from scratch or OpenAPI specs
+- User guide creation for developer onboarding
+- Automated documentation generation in CI/CD pipelines
+- Standardized documentation across multiple repositories
+
+**Output Example:**
+```
+============================================================
+          INTERACTIVE DOCUMENTATION WIZARD
+============================================================
+Version: 1.0.0
+
+Available Workflows:
+  1. README Creation (8 steps, ~10-15 min)
+  2. API Documentation (10 steps, ~15-20 min)
+  3. Changelog Generation (6 steps, ~5-10 min)
+  4. Documentation Audit (7 steps, ~10-15 min)
+  5. User Guide Creation (12 steps, ~20-30 min)
+
+Select a workflow (1-5): 1
+
+============================================================
+README CREATION WORKFLOW
+============================================================
+
+Step 1/8: Project Information
+------------------------------------------------------------
+Auto-detected project name: my-awesome-project
+Is this correct? (Y/n): y
+
+Step 2/8: Technology Stack
+------------------------------------------------------------
+Detected languages: Python (78%), JavaScript (22%)
+Detected framework: FastAPI
+Detected package manager: pip
+Include detected stack? (Y/n): y
+
+[... continues through all steps ...]
+
+Step 8/8: Preview & Confirm
+------------------------------------------------------------
+Preview generated README.md:
+
+# my-awesome-project
+...
+
+Write to README.md? (Y/n): y
+✓ README.md created successfully!
+```
+
 ## Reference Documentation
 
 Detailed guides available in the `references/` directory:
@@ -988,7 +1406,7 @@ fi
 
 ---
 
-**Version:** 1.0.0
-**Last Updated:** 2025-11-28
+**Version:** 1.1.0
+**Last Updated:** 2025-12-16
 **Documentation Structure:** Progressive disclosure with references/
 **Integration:** Powers /update.docs command and CI/CD documentation workflows

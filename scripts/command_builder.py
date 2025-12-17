@@ -79,6 +79,10 @@ EXIT_FILE_ERROR = 2
 EXIT_CONFIG_ERROR = 3
 EXIT_UNKNOWN_ERROR = 99
 
+# Validation limits
+MAX_DESCRIPTION_LENGTH = 150       # Maximum description length in YAML
+MIN_DOC_LENGTH = 500               # Minimum documentation length
+
 
 # ============================================================================
 # SECTION 2: YAML PARSING UTILITIES
@@ -393,8 +397,8 @@ class CommandValidator:
                 return False, f"Missing required YAML field: {field}"
 
         # Field validation
-        if len(frontmatter['description']) > 150:
-            return False, f"Description too long: {len(frontmatter['description'])} chars (max: 150)"
+        if len(frontmatter['description']) > MAX_DESCRIPTION_LENGTH:
+            return False, f"Description too long: {len(frontmatter['description'])} chars (max: {MAX_DESCRIPTION_LENGTH})"
 
         # Validate difficulty if present
         if 'difficulty' in frontmatter:
@@ -469,8 +473,8 @@ class CommandValidator:
 
         # Pattern-specific validation would go here
         # For now, just check that body has substantial content
-        if len(body.strip()) < 500:
-            return False, "Command documentation too brief (< 500 chars)"
+        if len(body.strip()) < MIN_DOC_LENGTH:
+            return False, f"Command documentation too brief (< {MIN_DOC_LENGTH} chars)"
 
         return True, "Valid"
 
@@ -926,17 +930,17 @@ class CommandBuilder:
         # Step 3: Description
         print("Step 3/15: Description")
         print("-" * 50)
-        print("Enter one-line description (max 150 chars):")
+        print(f"Enter one-line description (max {MAX_DESCRIPTION_LENGTH} chars):")
         print('Example: "Performs comprehensive code review with quality analysis"')
         print()
 
         while True:
             description = input("Description: ").strip()
-            if len(description) <= 150:
+            if len(description) <= MAX_DESCRIPTION_LENGTH:
                 print(f"✓ Length: {len(description)} chars")
                 break
             else:
-                print(f"❌ Description too long: {len(description)} chars (max: 150)")
+                print(f"❌ Description too long: {len(description)} chars (max: {MAX_DESCRIPTION_LENGTH})")
 
         print()
 
